@@ -1,3 +1,7 @@
+\chapter{Target Language}
+
+The target language is defined similarly to the source language, except it has closures instead of lambda abstractions.
+After the last meeting, I got rid of the tuple in the object language and now environements exist in the meta language only.
 
 \section{Imports}
 
@@ -38,6 +42,8 @@ data Type : Set where
 
 \section{Contexts}
 
+Rather than define the context from scratch like in PLFA, I use lists so that I do not have to define the sublist (or subcontext) relation from scratch.
+
 \begin{code}
 Context : Set
 Context = List Type
@@ -59,6 +65,9 @@ data _∋_ : Context → Type → Set where
 \end{code}
 
 \section{Terms, enviroments, and the typing judgment}
+
+An `Env Δ Γ` defines the record for the environment Δ for a closure which exists in the context Γ.
+The i-th element of `Env Δ Γ` has type `Γ ⊢ A` where A is the i-th type in Δ.
 
 \begin{code}
 data _⊢_ : Context → Type → Set 
@@ -88,7 +97,7 @@ data _⊢_ where
 
   ⟪_,_⟫ : ∀ {Γ Δ A B}
         → A ∷ A ⇒ B ∷ Δ ⊢ B
-        → Env Δ Γ  -- Γ ⊢ Context→Env Δ 
+        → Env Δ Γ
           ------------
         → Γ ⊢ (A ⇒ B)
 

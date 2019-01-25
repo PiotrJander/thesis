@@ -1,3 +1,5 @@
+\chapter{Merging subcontexts}
+
 \begin{code}
 
 import Relation.Binary.PropositionalEquality as Eq
@@ -17,7 +19,13 @@ open import Closure
 ... | ρ = λ x → s (ρ x)
 ⊆→ρ (keep Γ⊆Δ) with ⊆→ρ Γ⊆Δ
 ... | ρ = λ { z → z ; (s v) → s (ρ v) }
+\end{code}
 
+\section{Sum of subcontexts}
+
+A sum of two subcontexts Δ and Δ₁ contained in Γ is a context Γ₁ which contains Δ and Δ₁ and is contained in Γ.
+
+\begin{code}
 record SubContextSum (Γ Δ Δ₁ : Context) : Set where
   constructor subContextSum
   field
@@ -27,7 +35,11 @@ record SubContextSum (Γ Δ Δ₁ : Context) : Set where
     Δ₁⊆Γ₁ : Δ₁ ⊆ Γ₁
 
 open SubContextSum
+\end{code}
 
+This notion of a sum can be generalised to any number of subcontexts, in particular, to three subcontexts.
+
+\begin{code}
 record SubContextSum₃ (Γ Δ Δ₁ Δ₂ : Context) : Set where
   constructor subContextSum
   field
@@ -38,7 +50,11 @@ record SubContextSum₃ (Γ Δ Δ₁ Δ₂ : Context) : Set where
     Δ₂⊆Γ₁ : Δ₂ ⊆ Γ₁
 
 open SubContextSum₃
+\end{code}
 
+The `merge` function computes the sum of two subcontexts.
+
+\begin{code}
 merge : ∀ {Γ Δ Δ₁} → Δ ⊆ Γ → Δ₁ ⊆ Γ → SubContextSum Γ Δ Δ₁
 merge {[]} {[]} {[]} base base = subContextSum [] base base base
 merge {[]} {[]} {σ ∷ Γ} base ()

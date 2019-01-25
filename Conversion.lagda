@@ -1,3 +1,7 @@
+\chapter{Conversion}
+
+\section{Imports}
+
 \begin{code}
 
 import Relation.Binary.PropositionalEquality as Eq
@@ -15,7 +19,13 @@ import Closure as T
 open S using (_,_ ; ∅ ; Z ; S_)
 open T using (z ; s_ ; ⟪_,_⟫)
 open import SubContext
+\end{code}
 
+\section{Type preservation}
+
+The transformation preserves types up to the `convert-type` relation.
+
+\begin{code}
 convert-type : S.Type → T.Type
 convert-type S.`ℕ = T.`ℕ
 convert-type (A S.⇒ B) = convert-type A T.⇒ convert-type B
@@ -23,7 +33,15 @@ convert-type (A S.⇒ B) = convert-type A T.⇒ convert-type B
 convert-context : S.Context → T.Context
 convert-context ∅ = []
 convert-context (Γ , A) = convert-type A ∷ convert-context Γ
+\end{code}
 
+\section{Existential types for environments}
+
+It is a well-known property of typed closure conversion that environments have existential types.
+This implementation has the prperty that as it transforms the source term bottom-up, it maintains a minimal context,
+which is the Δ field on the dependent tuple.
+
+\begin{code}
 record _⊩_ (Γ : T.Context) (A : T.Type) : Set where
   constructor ∃[_]_∧_
   field
@@ -33,7 +51,11 @@ record _⊩_ (Γ : T.Context) (A : T.Type) : Set where
 
 Closure : S.Type → S.Context → Set
 Closure A Γ = convert-context Γ ⊩ convert-type A
+\end{code}
 
+\section{Helper functions for closure conversion}
+
+\begin{code}
 Var→⊆ : ∀ {Γ A} → Γ S.∋ A → convert-type A ∷ [] ⊆ convert-context Γ
 Var→⊆ {Γ , _} Z = keep ([]⊆ convert-context Γ)
 Var→⊆ (S x) = skip (Var→⊆ x)
@@ -54,7 +76,16 @@ adjust-context (keep (keep {xs = Δ₁} Δ⊆Γ)) = adjust Δ₁ Δ⊆Γ (keep (
 make-env : (Δ : T.Context) → T.Env Δ Δ
 make-env [] = T.[]
 make-env (A ∷ Δ) =  (T.` z) T.∷ T.rename-env T.weaken (make-env Δ)
+\end{code}
 
+\section{Closure conversion}
+
+This formulation of closure conversion is in its essence a simple mapping between syntactic counterparts in the source and target language.
+The main source of compilcation is the need to merge minimal contexts.
+
+The case of the lambda abstraction is most interesting. A recursive call on the body produces a minimal context which describes the minimal environment.
+
+\begin{code}
 cc : ∀ {Γ A} → Γ S.⊢ A → Closure A Γ
 cc {A = A} (S.` x) = ∃[ convert-type A ∷ [] ] Var→⊆ x ∧ (T.` z)
 cc (S.ƛ N) with cc N

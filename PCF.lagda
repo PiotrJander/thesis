@@ -1,3 +1,8 @@
+\chapter{Source Language}
+
+The source language closely follows PCF formulation from PLFA. The only difference is that rather than having distinct lambda abstraction and fixpoint operator,
+the lambda abstraction makes a variable containing itself available to its body, thus enabling recursion and subsuming the role of the fixpoint operator.
+This was done to facilitate closure conversion, but I would be interested in seeing how the fixpoint operator could be closure converted.
 
 \section{Imports}
 
