@@ -1,0 +1,11 @@
+*.agdai
+*.aux
+*.ptb
+*.toc
+*.log
+*.bk
+Closure.tex
+Conversion.tex
+PCF.tex
+SubContext.tex
+agda.sty
