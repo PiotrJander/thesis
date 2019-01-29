@@ -42,7 +42,7 @@ data Type : Set where
 
 \section{Contexts}
 
-Rather than define the context from scratch like in PLFA, I use lists so that I do not have to define the sublist (or subcontext) relation from scratch.
+Rather than define the context from scratch like in PLFA, I use lists so that I do not have to define the su-blist (or sub-context) relation from scratch.
 
 \begin{code}
 Context : Set
@@ -171,8 +171,6 @@ rename ρ ⟪ N , E ⟫ = ⟪ N , rename-env ρ E ⟫
 rename ρ `zero = `zero
 rename ρ (`suc N) = `suc rename ρ N
 rename ρ (case L M N) = case (rename ρ L) (rename ρ M) (rename (ext ρ) N)
--- rename ρ ⟨⟩ = ⟨⟩
--- rename ρ ⟨ M , N ⟩ = ⟨ rename ρ M , rename ρ N ⟩
 rename-env ρ [] = []
 rename-env ρ (M ∷ E) = rename ρ M ∷ rename-env ρ E
 
@@ -266,7 +264,7 @@ Env→σ [] ()
 Env→σ (M ∷ E) z = M
 Env→σ (M ∷ E) (s x) = Env→σ E x
 
-make-σ : ∀ {Γ Δ A B}  -- 
+make-σ : ∀ {Γ Δ A B} 
   → Env Δ Γ
   → A ∷ A ⇒ B ∷ Δ ⊢ B
   → Γ ⊢ A
@@ -275,6 +273,14 @@ make-σ : ∀ {Γ Δ A B}  --
 make-σ E F X z = X
 make-σ E F X (s z) = ⟪ F , E ⟫
 make-σ E F X (s s x) = Env→σ E x
+
+make-σ′ : ∀ {Γ Δ A B} 
+  → Env Δ Γ
+    ------------------------------
+  → Substitution (A ∷ A ⇒ B ∷ Δ) (A ∷ A ⇒ B ∷ Γ)
+make-σ′ E = exts (exts (Env→σ E))
+
+
 \end{code}
 
 \section{Reduction}
