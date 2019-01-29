@@ -212,7 +212,7 @@ subst-env σ [] = []
 subst-env σ (M ∷ E) = subst σ M ∷ subst-env σ E
 \end{code}
 
-\section{Single substitution}
+\section{Single and double substitution}
 
 \begin{code}
 _[_] : ∀ {Γ A B}
@@ -225,19 +225,32 @@ _[_] {Γ} {A} N V =  subst {A ∷ Γ} {Γ} σ N
   σ : ∀ {B} → A ∷ Γ ∋ B → Γ ⊢ B
   σ z      =  V
   σ (s x)  =  ` x
+
+_[_][_] : ∀ {Γ A B C}
+  → B ∷ A ∷ Γ ⊢ C
+  → Γ ⊢ A
+  → Γ ⊢ B
+    ---------------
+  → Γ ⊢ C
+_[_][_] {Γ} {A} {B} N V W =  subst {B ∷ A ∷ Γ} {Γ} σ N
+  where
+  σ : ∀ {C} → B ∷ A ∷ Γ ∋ C → Γ ⊢ C
+  σ z          =  W
+  σ (s z)      =  V
+  σ (s (s x))  =  ` x
 \end{code}
 
 \section{Values}
 
 \begin{code}
-infix 4 V-⟪_,_⟫
+infix 4 V-⟪⟫
 data Value : ∀ {Γ A} → Γ ⊢ A → Set where
 
   -- functions
 
-  V-⟪_,_⟫ : ∀ {Γ Δ A B}
-    → (N : A ∷ A ⇒ B ∷ Δ ⊢ B)
-    → (E : Env Δ Γ)
+  V-⟪⟫ : ∀ {Γ Δ A B}
+    → {N : A ∷ A ⇒ B ∷ Δ ⊢ B}
+    → {E : Env Δ Γ}
       ---------------------
     → Value (⟪ N , E ⟫)
 
@@ -279,8 +292,6 @@ make-σ′ : ∀ {Γ Δ A B}
     ------------------------------
   → Substitution (A ∷ A ⇒ B ∷ Δ) (A ∷ A ⇒ B ∷ Γ)
 make-σ′ E = exts (exts (Env→σ E))
-
-
 \end{code}
 
 \section{Reduction}
@@ -382,8 +393,8 @@ progress (L · M) with progress L
 progress (L · M) | step L—→L′ = step (ξ-·₁ L—→L′)
 progress (L · M) | done V-L with progress M
 progress (L · M) | done V-L | step M—→M′ = step (ξ-·₂ V-L M—→M′)
-progress (.(⟪ N , E ⟫) · M) | done V-NE@(V-⟪ N , E ⟫) | done V-M = step (β-⟪⟫ V-NE V-M)
-progress ⟪ N , E ⟫ = done V-⟪ N , E ⟫
+progress (L · M) | done V-NE@(V-⟪⟫) | done V-M = step (β-⟪⟫ V-NE V-M)
+progress ⟪ N , E ⟫ = done V-⟪⟫
 progress `zero = done V-zero
 progress (`suc N) with progress N
 progress (`suc N) | step N—→N′ = step (ξ-suc N—→N′)
