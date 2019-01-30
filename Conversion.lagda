@@ -49,6 +49,7 @@ module TypeIso where
   Type-iso : S.Type ≃ T.Type
   Type-iso = record { to = to' ; from = from' ; from∘to = from∘to' ; to∘from = to∘from' }
 open TypeIso using (Type-iso) public
+open TypeIso renaming (to' to t-to ; from' to t-from ; from∘to' to t-from∘to ; to∘from' to t-to∘from) public
 
 module ContextIso where
 
@@ -71,6 +72,7 @@ module ContextIso where
   Context-iso : S.Context ≃ T.Context
   Context-iso = make to' from' from∘to' to∘from'
 open ContextIso using (Context-iso) public
+open ContextIso renaming (to' to c-to ; from' to c-from ; from∘to' to c-from∘to ; to∘from' to c-to∘from) public
 
 \end{code}
 

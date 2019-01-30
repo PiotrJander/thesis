@@ -17,3 +17,5 @@ record _≃_ (A B : Set) : Set where
     from : B → A
     from∘to : ∀ (x : A) → from (to x) ≡ x
     to∘from : ∀ (y : B) → to (from y) ≡ y
+
+open _≃_ public
