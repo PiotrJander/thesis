@@ -100,27 +100,23 @@ Sρ→Tρ : ∀ {Γ Δ}
   → let Γ' = c-to Γ in let Δ' = c-to Δ in
     (∀ {A} → Γ S.∋ A → Δ S.∋ A)
   → T.Renaming Γ' Δ'
-Sρ→Tρ {Γ} {Δ} ρ {A'} x with c-to Γ | inspect (c-to) Γ | c-to Δ | inspect (c-to) Δ |  t-from A' | inspect t-from A'
+Sρ→Tρ {Γ} {Δ} ρ {A'} x' with c-to Γ | inspect c-to Γ | c-to Δ | inspect c-to Δ |  t-from A' | inspect t-from A'
 Sρ→Tρ {Γ} {Δ} ρ {A'} x' | Γ' | [ Γ≡Γ' ] | Δ' | [ Δ≡Δ' ] | A | [ A'≡A ] with T∋→S∋ x'
 ... | x rewrite sym Γ≡Γ' | c-from∘to Γ = helper
   where
     xyz : t-to (t-from A') ≡ A'
     xyz = t-to∘from A'
-    toA≡A' : t-to A ≡ A'
-    toA≡A' rewrite sym A'≡A | t-to∘from A' = refl
+    baz : (c-to Δ T.∋ t-to (t-from A')) ≡ (c-to Δ T.∋ A')
+    baz = cong (λ x → c-to Δ T.∋ x) xyz
     helper : Δ' T.∋ A'
-    helper rewrite sym Δ≡Δ' | A'≡A | toA≡A' = {!S∋→T∋ (ρ x)!}
+    helper rewrite sym Δ≡Δ' | sym baz = S∋→T∋ (ρ x)
 
 ~rename : ∀ {Γ Δ}
   → (ρ : ∀ {A} → Γ S.∋ A → Δ S.∋ A)
     ----------------------------------------------------------
   → (∀ {A} {M : Γ S.⊢ A} {M† : c-to Γ T.⊢ t-to A} → M ~ M† → S.rename ρ M ~ T.rename (Sρ→Tρ ρ) M†)
-~rename {Γ} {Δ} ρ {A} ~M with c-to Γ | inspect c-to Γ | c-to Δ | inspect c-to Δ | t-to A | inspect t-to A
-~rename {Γ} {Δ} ρ {A} ~M | Γ' | [ Γ≡Γ' ] | Δ' | [ Δ≡Δ' ] | A' | [ A≡A' ] = ?
--- ~rename ρ (~`)          =  ~`
--- ~rename ρ (~ƛ ~N)       =  ~ƛ (~rename (ext ρ) ~N)
--- ~rename ρ (~L ~· ~M)    =  (~rename ρ ~L) ~· (~rename ρ ~M)
--- ~rename ρ (~let ~M ~N)  =  ~let (~rename ρ ~M) (~rename (ext ρ) ~N)
+~rename {Γ} {Δ} ρ {A} ~M with c-to Γ -- | inspect c-to Γ -- | c-to Δ | inspect c-to Δ | t-to A | inspect t-to A
+~rename {Γ} {Δ} ρ {A} ~M | Γ' = ? -- | [ Γ≡Γ' ] = ? -- | Δ' | [ Δ≡Δ' ] | A' | [ A≡A' ] = ?
 
 ~sub : ∀ {Γ A B}
   → let Γ' = c-to Γ in let A' = t-to A in let B' = t-to B in
