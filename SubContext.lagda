@@ -11,14 +11,15 @@ open import Data.List using (List ; _∷_ ; [])
 open import Data.List.Relation.Sublist.Propositional using (_⊆_ ; []⊆_ ; base ; keep ; skip)
 open import Data.List.Relation.Sublist.Propositional.Properties using (⊆-refl ; ⊆-trans)
 
+open import Type
 open import Closure
 
 ⊆→ρ : {Γ Δ : Context} → Γ ⊆ Δ → Renaming Γ Δ
 ⊆→ρ base ()
 ⊆→ρ (skip Γ⊆Δ) with ⊆→ρ Γ⊆Δ
-... | ρ = λ x → s (ρ x)
+... | ρ = λ x → S (ρ x)
 ⊆→ρ (keep Γ⊆Δ) with ⊆→ρ Γ⊆Δ
-... | ρ = λ { z → z ; (s v) → s (ρ v) }
+... | ρ = λ { Z → Z ; (S v) → S (ρ v) }
 \end{code}
 
 \section{Sum of subcontexts}

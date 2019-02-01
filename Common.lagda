@@ -35,3 +35,17 @@ data _∋_ : Context → Type → Set where
       ---------
     → A ∷ Γ ∋ B
 \end{code}
+
+\section{Type synonims}
+
+\begin{code}
+Renaming : Context → Context → Set
+Renaming Γ Δ = ∀ {C} → Γ ∋ C → Δ ∋ C
+
+Rebasing : (Context → Type → Set) → Context → Context → Set
+Rebasing ⊢ Γ Δ = ∀ {C} → ⊢ Γ C → ⊢ Δ C
+
+Substitution : (Context → Type → Set) → Context → Context → Set
+Substitution ⊢ Γ Δ = ∀ {C} → Γ ∋ C → ⊢ Δ C
+
+\end{code}

@@ -5,14 +5,13 @@ open Eq using (_≡_; refl ; inspect ; [_] ; trans; sym; cong; cong-app; subst)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.List using (_∷_ ; [] ; List)
 open import Data.Unit using (⊤ ; tt)
+
+open import Type
 import PCF as S
-open S using (_,_ ; ƛ_ ; ∅ ; Z ; S_ ; Context)
+open S using (ƛ_)
 import Closure as T
-open T using (Env ; ⟪_,_⟫ ; z ; s_)
-import Conversion
-open Conversion using (cc ; ∃[_]_∧_ ; c-to ; c-from ; c-from∘to ; c-to∘from ; t-to ; t-from ; t-from∘to ; t-to∘from) -- Type-iso ; Context-iso
-open import Isomorphism using (_≃_)
-open _≃_
+open T using (Env ; ⟪_,_⟫)
+open import Conversion using (cc-keep-Γ) 
 open import SubContext using (⊆→ρ)
 
 infix  4 _~_

@@ -15,7 +15,7 @@ open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (¬_)
 open import Data.List using (List ; _∷_ ; [])
 
-open import Type
+open import Common
 \end{code}
 
 \section{Syntax}
@@ -109,12 +109,6 @@ count {[]}    _        =  ⊥-elim impossible
 \section{Renaming}
 
 \begin{code}
-Renaming : Context → Context → Set
-Renaming Γ Δ = ∀ {C} → Γ ∋ C → Δ ∋ C
-
-Rebasing : Context → Context → Set
-Rebasing Γ Δ = ∀ {C} → Γ ⊢ C → Δ ⊢ C
-
 ext  : ∀ {Γ Δ A}
         → Renaming Γ Δ
           -----------------------------------
@@ -125,7 +119,7 @@ ext ρ (S x) = S (ρ x)
 rename : ∀ {Γ Δ}
         → Renaming Γ Δ
           ---------------------------
-        → Rebasing Γ Δ
+        → Rebasing _⊢_ Γ Δ
 rename-env : ∀ {Γ Γ′ Δ}
     → Renaming Γ Γ′
     → Env Δ Γ
@@ -149,22 +143,19 @@ weaken (S x) = S (weaken x)
 \section{Simultaneous Substitution}
 
 \begin{code}
-Substitution : Context → Context → Set
-Substitution Γ Δ = ∀ {C} → Γ ∋ C → Δ ⊢ C
-
 exts : ∀ {Γ Δ A}
-     → Substitution Γ Δ
+     → Substitution _⊢_ Γ Δ
        ----------------------------
-     → Substitution (A ∷ Γ) (A ∷ Δ)
+     → Substitution _⊢_ (A ∷ Γ) (A ∷ Δ)
 exts σ Z = ` Z
 exts σ (S x) = rename S_ (σ x)
 
 subst : ∀ {Γ Δ}
-     → Substitution Γ Δ
+     → Substitution _⊢_ Γ Δ
        ----------------
-     → Rebasing Γ Δ
+     → Rebasing _⊢_ Γ Δ
 subst-env : ∀ {Γ Γ′ Δ}
-    → Substitution Γ Γ′
+    → Substitution _⊢_ Γ Γ′
     → Env Δ Γ
       -------------
     → Env Δ Γ′
@@ -239,7 +230,7 @@ data Value : ∀ {Γ A} → Γ ⊢ A → Set where
 Env→σ : ∀ {Γ Δ}
   → Env Δ Γ
     -----------------
-  → Substitution Δ Γ
+  → Substitution _⊢_ Δ Γ
 Env→σ [] ()
 Env→σ (M ∷ E) Z = M
 Env→σ (M ∷ E) (S x) = Env→σ E x
@@ -249,7 +240,7 @@ make-σ : ∀ {Γ Δ A B}
   → A ∷ A ⇒ B ∷ Δ ⊢ B
   → Γ ⊢ A
     ------------------------------
-  → Substitution (A ∷ A ⇒ B ∷ Δ) Γ
+  → Substitution _⊢_ (A ∷ A ⇒ B ∷ Δ) Γ
 make-σ E F X Z = X
 make-σ E F X (S Z) = ⟪ F , E ⟫
 make-σ E F X (S S x) = Env→σ E x
@@ -257,7 +248,7 @@ make-σ E F X (S S x) = Env→σ E x
 make-σ′ : ∀ {Γ Δ A B} 
   → Env Δ Γ
     ------------------------------
-  → Substitution (A ∷ A ⇒ B ∷ Δ) (A ∷ A ⇒ B ∷ Γ)
+  → Substitution _⊢_ (A ∷ A ⇒ B ∷ Δ) (A ∷ A ⇒ B ∷ Γ)
 make-σ′ E = exts (exts (Env→σ E))
 \end{code}
 

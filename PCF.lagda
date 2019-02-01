@@ -16,7 +16,7 @@ open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (¬_)
 open import Data.List using ([] ; _∷_)
 
-open import Type
+open import Common
 \end{code}
 
 \section{Syntax}
@@ -99,16 +99,25 @@ count {[]}     _        =  ⊥-elim impossible
 \section{Renaming}
 
 \begin{code}
-ext : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ∋ A) → (∀ {A B} → A ∷ Γ ∋ B → A ∷ Δ ∋ B)
+ext  : ∀ {Γ Δ A}
+        → Renaming Γ Δ
+          -----------------------------------
+        → Renaming (A ∷ Γ) (A ∷ Δ)
 ext ρ Z      =  Z
 ext ρ (S x)  =  S (ρ x)
 
-extλ : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ∋ A) → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ∋ C)
+extλ  : ∀ {Γ Δ}
+        → Renaming Γ Δ
+          -----------------------------------
+        → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ∋ C)
 extλ ρ Z        =  Z
 extλ ρ (S Z)    =  S Z
 extλ ρ (S S x)  =  S (S ρ x)
 
-rename : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ∋ A) → (∀ {A} → Γ ⊢ A → Δ ⊢ A)
+rename : ∀ {Γ Δ}
+        → Renaming Γ Δ
+          ---------------------------
+        → Rebasing _⊢_ Γ Δ
 rename ρ (` x)          =  ` (ρ x)
 rename ρ (ƛ N)          =  ƛ rename (extλ ρ) N
 rename ρ (L · M)        =  (rename ρ L) · (rename ρ M)
@@ -120,16 +129,25 @@ rename ρ (case L M N)   =  case (rename ρ L) (rename ρ M) (rename (ext ρ) N)
 \section{Simultaneous Substitution}
 
 \begin{code}
-exts : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ⊢ A) → (∀ {A B} → A ∷ Γ ∋ B → A ∷ Δ ⊢ B)
+exts : ∀ {Γ Δ A}
+     → Substitution _⊢_ Γ Δ
+       ----------------------------
+     → Substitution _⊢_ (A ∷ Γ) (A ∷ Δ)
 exts σ Z      =  ` Z
 exts σ (S x)  =  rename S_ (σ x)
 
-extsλ : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ⊢ A) → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ⊢ C)
+extsλ : ∀ {Γ Δ}
+     → Substitution _⊢_ Γ Δ
+       ----------------------------
+     → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ⊢ C)
 extsλ σ Z        =  ` Z
 extsλ σ (S Z)    =  ` S Z
 extsλ σ (S S x)  =  rename (λ v → S S v) (σ x)
 
-subst : ∀ {Γ Δ} → (∀ {C} → Γ ∋ C → Δ ⊢ C) → (∀ {C} → Γ ⊢ C → Δ ⊢ C)
+subst : ∀ {Γ Δ}
+     → Substitution _⊢_ Γ Δ
+       ----------------
+     → Rebasing _⊢_ Γ Δ
 subst σ (` k)          =  σ k
 subst σ (ƛ N)          =  ƛ (subst (extsλ σ) N)
 subst σ (L · M)        =  (subst σ L) · (subst σ M)
