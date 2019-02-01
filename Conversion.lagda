@@ -18,7 +18,7 @@ import PCF as S
 import Closure as T
 open S using (ƛ_)
 open T using (⟪_,_⟫ ; Env)
-open import Type
+open import Common
 open import SubContext
 \end{code}
 
@@ -92,8 +92,8 @@ cc (S.case L M N) | ∃[ Δ ] Δ⊆Γ ∧ L′ | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M�
 cc (S.case L M N) | ∃[ Δ ] Δ⊆Γ ∧ L′ | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M′ | ∃[ .(`ℕ ∷ _) ] keep Δ₂⊆Γ ∧ N′ | subContextSum Γ₁ Γ₁⊆Γ Δ⊆Γ₁ Δ₁⊆Γ₁ Δ₂⊆Γ₁
   = ∃[ Γ₁ ] Γ₁⊆Γ ∧ (T.case (T.rename (⊆→ρ Δ⊆Γ₁) L′) (T.rename (⊆→ρ Δ₁⊆Γ₁) M′) (T.rename (⊆→ρ (keep Δ₂⊆Γ₁)) N′))
 
-cc-keep-Γ : ∀ {Γ A} → Γ S.⊢ A → Γ T.⊢ A
-cc-keep-Γ M with cc M
-cc-keep-Γ M | ∃[ Δ ] Δ⊆Γ ∧ N = T.rename (⊆→ρ Δ⊆Γ) N
+_† : ∀ {Γ A} → Γ S.⊢ A → Γ T.⊢ A
+_† M with cc M
+_† M | ∃[ Δ ] Δ⊆Γ ∧ N = T.rename (⊆→ρ Δ⊆Γ) N
 
 \end{code}

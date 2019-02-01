@@ -6,73 +6,71 @@ open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.List using (_∷_ ; [] ; List)
 open import Data.Unit using (⊤ ; tt)
 
-open import Type
+open import Common
 import PCF as S
 open S using (ƛ_)
 import Closure as T
 open T using (Env ; ⟪_,_⟫)
-open import Conversion using (cc-keep-Γ) 
+open import Conversion using (_†)
 open import SubContext using (⊆→ρ)
 
 infix  4 _~_
 infix  5 ~ƛ_
 infix  7 _~·_
 
--- cctx : S.Context → T.Context
--- cctx = c-to
+data _~_ : ∀ {Γ A} → (Γ S.⊢ A) → (Γ T.⊢ A) → Set where
 
--- ct : S.Type → T.Type
--- ct = t-to
-
--- ct≡ : ∀ {A} → ct A ≡ t-to A
--- ct≡ = refl
-
--- ct⁻¹ : T.Type → S.Type
--- ct⁻¹ = from Type-iso
-
-data _~_ : ∀ {Γ A}
-     → let Γ′ = c-to Γ in let A′ = t-to A in 
-       (Γ S.⊢ A) → (Γ′ T.⊢ A′) → Set where
-
-  ~` : ∀ {Γ A}
-   → let Γ′ = c-to Γ in let A′ = t-to A in  -- let with multiple clauses?
-     {x : Γ S.∋ A} {x′ : Γ′ T.∋ A′}
+  ~` : ∀ {Γ A} {x : Γ ∋ A}
      ---------------
-   → S.` x ~ T.` x′
+   → S.` x ~ T.` x
 
-  ~ƛ_ : ∀ {Γ Δ A B}
-    → let Γ′ = c-to Γ in let A′ = t-to A in let B′ = t-to B in
-      {N : Γ , A S.⇒ B , A S.⊢ B} {N† : A′ ∷ A′ T.⇒ B′ ∷ Δ T.⊢ B′} {E : Env Δ Γ′}
+  ~ƛ_ : ∀ {Γ Δ A B} {N : A ∷ A ⇒ B ∷ Γ S.⊢ B} {N† : A ∷ A ⇒ B ∷ Δ T.⊢ B} {E : Env Δ Γ}
     → N ~ T.subst (T.make-σ′ E) N†
       -----------------
     → ƛ N ~ ⟪ N† , E ⟫
 
-  _~·_ : ∀ {Γ A B}
-    → let Γ′ = c-to Γ in let A′ = t-to A in let B′ = t-to B in
-      {L : Γ S.⊢ A S.⇒ B} {L† : Γ′ T.⊢ A′ T.⇒ B′} {M : Γ S.⊢ A} {M† : Γ′ T.⊢ A′}
+  _~·_ : ∀ {Γ A B} {L : Γ S.⊢ A ⇒ B} {L† : Γ T.⊢ A ⇒ B} {M : Γ S.⊢ A} {M† : Γ T.⊢ A}
     → L ~ L†
     → M ~ M†
       --------------------
     → L S.· M ~ L† T.· M†
 
--- example
+data SimulationRelevant : {Γ : Context} {A : Type} → Γ S.⊢ A → Set where
 
-h : ∀ {Γ A} (M : Γ S.⊢ A) → Set
-h M with cc M
-h M | ∃[ Δ ] Δ⊆Γ ∧ N = M ~ T.rename (⊆→ρ Δ⊆Γ) N
+  †` : ∀ {Γ A}
+     → (x : Γ ∋ A)
+       --------------------
+     → SimulationRelevant (S.` x)
 
-foo : ∅ , S.`ℕ S.⇒ S.`ℕ , S.`ℕ S.⊢ S.`ℕ S.⇒ S.`ℕ
-foo = ƛ ((S.# 3) S.· (S.# 0))
+  †ƛ_ : ∀ {Γ A B}
+      → (N : A ∷ A ⇒ B ∷ Γ S.⊢ B)
+        ------------------------
+      → SimulationRelevant (ƛ N)
 
-test : h foo
-test with cc foo
-test | _ = ~ƛ (~` ~· ~`)
+  _†·_ : ∀ {Γ A B}
+       → (L : Γ S.⊢ A ⇒ B)
+       → (M : Γ S.⊢ A)
+         ----------------------
+       → SimulationRelevant (L S.· M)
 
--- sim
+-- †≡→~ : ∀ {Γ A}
+--     → (M : Γ S.⊢ A)
+--     → {N : Γ T.⊢ A}
+--     → SimulationRelevant M
+--     → M † ≡ N
+--       ------------
+--     → M ~ N
+-- †≡→~ (S.` x) _ with (S.` x) †  -- TODO we could prove that if M ≡ S.` x then M † ≡ T.` x but it's rather tedious
+-- ... | p = {!p!}
+-- †≡→~ M@(ƛ N) _ with M †
+-- ... | p = {!!}
+-- †≡→~ M@(L S.· N) _ with M †
+-- ... | p = {!!}
+-- †≡→~ S.`zero ()
+-- †≡→~ (S.`suc M) ()
+-- †≡→~ (S.case M M₁ M₂) ()
 
-~val : ∀ {Γ A}
-  → let Γ' = c-to Γ in let A' = t-to A in
-    {M  : Γ S.⊢ A} {M† : Γ' T.⊢ A'}
+~val : ∀ {Γ A} {M  : Γ S.⊢ A} {M† : Γ T.⊢ A}
   → M ~ M†
   → S.Value M
     --------
@@ -81,65 +79,43 @@ test | _ = ~ƛ (~` ~· ~`)
 ~val (~ƛ ~N)      S.V-ƛ  =  T.V-⟪⟫
 ~val (~L ~· ~M)   ()
 
-S∋→T∋ : ∀ {Γ A}
-  → let Γ' = c-to Γ in let A' = t-to A in
-    Γ  S.∋ A
-  → Γ' T.∋ A'
-S∋→T∋ Z = z
-S∋→T∋ (S x) = s (S∋→T∋ x)
-
-T∋→S∋ : ∀ {Γ' A'}
-  → let Γ = c-from Γ' in let A = t-from A' in
-    Γ' T.∋ A'
-  → Γ  S.∋ A
-T∋→S∋ z = Z
-T∋→S∋ (s x) = S (T∋→S∋ x)
-
-Sρ→Tρ : ∀ {Γ Δ}
-  → let Γ' = c-to Γ in let Δ' = c-to Δ in
-    (∀ {A} → Γ S.∋ A → Δ S.∋ A)
-  → T.Renaming Γ' Δ'
-Sρ→Tρ {Γ} {Δ} ρ {A'} x' with c-to Γ | inspect c-to Γ | c-to Δ | inspect c-to Δ |  t-from A' | inspect t-from A'
-Sρ→Tρ {Γ} {Δ} ρ {A'} x' | Γ' | [ Γ≡Γ' ] | Δ' | [ Δ≡Δ' ] | A | [ A'≡A ] with T∋→S∋ x'
-... | x rewrite sym Γ≡Γ' | c-from∘to Γ = helper
-  where
-    xyz : t-to (t-from A') ≡ A'
-    xyz = t-to∘from A'
-    baz : (c-to Δ T.∋ t-to (t-from A')) ≡ (c-to Δ T.∋ A')
-    baz = cong (λ x → c-to Δ T.∋ x) xyz
-    helper : Δ' T.∋ A'
-    helper rewrite sym Δ≡Δ' | sym baz = S∋→T∋ (ρ x)
-
 ~rename : ∀ {Γ Δ}
-  → (ρ : ∀ {A} → Γ S.∋ A → Δ S.∋ A)
+  → (ρ : Renaming Γ Δ)
     ----------------------------------------------------------
-  → (∀ {A} {M : Γ S.⊢ A} {M† : c-to Γ T.⊢ t-to A} → M ~ M† → S.rename ρ M ~ T.rename (Sρ→Tρ ρ) M†)
-~rename {Γ} {Δ} ρ {A} ~M with c-to Γ -- | inspect c-to Γ -- | c-to Δ | inspect c-to Δ | t-to A | inspect t-to A
-~rename {Γ} {Δ} ρ {A} ~M | Γ' = ? -- | [ Γ≡Γ' ] = ? -- | Δ' | [ Δ≡Δ' ] | A' | [ A≡A' ] = ?
+  → ∀ {A} {M : Γ S.⊢ A} {M† : Γ T.⊢ A} → M ~ M† → S.rename ρ M ~ T.rename ρ M†
+~rename ρ (~`)          =  ~`
+~rename ρ (~ƛ ~N)       =  ~ƛ {!!}  -- (~rename (ext ρ) ~N)
+~rename ρ (~L ~· ~M)    =  (~rename ρ ~L) ~· (~rename ρ ~M)
 
-~sub : ∀ {Γ A B}
-  → let Γ' = c-to Γ in let A' = t-to A in let B' = t-to B in
-    {N : Γ , A S.⇒ B , A S.⊢ B} {N† : A' ∷ A' T.⇒ B' ∷ Γ' T.⊢ B'}
-    {M : Γ S.⊢ A} {M† : Γ' T.⊢ A'}
-  → (E : Env Γ' Γ')
-  → N ~ N†
-  → M ~ M†
-    -----------------------
-  → (N S.[ ƛ N ][ M ]) ~ (N† T.[ ⟪ N† , E ⟫ ][ M† ])
-~sub = {!!}
+~exts : ∀ {Γ Δ}
+  → {σ  : Substitution S._⊢_ Γ Δ}
+  → {σ† : Substitution T._⊢_ Γ Δ}
+  → (∀ {A} → (x : Γ ∋ A) → σ x ~ σ† x)
+    --------------------------------------------------
+  → (∀ {A B} → (x : B ∷ Γ ∋ A) → S.exts σ x ~ T.exts σ† x)
+~exts ~σ Z      =  ~`
+~exts ~σ (S x)  =  ~rename S_ (~σ x)
 
+~subst : ∀ {Γ Δ}
+  → {σ  : Substitution S._⊢_ Γ Δ}
+  → {σ† : Substitution T._⊢_ Γ Δ}
+  → (∀ {A} → (x : Γ ∋ A) → σ x ~ σ† x)
+    ---------------------------------------------------------
+  → (∀ {A} {M : Γ S.⊢ A} {M† : Γ T.⊢ A} → M ~ M† → S.subst σ M ~ T.subst σ† M†)
+~subst ~σ (~` {x = x})  =  ~σ x
+~subst ~σ (~ƛ ~N)       =  ~ƛ {!!} -- (~subst (~exts ~σ) ~N)
+~subst ~σ (~L ~· ~M)    =  (~subst ~σ ~L) ~· (~subst ~σ ~M)
 
-data Leg {Γ A} (M† : c-to Γ T.⊢ t-to A) (N : Γ S.⊢ A) : Set where
+data Leg {Γ A} (M† : Γ T.⊢ A) (N : Γ S.⊢ A) : Set where
 
-  leg : ∀ {N† : c-to Γ T.⊢ t-to A}
+  leg : ∀ {N† : Γ T.⊢ A}
     → N ~ N†
     → M† T.—→ N†
       --------
     → Leg M† N
 
 sim : ∀ {Γ A}
-  → let Γ′ = c-to Γ in let A′ = t-to A in
-    {M N : Γ S.⊢ A} {M† : Γ′ T.⊢ A′}
+  → {M N : Γ S.⊢ A} {M† : Γ T.⊢ A}
   → M ~ M†
   → M S.—→ N
     ---------
@@ -152,6 +128,6 @@ sim (~L ~· ~M) (S.ξ-·₁ L—→)
 sim (~L ~· ~M) (S.ξ-·₂ VV M—→)
   with sim ~M M—→
 ...  | leg ~M′ M†—→             =  leg (~L ~· ~M′) (T.ξ-·₂ (~val ~L VV) M†—→)
-sim ((~ƛ ~N) ~· ~V) (S.β-ƛ VV)  =  leg {!!} (T.β-⟪⟫ {!!} {!!})
+sim ((~ƛ ~N) ~· ~V) (S.β-ƛ VV)  =  leg {!!} (T.β-⟪⟫ T.V-⟪⟫ (~val ~V VV))  -- TODO use ~subst, but first prove that the two substitutions are (extensionally equivalent)
 
 \end{code}

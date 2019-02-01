@@ -11,7 +11,7 @@ open import Data.List using (List ; _∷_ ; [])
 open import Data.List.Relation.Sublist.Propositional using (_⊆_ ; []⊆_ ; base ; keep ; skip)
 open import Data.List.Relation.Sublist.Propositional.Properties using (⊆-refl ; ⊆-trans)
 
-open import Type
+open import Common
 open import Closure
 
 ⊆→ρ : {Γ Δ : Context} → Γ ⊆ Δ → Renaming Γ Δ
