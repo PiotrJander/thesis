@@ -14,54 +14,23 @@ open Eq using (_≡_; refl)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (¬_)
+open import Data.List using ([] ; _∷_)
+
+open import Type
 \end{code}
 
 \section{Syntax}
 
 \begin{code}
 infix  4 _⊢_
-infix  4 _∋_
-infixl 5 _,_
 
 infix  5 ƛ_
 infixl 7 _·_
 infix  8 `suc_
 infix  9 `_
-infix  9 S_
+
 infix  9 #_
 
-infixr 7 _⇒_
-\end{code}
-
-\section{Types}
-
-\begin{code}
-data Type : Set where
-  `ℕ    : Type
-  _⇒_   : Type → Type → Type
-\end{code}
-
-\section{Contexts}
-
-\begin{code}
-data Context : Set where
-  ∅   : Context
-  _,_ : Context → Type → Context
-\end{code}
-
-\section{Variables and the lookup judgment}
-
-\begin{code}
-data _∋_ : Context → Type → Set where
-
-  Z : ∀ {Γ A}
-      ---------
-    → Γ , A ∋ A
-
-  S_ : ∀ {Γ A B}
-    → Γ ∋ B
-      ---------
-    → Γ , A ∋ B
 \end{code}
 
 \section{Terms and the typing judgment}
@@ -79,7 +48,7 @@ data _⊢_ : Context → Type → Set where
   -- functions
 
   ƛ_  :  ∀ {Γ A B}
-    → Γ , A ⇒ B , A ⊢ B
+    → A ∷ A ⇒ B ∷ Γ ⊢ B
       ---------
     → Γ ⊢ A ⇒ B
 
@@ -103,7 +72,7 @@ data _⊢_ : Context → Type → Set where
   case : ∀ {Γ A}
     → Γ ⊢ `ℕ
     → Γ ⊢ A
-    → Γ , `ℕ ⊢ A
+    → `ℕ ∷ Γ ⊢ A
       -----
     → Γ ⊢ A
 \end{code}
@@ -111,16 +80,16 @@ data _⊢_ : Context → Type → Set where
 \section {Abbreviating de Bruijn indices}
 
 \begin{code}
-lookup : Context → ℕ → Type
-lookup (Γ , A) zero     =  A
-lookup (Γ , _) (suc n)  =  lookup Γ n
-lookup ∅       _        =  ⊥-elim impossible
+lookup : Context → ℕ → Type  --
+lookup (A ∷ Γ) zero     =  A
+lookup (_ ∷ Γ) (suc n)  =  lookup Γ n
+lookup []       _        =  ⊥-elim impossible
   where postulate impossible : ⊥
 
 count : ∀ {Γ} → (n : ℕ) → Γ ∋ lookup Γ n
-count {Γ , _} zero     =  Z
-count {Γ , _} (suc n)  =  S (count n)
-count {∅}     _        =  ⊥-elim impossible
+count {_ ∷ Γ} zero     =  Z
+count {_ ∷ Γ} (suc n)  =  S (count n)
+count {[]}     _        =  ⊥-elim impossible
   where postulate impossible : ⊥
 
 #_ : ∀ {Γ} → (n : ℕ) → Γ ⊢ lookup Γ n
@@ -130,11 +99,11 @@ count {∅}     _        =  ⊥-elim impossible
 \section{Renaming}
 
 \begin{code}
-ext : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ∋ A) → (∀ {A B} → Γ , A ∋ B → Δ , A ∋ B)
+ext : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ∋ A) → (∀ {A B} → A ∷ Γ ∋ B → A ∷ Δ ∋ B)
 ext ρ Z      =  Z
 ext ρ (S x)  =  S (ρ x)
 
-extλ : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ∋ A) → (∀ {A B C} → Γ , A , B ∋ C → Δ , A , B ∋ C)
+extλ : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ∋ A) → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ∋ C)
 extλ ρ Z        =  Z
 extλ ρ (S Z)    =  S Z
 extλ ρ (S S x)  =  S (S ρ x)
@@ -151,11 +120,11 @@ rename ρ (case L M N)   =  case (rename ρ L) (rename ρ M) (rename (ext ρ) N)
 \section{Simultaneous Substitution}
 
 \begin{code}
-exts : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ⊢ A) → (∀ {A B} → Γ , A ∋ B → Δ , A ⊢ B)
+exts : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ⊢ A) → (∀ {A B} → A ∷ Γ ∋ B → A ∷ Δ ⊢ B)
 exts σ Z      =  ` Z
 exts σ (S x)  =  rename S_ (σ x)
 
-extsλ : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ⊢ A) → (∀ {A B C} → Γ , A , B ∋ C → Δ , A , B ⊢ C)
+extsλ : ∀ {Γ Δ} → (∀ {A} → Γ ∋ A → Δ ⊢ A) → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ⊢ C)
 extsλ σ Z        =  ` Z
 extsλ σ (S Z)    =  ` S Z
 extsλ σ (S S x)  =  rename (λ v → S S v) (σ x)
@@ -173,25 +142,25 @@ subst σ (case L M N)   =  case (subst σ L) (subst σ M) (subst (exts σ) N)
 
 \begin{code}
 _[_] : ∀ {Γ A B}
-  → Γ , A ⊢ B
+  → A ∷ Γ ⊢ B
   → Γ ⊢ A
   ------------
   → Γ ⊢ B
-_[_] {Γ} {A} N V =  subst {Γ , A} {Γ} σ N
+_[_] {Γ} {A} N V =  subst {A ∷ Γ} {Γ} σ N
   where
-  σ : ∀ {B} → Γ , A ∋ B → Γ ⊢ B
+  σ : ∀ {B} → A ∷ Γ ∋ B → Γ ⊢ B
   σ Z      =  V
   σ (S x)  =  ` x
 
 _[_][_] : ∀ {Γ A B C}
-  → Γ , A , B ⊢ C
+  → B ∷ A ∷ Γ ⊢ C
   → Γ ⊢ A
   → Γ ⊢ B
     ---------------
   → Γ ⊢ C
-_[_][_] {Γ} {A} {B} N V W =  subst {Γ , A , B} {Γ} σ N
+_[_][_] {Γ} {A} {B} N V W =  subst {B ∷ A ∷ Γ} {Γ} σ N
   where
-  σ : ∀ {C} → Γ , A , B ∋ C → Γ ⊢ C
+  σ : ∀ {C} → B ∷ A ∷ Γ ∋ C → Γ ⊢ C
   σ Z          =  W
   σ (S Z)      =  V
   σ (S (S x))  =  ` x
@@ -204,7 +173,7 @@ data Value : ∀ {Γ A} → Γ ⊢ A → Set where
 
   -- functions
 
-  V-ƛ : ∀ {Γ A B} {N : Γ , A ⇒ B , A ⊢ B}
+  V-ƛ : ∀ {Γ A B} {N : A ∷ A ⇒ B ∷ Γ ⊢ B}
       ---------------------------
     → Value (ƛ N)
 
@@ -240,7 +209,7 @@ data _—→_ : ∀ {Γ A} → (Γ ⊢ A) → (Γ ⊢ A) → Set where
       ---------------
     → V · M —→ V · M′
 
-  β-ƛ : ∀ {Γ A B} {N : Γ , A ⇒ B , A ⊢ B} {V : Γ ⊢ A}  -- TODO
+  β-ƛ : ∀ {Γ A B} {N : A ∷ A ⇒ B ∷ Γ ⊢ B} {V : Γ ⊢ A}  -- TODO
     → Value V
       --------------------
     → (ƛ N) · V —→ N [ ƛ N ][ V ]
@@ -252,16 +221,16 @@ data _—→_ : ∀ {Γ A} → (Γ ⊢ A) → (Γ ⊢ A) → Set where
       -----------------
     → `suc M —→ `suc M′
 
-  ξ-case : ∀ {Γ A} {L L′ : Γ ⊢ `ℕ} {M : Γ ⊢ A} {N : Γ , `ℕ ⊢ A}
+  ξ-case : ∀ {Γ A} {L L′ : Γ ⊢ `ℕ} {M : Γ ⊢ A} {N : `ℕ ∷ Γ ⊢ A}
     → L —→ L′
       -------------------------
     → case L M N —→ case L′ M N
 
-  β-zero :  ∀ {Γ A} {M : Γ ⊢ A} {N : Γ , `ℕ ⊢ A}
+  β-zero :  ∀ {Γ A} {M : Γ ⊢ A} {N : `ℕ ∷ Γ ⊢ A}
       -------------------
     → case `zero M N —→ M
 
-  β-suc : ∀ {Γ A} {V : Γ ⊢ `ℕ} {M : Γ ⊢ A} {N : Γ , `ℕ ⊢ A}
+  β-suc : ∀ {Γ A} {V : Γ ⊢ `ℕ} {M : Γ ⊢ A} {N : `ℕ ∷ Γ ⊢ A}
     → Value V
       ----------------------------
     → case (`suc V) M N —→ N [ V ]
@@ -297,9 +266,9 @@ begin M—↠N = M—↠N
 \section{Progress}
 
 \begin{code}
-data Progress {A} (M : ∅ ⊢ A) : Set where
+data Progress {A} (M : [] ⊢ A) : Set where
 
-  step : ∀ {N : ∅ ⊢ A}
+  step : ∀ {N : [] ⊢ A}
     → M —→ N
       ----------
     → Progress M
@@ -310,7 +279,7 @@ data Progress {A} (M : ∅ ⊢ A) : Set where
     → Progress M
 
 progress : ∀ {A}
-  → (M : ∅ ⊢ A)
+  → (M : [] ⊢ A)
     -----------
   → Progress M
 progress (` ())
@@ -347,9 +316,9 @@ data Finished {Γ A} (N : Γ ⊢ A) : Set where
        ----------
        Finished N
 
-data Steps : ∀ {A} → ∅ ⊢ A → Set where
+data Steps : ∀ {A} → [] ⊢ A → Set where
 
-  steps : ∀ {A} {L N : ∅ ⊢ A}
+  steps : ∀ {A} {L N : [] ⊢ A}
     → L —↠ N
     → Finished N
       ----------
@@ -357,7 +326,7 @@ data Steps : ∀ {A} → ∅ ⊢ A → Set where
 
 eval : ∀ {A}
   → Gas
-  → (L : ∅ ⊢ A)
+  → (L : [] ⊢ A)
     -----------
   → Steps L
 eval (gas zero)    L                     =  steps (L ∎) out-of-gas
@@ -376,8 +345,7 @@ two = `suc `suc `zero
 plus : ∀ {Γ} → Γ ⊢ `ℕ ⇒ `ℕ ⇒ `ℕ
 plus = ƛ ƛ (case (# 2) (# 0) (`suc (# 4 · # 0 · # 1)))
 
-2+2 : ∅ ⊢ `ℕ
+2+2 : [] ⊢ `ℕ
 2+2 = plus · two · two
 
 \end{code}
-

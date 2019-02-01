@@ -14,54 +14,21 @@ open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (¬_)
 open import Data.List using (List ; _∷_ ; [])
+
+open import Type
 \end{code}
 
 \section{Syntax}
 
 \begin{code}
 infix  4 _⊢_
-infix  4 _∋_
+
 infix  5 ⟪_,_⟫
-infixr 9 s_
-
-infixr 7 _⇒_
-
 infixl 7 _·_
 infix  8 `suc_
 infix  9 `_
+
 infix  9 #_
-\end{code}
-
-\section{Types}
-
-\begin{code}
-data Type : Set where
-  `ℕ    : Type
-  _⇒_   : Type → Type → Type
-\end{code}
-
-\section{Contexts}
-
-Rather than define the context from scratch like in PLFA, I use lists so that I do not have to define the su-blist (or sub-context) relation from scratch.
-
-\begin{code}
-Context : Set
-Context = List Type
-\end{code}
-
-\section{Variables and the lookup judgment}
-
-\begin{code}
-data _∋_ : Context → Type → Set where
-
-  z : ∀ {Γ A}
-      ---------
-    → A ∷ Γ ∋ A
-
-  s_ : ∀ {Γ A B} 
-    → Γ ∋ B
-      ---------
-    → A ∷ Γ ∋ B
 \end{code}
 
 \section{Terms, enviroments, and the typing judgment}
@@ -130,8 +97,8 @@ lookup []      _        =  ⊥-elim impossible
   where postulate impossible : ⊥
 
 count : ∀ {Γ} → (n : ℕ) → Γ ∋ lookup Γ n
-count {_ ∷ Γ} zero     =  z
-count {_ ∷ Γ} (suc n)  =  s (count n)
+count {_ ∷ Γ} zero     =  Z
+count {_ ∷ Γ} (suc n)  =  S (count n)
 count {[]}    _        =  ⊥-elim impossible
   where postulate impossible : ⊥
 
@@ -152,8 +119,8 @@ ext  : ∀ {Γ Δ A}
         → Renaming Γ Δ
           -----------------------------------
         → Renaming (A ∷ Γ) (A ∷ Δ)
-ext ρ z = z
-ext ρ (s x) = s (ρ x)
+ext ρ Z = Z
+ext ρ (S x) = S (ρ x)
 
 rename : ∀ {Γ Δ}
         → Renaming Γ Δ
@@ -175,8 +142,8 @@ rename-env ρ [] = []
 rename-env ρ (M ∷ E) = rename ρ M ∷ rename-env ρ E
 
 weaken : ∀ {Γ A} → Renaming Γ (A ∷ Γ)
-weaken z = s z
-weaken (s x) = s (weaken x)
+weaken Z = S Z
+weaken (S x) = S (weaken x)
 \end{code}
 
 \section{Simultaneous Substitution}
@@ -189,8 +156,8 @@ exts : ∀ {Γ Δ A}
      → Substitution Γ Δ
        ----------------------------
      → Substitution (A ∷ Γ) (A ∷ Δ)
-exts σ z = ` z
-exts σ (s x) = rename s_ (σ x)
+exts σ Z = ` Z
+exts σ (S x) = rename S_ (σ x)
 
 subst : ∀ {Γ Δ}
      → Substitution Γ Δ
@@ -223,8 +190,8 @@ _[_] : ∀ {Γ A B}
 _[_] {Γ} {A} N V =  subst {A ∷ Γ} {Γ} σ N
   where
   σ : ∀ {B} → A ∷ Γ ∋ B → Γ ⊢ B
-  σ z      =  V
-  σ (s x)  =  ` x
+  σ Z      =  V
+  σ (S x)  =  ` x
 
 _[_][_] : ∀ {Γ A B C}
   → B ∷ A ∷ Γ ⊢ C
@@ -235,9 +202,9 @@ _[_][_] : ∀ {Γ A B C}
 _[_][_] {Γ} {A} {B} N V W =  subst {B ∷ A ∷ Γ} {Γ} σ N
   where
   σ : ∀ {C} → B ∷ A ∷ Γ ∋ C → Γ ⊢ C
-  σ z          =  W
-  σ (s z)      =  V
-  σ (s (s x))  =  ` x
+  σ Z          =  W
+  σ (S Z)      =  V
+  σ (S (S x))  =  ` x
 \end{code}
 
 \section{Values}
@@ -274,8 +241,8 @@ Env→σ : ∀ {Γ Δ}
     -----------------
   → Substitution Δ Γ
 Env→σ [] ()
-Env→σ (M ∷ E) z = M
-Env→σ (M ∷ E) (s x) = Env→σ E x
+Env→σ (M ∷ E) Z = M
+Env→σ (M ∷ E) (S x) = Env→σ E x
 
 make-σ : ∀ {Γ Δ A B} 
   → Env Δ Γ
@@ -283,9 +250,9 @@ make-σ : ∀ {Γ Δ A B}
   → Γ ⊢ A
     ------------------------------
   → Substitution (A ∷ A ⇒ B ∷ Δ) Γ
-make-σ E F X z = X
-make-σ E F X (s z) = ⟪ F , E ⟫
-make-σ E F X (s s x) = Env→σ E x
+make-σ E F X Z = X
+make-σ E F X (S Z) = ⟪ F , E ⟫
+make-σ E F X (S S x) = Env→σ E x
 
 make-σ′ : ∀ {Γ Δ A B} 
   → Env Δ Γ
