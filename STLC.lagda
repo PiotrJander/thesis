@@ -62,20 +62,61 @@ data _⊢_ : Context → Type → Set where
 \section {Abbreviating de Bruijn indices}
 
 \begin{code}
-lookup : Context → ℕ → Type  --
-lookup (A ∷ Γ) zero     =  A
-lookup (_ ∷ Γ) (suc n)  =  lookup Γ n
-lookup []       _        =  ⊥-elim impossible
+look-up : Context → ℕ → Type  --
+look-up (A ∷ Γ) zero     =  A
+look-up (_ ∷ Γ) (suc n)  =  look-up Γ n
+look-up []       _        =  ⊥-elim impossible
   where postulate impossible : ⊥
 
-count : ∀ {Γ} → (n : ℕ) → Γ ∋ lookup Γ n
+count : ∀ {Γ} → (n : ℕ) → Γ ∋ look-up Γ n
 count {_ ∷ Γ} zero     =  Z
 count {_ ∷ Γ} (suc n)  =  S (count n)
 count {[]}     _        =  ⊥-elim impossible
   where postulate impossible : ⊥
 
-#_ : ∀ {Γ} → (n : ℕ) → Γ ⊢ lookup Γ n
+#_ : ∀ {Γ} → (n : ℕ) → Γ ⊢ look-up Γ n
 # n  =  ` count n
+\end{code}
+
+\section{Semantics}
+
+\begin{code}
+
+Model : Set₁
+Model = Context → Type → Set
+
+infix 4 _─Env
+record _─Env (Γ : Context) (𝓥 : Model) (Δ : Context) : Set where
+  constructor pack
+  field lookup : ∀ {σ} → Γ ∋ σ → 𝓥 Δ σ
+open _─Env public
+
+Thinning : Context → Context → Set
+Thinning Γ Δ = (Γ ─Env) _∋_ Δ
+
+infixr 5 _<$>_
+_<$>_ : ∀ {Γ Δ Θ 𝓥} → (∀ {σ} → 𝓥 Δ σ → 𝓥 Θ σ) → (Γ ─Env) 𝓥 Δ → (Γ ─Env) 𝓥 Θ
+lookup (f <$> ρ) x = f (lookup ρ x)
+
+infixl 4 _∙_
+_∙_ : ∀ {Γ Δ σ 𝓥} → (Γ ─Env) 𝓥 Δ → 𝓥 Δ σ → (σ ∷ Γ ─Env) 𝓥 Δ
+lookup (ρ ∙ v) Z = v
+lookup (ρ ∙ v) (S x) = lookup ρ x
+
+record Semantic (𝓥 𝓒 : Model) : Set where
+  field  th^𝓥  :  ∀ {Γ Δ σ} → Thinning Γ Δ → 𝓥 Γ σ → 𝓥 Δ σ
+         ⟦V⟧    :  ∀ {Δ σ} → 𝓥 Δ σ → 𝓒 Δ σ
+         ⟦A⟧    :  ∀ {Δ σ τ} → 𝓒 Δ (σ ⇒ τ) → 𝓒 Δ σ → 𝓒 Δ τ
+         ⟦L⟧    :  ∀ {Δ Θ} → (σ : Type) → {τ : Type} → (Thinning Δ Θ → 𝓥 Θ σ → 𝓒 Θ τ) → 𝓒 Δ (σ ⇒ τ)
+
+  sem : ∀ {Γ Δ σ} → (Γ ─Env) 𝓥 Δ → Γ ⊢ σ → 𝓒 Δ σ
+  sem ρ (` x)          =  ⟦V⟧ (lookup ρ x)
+  sem ρ (L · M)        =  ⟦A⟧ (sem ρ L) (sem ρ M)
+  sem {Δ = Δ} ρ (ƛ_ {A = σ} N)  =  ⟦L⟧ {Θ = σ ∷ Δ} σ (λ ren v → sem (extend ρ ren v) N)
+    where
+    extend : ∀ {Γ Δ Θ σ} → (Γ ─Env) 𝓥 Δ → Thinning Δ Θ → 𝓥 Θ σ → (σ ∷ Γ ─Env) 𝓥 Θ
+    extend ρ ren v = th^𝓥 ren <$> ρ ∙ v 
+
 \end{code}
 
 \section{Renaming}
