@@ -15,6 +15,7 @@ open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (¬_)
 open import Data.List using ([] ; _∷_)
+open import Function using (id)
 
 open import Common
 \end{code}
@@ -98,26 +99,50 @@ infixr 5 _<$>_
 _<$>_ : ∀ {Γ Δ Θ 𝓥} → (∀ {σ} → 𝓥 Δ σ → 𝓥 Θ σ) → (Γ ─Env) 𝓥 Δ → (Γ ─Env) 𝓥 Θ
 lookup (f <$> ρ) x = f (lookup ρ x)
 
+ε : ∀ {𝓥 Δ} → ([] ─Env) 𝓥 Δ 
+lookup ε ()
+
 infixl 4 _∙_
 _∙_ : ∀ {Γ Δ σ 𝓥} → (Γ ─Env) 𝓥 Δ → 𝓥 Δ σ → (σ ∷ Γ ─Env) 𝓥 Δ
 lookup (ρ ∙ v) Z = v
 lookup (ρ ∙ v) (S x) = lookup ρ x
 
-record Semantic (𝓥 𝓒 : Model) : Set where
+-- extend : ∀ {Γ σ} → Thinning Γ (σ ∷ Γ)
+-- lookup extend x = S x
+
+record Sem (𝓥 𝓒 : Model) : Set where
   field  th^𝓥  :  ∀ {Γ Δ σ} → Thinning Γ Δ → 𝓥 Γ σ → 𝓥 Δ σ
          ⟦V⟧    :  ∀ {Δ σ} → 𝓥 Δ σ → 𝓒 Δ σ
          ⟦A⟧    :  ∀ {Δ σ τ} → 𝓒 Δ (σ ⇒ τ) → 𝓒 Δ σ → 𝓒 Δ τ
-         ⟦L⟧    :  ∀ {Δ Θ} → (σ : Type) → {τ : Type} → (Thinning Δ Θ → 𝓥 Θ σ → 𝓒 Θ τ) → 𝓒 Δ (σ ⇒ τ)
+         ⟦L⟧    :  ∀ {Δ} → (σ : Type) → {τ : Type} → (Thinning Δ (σ ∷ Δ) → 𝓥 (σ ∷ Δ) σ → 𝓒 (σ ∷ Δ) τ) → 𝓒 Δ (σ ⇒ τ)  -- can we and should we generalise σ ∷ Δ to Θ ?
 
   sem : ∀ {Γ Δ σ} → (Γ ─Env) 𝓥 Δ → Γ ⊢ σ → 𝓒 Δ σ
-  sem ρ (` x)          =  ⟦V⟧ (lookup ρ x)
-  sem ρ (L · M)        =  ⟦A⟧ (sem ρ L) (sem ρ M)
-  sem {Δ = Δ} ρ (ƛ_ {A = σ} N)  =  ⟦L⟧ {Θ = σ ∷ Δ} σ (λ ren v → sem (extend ρ ren v) N)
+  sem ρ (` x)    =  ⟦V⟧ (lookup ρ x)
+  sem ρ (L · M)  =  ⟦A⟧ (sem ρ L) (sem ρ M)
+  sem ρ (ƛ_ N)   =  ⟦L⟧ _ (λ γ v → sem (extend' ρ γ v) N)
     where
-    extend : ∀ {Γ Δ Θ σ} → (Γ ─Env) 𝓥 Δ → Thinning Δ Θ → 𝓥 Θ σ → (σ ∷ Γ ─Env) 𝓥 Θ
-    extend ρ ren v = th^𝓥 ren <$> ρ ∙ v 
+    extend' : ∀ {Γ Δ Θ σ} → (Γ ─Env) 𝓥 Δ → Thinning Δ Θ → 𝓥 Θ σ → (σ ∷ Γ ─Env) 𝓥 Θ
+    extend' ρ γ v = th^𝓥 γ <$> ρ ∙ v
+
+Renaming' : Sem _∋_ _⊢_
+Renaming' = record
+  { th^𝓥  =  λ ρ v → lookup ρ v
+  ; ⟦V⟧    =  `_
+  ; ⟦A⟧    =  _·_
+  ; ⟦L⟧    =  λ _ b → ƛ b (pack S_) Z }
+
+Substitution' : Sem _⊢_ _⊢_
+Substitution' = record
+  { th^𝓥  =  λ ρ v → Sem.sem Renaming' ρ v 
+  ; ⟦V⟧    =  id
+  ; ⟦A⟧    =  _·_
+  ; ⟦L⟧    =  λ _ b → ƛ (b (pack S_) (` Z)) }
 
 \end{code}
+
+Now suppose that we could reduce under abstractions.
+Then we'd need a proof of SN for all vars in the env.
+
 
 \section{Renaming}
 
