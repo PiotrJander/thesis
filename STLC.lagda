@@ -96,7 +96,8 @@ Thinning : Context → Context → Set
 Thinning Γ Δ = (Γ ─Env) _∋_ Δ
 
 infixr 5 _<$>_
-_<$>_ : ∀ {Γ Δ Θ 𝓥} → (∀ {σ} → 𝓥 Δ σ → 𝓥 Θ σ) → (Γ ─Env) 𝓥 Δ → (Γ ─Env) 𝓥 Θ
+_<$>_ : ∀ {Γ Δ Θ 𝓥₁ 𝓥₂}
+      → (∀ {σ} → 𝓥₁ Δ σ → 𝓥₂ Θ σ) → (Γ ─Env) 𝓥₁ Δ → (Γ ─Env) 𝓥₂ Θ
 lookup (f <$> ρ) x = f (lookup ρ x)
 
 ε : ∀ {𝓥 Δ} → ([] ─Env) 𝓥 Δ 
@@ -131,12 +132,21 @@ Renaming' = record
   ; ⟦A⟧    =  _·_
   ; ⟦L⟧    =  λ _ b → ƛ b (pack S_) Z }
 
+ren : ∀ {Γ Δ σ} → Thinning Γ Δ → Γ ⊢ σ → Δ ⊢ σ
+ren = Sem.sem Renaming'
+
 Substitution' : Sem _⊢_ _⊢_
 Substitution' = record
   { th^𝓥  =  λ ρ v → Sem.sem Renaming' ρ v 
   ; ⟦V⟧    =  id
   ; ⟦A⟧    =  _·_
   ; ⟦L⟧    =  λ _ b → ƛ (b (pack S_) (` Z)) }
+
+Kripke : Model → Model → Context → Type → Type → Set
+Kripke 𝓥 𝓒 Δ σ τ = Thinning Δ (σ ∷ Δ) → 𝓥 (σ ∷ Δ) σ → 𝓒 (σ ∷ Δ) τ
+
+Applicative :  Model → Set
+Applicative 𝓒 = {Γ : Context} {σ τ : Type} → 𝓒 Γ (σ ⇒ τ) → 𝓒 Γ σ → 𝓒 Γ τ
 
 \end{code}
 
