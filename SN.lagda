@@ -44,16 +44,23 @@ record SN-α {Γ} e where
     Closed-e  :  Closed e
     e⇓        :  e ⇓
 
-record SN-σ→τ {Γ σ τ} e e' where  -- TODO factor the operand out and index by it
-  constructor pack
+record SN-σ→τ {Γ σ τ} e where  -- TODO factor the operand out and index by it
+  constructor pack                -- but this causes problems with the set hierarchy
   field
     Closed-e  :  Closed e
     e⇓        :  e ⇓
-    SN-app    :  SN (e · e')
+    SN-app    :  ∀ {e'} : SN e' → SN (e · e')       -- TODO understand positivity checking 
 open SN-σ→τ using (SN-app)
 
 SN {σ = `ℕ} e     =  SN-α e
-SN {σ = σ ⇒ τ} e  =  λ e' → SN-σ→τ e e'
+SN {σ = σ ⇒ τ} e  =  SN-σ→τ e
+
+
+
+-- ∀ {Γ Δ σ} → (e: Γ ⊢ σ) → (Γ ─Env) 𝓥 Δ → SN e Γ σ
+
+
+
 
 record PModel (𝓜 : Model) : Set₁ where
   constructor mkPModel

@@ -34,14 +34,14 @@ RKripke {𝓥ᴬ} {𝓥ᴮ} 𝓥ᴿ 𝓒ᴿ {Δ} {σ} {τ} fᴬ fᴮ =
 RApplicative : {𝓒ᴬ 𝓒ᴮ : Model} →
                Applicative 𝓒ᴬ → Applicative 𝓒ᴮ → RModel 𝓒ᴬ 𝓒ᴮ →
                Set
-RApplicative {𝓒ᴬ} {𝓒ᴮ} _$$ᴬ_ _$$ᴮ_ 𝓒ᴿ =
+RApplicative {𝓒ᴬ} {𝓒ᴮ} _·ᴬ_ _·ᴮ_ 𝓒ᴿ =
   {Γ : Context} {σ τ : Type}
   {fᴬ : 𝓒ᴬ Γ (σ ⇒ τ)} {fᴮ : 𝓒ᴮ Γ (σ ⇒ τ)}
   {tᴬ : 𝓒ᴬ Γ σ} {tᴮ : 𝓒ᴮ Γ σ} →
   
     related 𝓒ᴿ fᴬ fᴮ → related 𝓒ᴿ tᴬ tᴮ →
   -----------------------------------------------
-    related 𝓒ᴿ (fᴬ $$ᴬ tᴬ) (fᴮ $$ᴮ tᴮ)
+    related 𝓒ᴿ (fᴬ ·ᴬ tᴬ) (fᴮ ·ᴮ tᴮ)
 
 record ∀[_]
   {𝓥ᴬ 𝓥ᴮ : Model} {Γ Δ}
