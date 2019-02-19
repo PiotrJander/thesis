@@ -10,6 +10,7 @@ module StateOfTheArt.Closure where
 open import indexed
 open import var hiding (_<$>_ ; get)
 open import environment as E hiding (_>>_ ; extend)
+open E.≡ᴱ-Reasoning
 open import StateOfTheArt.Types
 
 import Relation.Binary.PropositionalEquality as Eq
@@ -64,16 +65,24 @@ subst ρ (V x) = lookup ρ x
 subst ρ (A M N) = A (subst ρ M) (subst ρ N)
 subst ρ (L N E) = L N (subst ρ <$> E)
 
--- a more general result would be that subst∘rename ≡ subst
--- where 
-
+{-# TERMINATING #-}
 lemma-0 : ∀ {Γ Δ Θ τ} {ρρ : Thinning Γ Θ} {ρσ : Subst Δ Γ}
   → (N : Lam τ Δ)
     -------------
   → rename ρρ (subst ρσ N) ≡ subst (rename ρρ <$> ρσ) N
 lemma-0 (V x)    =  refl
 lemma-0 (A M N)  =  cong₂ A (lemma-0 M) (lemma-0 N)
-lemma-0 (L N E)  =  {!cong₂ L refl ?!}
+lemma-0 {ρρ = ρρ} {ρσ} (L N E)  =  cong₂ L refl (env-extensionality h)
+  where h : (_<$>_ {𝓦 = Lam} (rename ρρ) (_<$>_ {𝓦 = Lam} (subst ρσ) E))
+            ≡ᴱ (subst (_<$>_ {𝓦 = Lam} (rename ρρ) ρσ) <$> E)
+        h = beginᴱ
+              _<$>_ {𝓦 = Lam} (rename ρρ) (_<$>_ {𝓦 = Lam} (subst ρσ) E)
+            ≡ᴱ⟨ <$>-distr {𝓦 = Lam} (subst ρσ) (rename ρρ) E ⟩
+              _<$>_ {𝓦 = Lam} (rename ρρ ∘ subst ρσ) E
+            ≡ᴱ⟨ <$>-fun {𝓦 = Lam} (λ v → lemma-0 v) E ⟩
+              subst (_<$>_ {𝓦 = Lam} (rename ρρ) ρσ) <$> E
+            ∎ᴱ
+
 
 lemma-1 : ∀ {Γ Δ Θ σ τ} {ρρ : Thinning Γ Θ} {ρσ : Subst Δ Γ} {N : Lam τ (σ ∷ Δ)}
   → rename (ext ρρ) (subst (exts ρσ) N) ≡ subst (exts (rename ρρ <$> ρσ)) N
