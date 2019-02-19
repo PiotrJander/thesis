@@ -95,6 +95,9 @@ open _─Env public
 Thinning : Context → Context → Set
 Thinning Γ Δ = (Γ ─Env) _∋_ Δ
 
+Substitution'' : Context → Context → Set
+Substitution'' Γ Δ = (Γ ─Env) _⊢_ Δ
+
 infixr 5 _<$>_
 _<$>_ : ∀ {Γ Δ Θ 𝓥₁ 𝓥₂}
       → (∀ {σ} → 𝓥₁ Δ σ → 𝓥₂ Θ σ) → (Γ ─Env) 𝓥₁ Δ → (Γ ─Env) 𝓥₂ Θ
@@ -141,6 +144,9 @@ Substitution' = record
   ; ⟦V⟧    =  id
   ; ⟦A⟧    =  _·_
   ; ⟦L⟧    =  λ _ b → ƛ (b (pack S_) (` Z)) }
+
+sub : ∀ {Γ Δ σ} → (Γ ─Env) _⊢_ Δ → Γ ⊢ σ → Δ ⊢ σ
+sub = Sem.sem Substitution'
 
 Kripke : Model → Model → Context → Type → Type → Set
 Kripke 𝓥 𝓒 Δ σ τ = Thinning Δ (σ ∷ Δ) → 𝓥 (σ ∷ Δ) σ → 𝓒 (σ ∷ Δ) τ
@@ -190,6 +196,7 @@ subst : ∀ {Γ Δ}
 subst σ (` k)          =  σ k
 subst σ (ƛ N)          =  ƛ (subst (exts σ) N)
 subst σ (L · M)        =  (subst σ L) · (subst σ M)
+
 \end{code}
 
 \section{Single and double substitution}
