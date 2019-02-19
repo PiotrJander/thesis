@@ -10,6 +10,7 @@ module StateOfTheArt.STLC where
 open import indexed
 open import var hiding (_<$>_ ; get)
 open import environment as E hiding (_>>_ ; extend)
+open import StateOfTheArt.Types
 
 open import Data.Nat.Base
 open import Data.List.Base hiding ([_] ; _++_ ; lookup)
@@ -17,11 +18,6 @@ open import Function
 
 --------------------------------------------------------------------------------
 -- Well scoped-and-typed Simply-Typed Lambda Calculus
-
-infixr 3 _⇒_
-data Type : Set where
-  α    : Type
-  _⇒_  : Type → Type → Type
 
 data Lam : Type ─Scoped where
   V : {σ : Type} →    [ Var σ                ⟶ Lam σ        ]
@@ -68,9 +64,6 @@ Substitution = record
    ; ⟦A⟧    = A
    ; ⟦L⟧    = λ σ b → L (b (pack s) (V z)) }
 
-Context : Set
-Context = List Type
-
 Subst : Context → Context → Set
 Subst Γ Δ = (Γ ─Env) Lam Δ
 
@@ -86,3 +79,4 @@ _[_] {σ} {_} {Γ} N M =  subst ρ N
   ρ : Subst (σ ∷ Γ) Γ
   lookup ρ z      =  M
   lookup ρ (s x)  =  V x
+

@@ -6,6 +6,7 @@ open L hiding (lookup ; [_] ; map)
 open import Data.Sum as S hiding (map)
 open import Function
 open import Relation.Binary.PropositionalEquality as PEq hiding ([_])
+open PEq using (_≡_; refl)
 
 open import indexed
 open import var hiding (_<$>_)
@@ -26,8 +27,31 @@ Thinning Γ Δ = (Γ ─Env) Var Δ
 ε : ∀ {𝓥 n} → ([] ─Env) 𝓥 n
 lookup ε ()
 
+infixr 5 _<$>_
 _<$>_ : {𝓥 𝓦 : I ─Scoped} {Γ Δ Θ : List I} → ({i : I} → 𝓥 i Δ → 𝓦 i Θ) → (Γ ─Env) 𝓥 Δ → (Γ ─Env) 𝓦 Θ
 lookup (f <$> ρ) k = f (lookup ρ k)
+
+infix 4 _≡ᴱ_
+record _≡ᴱ_ {𝓥 : I ─Scoped} {Γ Δ : List I} (ρ₁ ρ₂ : (Γ ─Env) 𝓥 Δ) : Set where
+  field eq : {i : I} (x : Var i Γ) → lookup ρ₁ x ≡ lookup ρ₂ x
+open _≡ᴱ_ public
+
+<$>-distr : {𝓥 𝓦 𝓧 : I ─Scoped} {Γ Δ Θ₁ Θ₂ : List I}
+  (f : {i : I} → 𝓥 i Δ → 𝓦 i Θ₁)
+  (g : {i : I} → 𝓦 i Θ₁ → 𝓧 i Θ₂)
+  (ρ : (Γ ─Env) 𝓥 Δ)
+    ---------------------------
+  → _<$>_ {𝓦 = 𝓧} g (_<$>_ {𝓦 = 𝓦} f ρ) ≡ᴱ _<$>_ {𝓦 = 𝓧} (g ∘ f) ρ
+eq (<$>-distr f g ρ) x = refl
+
+<$>-fun : {𝓥 𝓦 : I ─Scoped} {Γ Δ Θ : List I}
+  → {f : {i : I} → 𝓥 i Δ → 𝓦 i Θ}
+  → {g : {i : I} → 𝓥 i Δ → 𝓦 i Θ}
+  → (f≡g : {i : I} → (v : 𝓥 i Δ) → f v ≡ g v)
+  → (ρ : (Γ ─Env) 𝓥 Δ)
+    -------------
+  → _<$>_ {𝓦 = 𝓦} f ρ ≡ᴱ _<$>_ {𝓦 = 𝓦} g ρ
+eq (<$>-fun f≡g ρ) x rewrite f≡g (lookup ρ x) = refl
 
 data Split (i : I) Γ Δ : Var i (Γ ++ Δ) → Set where
   inj₁ : (k : Var i Γ) → Split i Γ Δ (injectˡ Δ k)
