@@ -199,7 +199,7 @@ subst σ (L · M)        =  (subst σ L) · (subst σ M)
 
 \end{code}
 
-\section{Single and double substitution}
+\section{Single substitution}
 
 \begin{code}
 _[_] : ∀ {Γ A B}

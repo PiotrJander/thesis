@@ -106,14 +106,6 @@ ext  : ∀ {Γ Δ A}
 ext ρ Z      =  Z
 ext ρ (S x)  =  S (ρ x)
 
--- extλ  : ∀ {Γ Δ}
---         → Renaming Γ Δ
---           -----------------------------------
---         → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ∋ C)
--- extλ ρ Z        =  Z
--- extλ ρ (S Z)    =  S Z
--- extλ ρ (S S x)  =  S (S ρ x)
-
 rename : ∀ {Γ Δ}
         → Renaming Γ Δ
           ---------------------------
@@ -135,14 +127,6 @@ exts : ∀ {Γ Δ A}
      → Substitution _⊢_ (A ∷ Γ) (A ∷ Δ)
 exts σ Z      =  ` Z
 exts σ (S x)  =  rename S_ (σ x)
-
--- extsλ : ∀ {Γ Δ}
---      → Substitution _⊢_ Γ Δ
---        ----------------------------
---      → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ⊢ C)
--- extsλ σ Z        =  ` Z
--- extsλ σ (S Z)    =  ` S Z
--- extsλ σ (S S x)  =  rename (λ v → S S v) (σ x)
 
 subst : ∀ {Γ Δ}
      → Substitution _⊢_ Γ Δ
