@@ -106,20 +106,20 @@ ext  : ∀ {Γ Δ A}
 ext ρ Z      =  Z
 ext ρ (S x)  =  S (ρ x)
 
-extλ  : ∀ {Γ Δ}
-        → Renaming Γ Δ
-          -----------------------------------
-        → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ∋ C)
-extλ ρ Z        =  Z
-extλ ρ (S Z)    =  S Z
-extλ ρ (S S x)  =  S (S ρ x)
+-- extλ  : ∀ {Γ Δ}
+--         → Renaming Γ Δ
+--           -----------------------------------
+--         → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ∋ C)
+-- extλ ρ Z        =  Z
+-- extλ ρ (S Z)    =  S Z
+-- extλ ρ (S S x)  =  S (S ρ x)
 
 rename : ∀ {Γ Δ}
         → Renaming Γ Δ
           ---------------------------
         → Rebasing _⊢_ Γ Δ
 rename ρ (` x)          =  ` (ρ x)
-rename ρ (ƛ N)          =  ƛ rename (extλ ρ) N
+rename ρ (ƛ N)          =  ƛ rename (ext (ext ρ)) N
 rename ρ (L · M)        =  (rename ρ L) · (rename ρ M)
 rename ρ (`zero)        =  `zero
 rename ρ (`suc M)       =  `suc (rename ρ M)
@@ -136,20 +136,20 @@ exts : ∀ {Γ Δ A}
 exts σ Z      =  ` Z
 exts σ (S x)  =  rename S_ (σ x)
 
-extsλ : ∀ {Γ Δ}
-     → Substitution _⊢_ Γ Δ
-       ----------------------------
-     → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ⊢ C)
-extsλ σ Z        =  ` Z
-extsλ σ (S Z)    =  ` S Z
-extsλ σ (S S x)  =  rename (λ v → S S v) (σ x)
+-- extsλ : ∀ {Γ Δ}
+--      → Substitution _⊢_ Γ Δ
+--        ----------------------------
+--      → (∀ {A B C} → B ∷ A ∷ Γ ∋ C → B ∷ A ∷ Δ ⊢ C)
+-- extsλ σ Z        =  ` Z
+-- extsλ σ (S Z)    =  ` S Z
+-- extsλ σ (S S x)  =  rename (λ v → S S v) (σ x)
 
 subst : ∀ {Γ Δ}
      → Substitution _⊢_ Γ Δ
        ----------------
      → Rebasing _⊢_ Γ Δ
 subst σ (` k)          =  σ k
-subst σ (ƛ N)          =  ƛ (subst (extsλ σ) N)
+subst σ (ƛ N)          =  ƛ (subst (exts (exts σ)) N)
 subst σ (L · M)        =  (subst σ L) · (subst σ M)
 subst σ (`zero)        =  `zero
 subst σ (`suc M)       =  `suc (subst σ M)
