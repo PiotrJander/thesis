@@ -12,7 +12,8 @@ open import environment as E hiding (_>>_ ; extend)
 open import StateOfTheArt.Types
 import StateOfTheArt.STLC as S
 import StateOfTheArt.Closure as T
-open import StateOfTheArt.Closure-Thms
+import StateOfTheArt.STLC-Thms as ST
+import StateOfTheArt.Closure-Thms as TT 
 
 infix  4 _~_
 
@@ -41,4 +42,17 @@ data _~_ : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set where
 ~rename ρ ~V = ~V
 ~rename ρ (~A ~M ~N) = ~A (~rename ρ ~M) (~rename ρ ~N)
 ~rename ρ (~L {N = N} {N†} {E} ~N) with ~rename (T.ext ρ) ~N
-... | ~ρN rewrite lemma-~ren-L ρ E N† = ~L ~ρN
+... | ~ρN rewrite TT.lemma-~ren-L ρ E N† = ~L ~ρN
+
+record _~σ_ {Γ Δ : Context} (ρ : S.Subst Γ Δ) (ρ† : T.Subst Γ Δ) : Set where
+  field ρ~ρ† : ∀ {σ} → (x : Var σ Γ) → lookup ρ x ~ lookup ρ† x
+open _~σ_ public
+
+~exts : ∀ {Γ Δ σ}
+  → {ρ  : S.Subst Γ Δ}
+  → {ρ† : T.Subst Γ Δ}
+  → ρ ~σ ρ†
+    --------------------------------------------------
+  → S.exts {σ = σ} ρ ~σ T.exts ρ†
+ρ~ρ† (~exts ~ρ) z = ~V
+ρ~ρ† (~exts {σ = σ} {ρ = ρ} {ρ†} ~ρ) (s x) rewrite ST.lookup-exts-sx {σ = σ} ρ x | TT.lookup-exts-sx {σ = σ} ρ† x = ~rename E.extend (ρ~ρ† ~ρ x)

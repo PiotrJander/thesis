@@ -72,9 +72,9 @@ lemma-5 : ∀ {Γ Δ σ τ} {ρ : Thinning Γ Δ} {x : Var τ Γ}
   → lookup (ext {σ = σ} ρ) (s x) ≡ s (lookup ρ x)
 lemma-5 = refl
 
-lookup-exts-ρ-sx≡rename-extend-lookup-ρ-x : ∀ {Γ Δ σ τ} (ρ : Subst Γ Δ) (x : Var τ Γ)
+lookup-exts-sx : ∀ {Γ Δ σ τ} (ρ : Subst Γ Δ) (x : Var τ Γ)
   → lookup (exts {σ = σ} ρ) (s x) ≡ rename E.extend (lookup ρ x)
-lookup-exts-ρ-sx≡rename-extend-lookup-ρ-x ρ x = refl
+lookup-exts-sx ρ x = refl
 
 lemma-~ren-L-helper : ∀ {Γ Δ Θ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ)
   → rename (ext {σ = τ} ρρ) <$> (exts ρσ) ≡ᴱ exts (rename ρρ <$> ρσ)
@@ -85,7 +85,7 @@ eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) (s x) = h
             ≡ rename (step ρρ) (lookup ρσ x)
         g = begin
               rename (ext {σ = τ} ρρ) (lookup (exts ρσ) (s x))
-            ≡⟨ cong (λ e → rename (ext {σ = τ} ρρ) e) (lookup-exts-ρ-sx≡rename-extend-lookup-ρ-x {σ = τ} ρσ x) ⟩
+            ≡⟨ cong (λ e → rename (ext {σ = τ} ρρ) e) (lookup-exts-sx {σ = τ} ρσ x) ⟩
               rename (ext {σ = τ} ρρ) (rename E.extend (lookup ρσ x))
             ≡⟨ rename∘rename E.extend (ext {σ = τ} ρρ) (lookup ρσ x) ⟩
               rename (select E.extend (ext {σ = τ} ρρ)) (lookup ρσ x)
@@ -96,7 +96,7 @@ eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) (s x) = h
             ≡ rename (step ρρ) (lookup ρσ x)
         f = begin
               lookup (exts (rename ρρ <$> ρσ)) (s x)
-            ≡⟨ lookup-exts-ρ-sx≡rename-extend-lookup-ρ-x (rename ρρ <$> ρσ) x ⟩
+            ≡⟨ lookup-exts-sx (rename ρρ <$> ρσ) x ⟩
               rename E.extend (lookup (_<$>_ {𝓦 = Lam} (rename ρρ) ρσ) x)
             ≡⟨⟩
               rename E.extend (rename ρρ (lookup ρσ x))

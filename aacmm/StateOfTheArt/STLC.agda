@@ -70,6 +70,12 @@ Subst Γ Δ = (Γ ─Env) Lam Δ
 subst : ∀ {Γ Δ σ} → (Γ ─Env) Lam Δ → Lam σ Γ → Lam σ Δ
 subst = Sem.sem Substitution
 
+exts : ∀ {Γ Δ σ}
+     → Subst Γ Δ
+       ----------------------------
+     → Subst (σ ∷ Γ) (σ ∷ Δ)
+exts ρ  =  rename E.extend <$> ρ ∙ V z
+
 --------------------------
 -- Single substitution
 
