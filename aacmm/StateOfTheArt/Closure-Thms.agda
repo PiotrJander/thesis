@@ -76,10 +76,10 @@ lookup-exts-ρ-sx≡rename-extend-lookup-ρ-x : ∀ {Γ Δ σ τ} (ρ : Subst Γ
   → lookup (exts {σ = σ} ρ) (s x) ≡ rename E.extend (lookup ρ x)
 lookup-exts-ρ-sx≡rename-extend-lookup-ρ-x ρ x = refl
 
-lemma-2 : ∀ {Γ Δ Θ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ)
+lemma-~ren-L-helper : ∀ {Γ Δ Θ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ)
   → rename (ext {σ = τ} ρρ) <$> (exts ρσ) ≡ᴱ exts (rename ρρ <$> ρσ)
-eq (lemma-2 {τ = τ} ρρ ρσ) z rewrite lemma-3 {τ = τ} {ρ = ρρ} = refl
-eq (lemma-2 {τ = τ} ρρ ρσ) (s x) = h
+eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) z rewrite lemma-3 {τ = τ} {ρ = ρρ} = refl
+eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) (s x) = h
   where 
         g : rename (ext {σ = τ} ρρ) (lookup (exts ρσ) (s x))
             ≡ rename (step ρρ) (lookup ρσ x)
@@ -109,13 +109,13 @@ eq (lemma-2 {τ = τ} ρρ ρσ) (s x) = h
             ≡ lookup (exts (rename ρρ <$> ρσ)) (s x)
         h = trans g (sym f)
 
-lemma-1 : ∀ {Γ Δ Θ σ τ} {ρρ : Thinning Γ Θ} {ρσ : Subst Δ Γ} {N : Lam τ (σ ∷ Δ)}
+lemma-~ren-L : ∀ {Γ Δ Θ σ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ) (N : Lam τ (σ ∷ Δ))
   → rename (ext ρρ) (subst (exts ρσ) N) ≡ subst (exts (rename ρρ <$> ρσ)) N
-lemma-1 {ρρ = ρρ} {ρσ} {N} =
+lemma-~ren-L ρρ ρσ N =
   begin
     rename (ext ρρ) (subst (exts ρσ) N)
   ≡⟨ rename∘subst {ρρ = ext ρρ} {exts ρσ} N ⟩
     subst (rename (ext ρρ) <$> exts ρσ) N
-  ≡⟨ cong (λ e → subst e N) (env-extensionality (lemma-2 ρρ ρσ)) ⟩
+  ≡⟨ cong (λ e → subst e N) (env-extensionality (lemma-~ren-L-helper ρρ ρσ)) ⟩
     subst (exts (rename ρρ <$> ρσ)) N
   ∎

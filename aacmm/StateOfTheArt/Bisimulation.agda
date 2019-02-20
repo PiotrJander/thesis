@@ -1,6 +1,9 @@
 module StateOfTheArt.Bisimulation where
 
 open import Data.List using (List; []; _∷_)
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl; trans; cong; sym; cong₂)
+open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 
 open import indexed
 open import var hiding (_<$>_ ; get)
@@ -9,6 +12,7 @@ open import environment as E hiding (_>>_ ; extend)
 open import StateOfTheArt.Types
 import StateOfTheArt.STLC as S
 import StateOfTheArt.Closure as T
+open import StateOfTheArt.Closure-Thms
 
 infix  4 _~_
 
@@ -35,7 +39,6 @@ data _~_ : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set where
     ----------------------------------------------------------
   → ∀ {σ} {M : S.Lam σ Γ} {M† : T.Lam σ Γ} → M ~ M† → S.rename ρ M ~ T.rename ρ M†
 ~rename ρ ~V = ~V
-~rename ρ (~L ~N) = {!!}
 ~rename ρ (~A ~M ~N) = ~A (~rename ρ ~M) (~rename ρ ~N)
-
-
+~rename ρ (~L {N = N} {N†} {E} ~N) with ~rename (T.ext ρ) ~N
+... | ~ρN rewrite lemma-~ren-L ρ E N† = ~L ~ρN
