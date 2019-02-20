@@ -64,6 +64,6 @@ open _~σ_ public
     ---------------------------------------------------------
   → (∀ {τ} {M : S.Lam τ Γ} {M† : T.Lam τ Γ} → M ~ M† → S.subst ρ M ~ T.subst ρ† M†)
 ~subst ~ρ (~V {x = x}) = ρ~ρ† ~ρ x
-~subst ~ρ (~L ~N) = ? -- with ~subst (~exts ~ρ) ~N
--- ... | ~ρN = {!!}
+~subst {ρ† = ρ†} ~ρ (~L {N = N} {N†} {E} ~N) with ~subst (~exts ~ρ) ~N
+... | ~ρN rewrite TT.lemma-~subst-L ρ† E N† = ~L ~ρN
 ~subst ~ρ (~A ~M ~N) = ~A (~subst ~ρ ~M) (~subst ~ρ ~N) 

@@ -150,6 +150,17 @@ eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) (s x) = h
             ≡ lookup (exts (rename ρρ <$> ρσ)) (s x)
         h = trans g (sym f)
 
+lemma-~subst-L : ∀ {Γ Δ Θ σ τ} (ρ₁ : Subst Γ Θ) (ρ₂ : Subst Δ Γ) (N : Lam τ (σ ∷ Δ))
+  → subst (exts ρ₁) (subst (exts ρ₂) N) ≡ subst (exts (subst ρ₁ <$> ρ₂)) N
+lemma-~subst-L ρ₁ ρ₂ N =
+  begin
+    subst (exts ρ₁) (subst (exts ρ₂) N)
+  ≡⟨ subst∘subst (exts ρ₁) (exts ρ₂) N ⟩
+    subst (subst (exts ρ₁) <$> exts ρ₂) N
+  ≡⟨ cong (λ e → subst e N) (env-extensionality (lemma-~subst-L-helper ρ₁ ρ₂)) ⟩
+    subst (exts (subst ρ₁ <$> ρ₂)) N
+  ∎
+
 lemma-~ren-L : ∀ {Γ Δ Θ σ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ) (N : Lam τ (σ ∷ Δ))
   → rename (ext ρρ) (subst (exts ρσ) N) ≡ subst (exts (rename ρρ <$> ρσ)) N
 lemma-~ren-L ρρ ρσ N =
