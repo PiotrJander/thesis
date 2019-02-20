@@ -55,4 +55,15 @@ open _~σ_ public
     --------------------------------------------------
   → S.exts {σ = σ} ρ ~σ T.exts ρ†
 ρ~ρ† (~exts ~ρ) z = ~V
-ρ~ρ† (~exts {σ = σ} {ρ = ρ} {ρ†} ~ρ) (s x) rewrite ST.lookup-exts-sx {σ = σ} ρ x | TT.lookup-exts-sx {σ = σ} ρ† x = ~rename E.extend (ρ~ρ† ~ρ x)
+ρ~ρ† (~exts {σ = σ} {ρ = ρ} {ρ†} ~ρ) (s x) = ~rename E.extend (ρ~ρ† ~ρ x)
+
+~subst : ∀ {Γ Δ}
+  → {ρ  : S.Subst Γ Δ}
+  → {ρ† : T.Subst Γ Δ}
+  → ρ ~σ ρ†
+    ---------------------------------------------------------
+  → (∀ {τ} {M : S.Lam τ Γ} {M† : T.Lam τ Γ} → M ~ M† → S.subst ρ M ~ T.subst ρ† M†)
+~subst ~ρ (~V {x = x}) = ρ~ρ† ~ρ x
+~subst ~ρ (~L ~N) = ? -- with ~subst (~exts ~ρ) ~N
+-- ... | ~ρN = {!!}
+~subst ~ρ (~A ~M ~N) = ~A (~subst ~ρ ~M) (~subst ~ρ ~N) 

@@ -67,3 +67,5 @@ subst ρ (V x) = lookup ρ x
 subst ρ (A M N) = A (subst ρ M) (subst ρ N)
 subst ρ (L N E) = L N (subst ρ <$> E)
 
+s-step : ∀ {Γ Δ τ} → Subst Γ Δ → Subst Γ (τ ∷ Δ)
+s-step ρ = rename E.extend <$> ρ

@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-} 
 module StateOfTheArt.Closure-Thms where
 
 open import indexed
@@ -14,25 +15,57 @@ open import Data.Nat.Base
 open import Data.List.Base hiding ([_] ; _++_ ; lookup)
 open import Function
 
--- TODO write the informal proof in a comment here
--- TODO make ρ and σ explicit
-
-{-# TERMINATING #-}  -- rename∘subst
-rename∘subst : ∀ {Γ Δ Θ τ} {ρρ : Thinning Γ Θ} {ρσ : Subst Δ Γ}
+{-# TERMINATING #-}
+rename∘subst : ∀ {Γ Δ Θ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ)
   → (N : Lam τ Δ)
     -------------
   → rename ρρ (subst ρσ N) ≡ subst (rename ρρ <$> ρσ) N
-rename∘subst (V x)    =  refl
-rename∘subst (A M N)  =  cong₂ A (rename∘subst M) (rename∘subst N)
-rename∘subst {ρρ = ρρ} {ρσ} (L N E)  =  cong₂ L refl (env-extensionality h)
+rename∘subst ρρ ρσ (V x)    =  refl
+rename∘subst ρρ ρσ (A M N)  =  cong₂ A (rename∘subst ρρ ρσ M) (rename∘subst ρρ ρσ N)
+rename∘subst ρρ ρσ (L N E)  =  cong₂ L refl (env-extensionality h)
   where h : (_<$>_ {𝓦 = Lam} (rename ρρ) (_<$>_ {𝓦 = Lam} (subst ρσ) E))
             ≡ᴱ (subst (_<$>_ {𝓦 = Lam} (rename ρρ) ρσ) <$> E)
         h = beginᴱ
               _<$>_ {𝓦 = Lam} (rename ρρ) (_<$>_ {𝓦 = Lam} (subst ρσ) E)
             ≡ᴱ⟨ <$>-distr {𝓦 = Lam} (subst ρσ) (rename ρρ) E ⟩
               _<$>_ {𝓦 = Lam} (rename ρρ ∘ subst ρσ) E
-            ≡ᴱ⟨ <$>-fun {𝓦 = Lam} (λ v → rename∘subst v) E ⟩
+            ≡ᴱ⟨ <$>-fun {𝓦 = Lam} (λ v → rename∘subst ρρ ρσ v) E ⟩
               subst (_<$>_ {𝓦 = Lam} (rename ρρ) ρσ) <$> E
+            ∎ᴱ
+
+{-# TERMINATING #-}
+subst∘subst : ∀ {Γ Δ Θ τ} (ρ₁ : Subst Γ Θ) (ρ₂ : Subst Δ Γ)
+  → (N : Lam τ Δ)
+    -------------
+  → subst ρ₁ (subst ρ₂ N) ≡ subst (subst ρ₁ <$> ρ₂) N
+subst∘subst ρ₁ ρ₂ (V x)    =  refl
+subst∘subst ρ₁ ρ₂ (A M N)  =  cong₂ A (subst∘subst ρ₁ ρ₂ M) (subst∘subst ρ₁ ρ₂ N)
+subst∘subst ρ₁ ρ₂ (L N E)  =  cong₂ L refl (env-extensionality h)
+  where h : (_<$>_ {𝓦 = Lam} (subst ρ₁) (_<$>_ {𝓦 = Lam} (subst ρ₂) E)) ≡ᴱ (subst (_<$>_ {𝓦 = Lam} (subst ρ₁) ρ₂) <$> E)
+        h = beginᴱ
+              (_<$>_ {𝓦 = Lam} (subst ρ₁) (_<$>_ {𝓦 = Lam} (subst ρ₂) E))
+            ≡ᴱ⟨ <$>-distr {𝓦 = Lam} (subst ρ₂) (subst ρ₁) E ⟩
+              _<$>_ {𝓦 = Lam} (subst ρ₁ ∘ subst ρ₂) E
+            ≡ᴱ⟨ <$>-fun {𝓦 = Lam} (λ e → subst∘subst ρ₁ ρ₂ e) E ⟩
+              (subst (_<$>_ {𝓦 = Lam} (subst ρ₁) ρ₂) <$> E)
+            ∎ᴱ
+
+{-# TERMINATING #-}
+subst∘rename : ∀ {Γ Δ Θ τ} (ρσ : Subst Γ Θ) (ρρ : Thinning Δ Γ)
+  → (N : Lam τ Δ)
+    -------------
+  → subst ρσ (rename ρρ N) ≡ subst (select ρρ ρσ) N
+subst∘rename ρσ ρρ (V x)    =  refl
+subst∘rename ρσ ρρ (A M N)  =  cong₂ A (subst∘rename ρσ ρρ M) (subst∘rename ρσ ρρ N)
+subst∘rename ρσ ρρ (L N E)  =  cong₂ L refl (env-extensionality h)
+  where h : (_<$>_ {𝓦 = Lam} (subst ρσ) (_<$>_ {𝓦 = Lam} (rename ρρ) E))
+            ≡ᴱ (subst (select ρρ ρσ) <$> E)
+        h = beginᴱ
+              _<$>_ {𝓦 = Lam} (subst ρσ) (_<$>_ {𝓦 = Lam} (rename ρρ) E)
+            ≡ᴱ⟨ <$>-distr {𝓦 = Lam} (rename ρρ) (subst ρσ) E ⟩
+              _<$>_ {𝓦 = Lam} (subst ρσ ∘ rename ρρ) E
+            ≡ᴱ⟨ <$>-fun {𝓦 = Lam} (λ e → subst∘rename ρσ ρρ e) E ⟩
+              subst (select ρρ ρσ) <$> E
             ∎ᴱ
 
 {-# TERMINATING #-}
@@ -52,57 +85,65 @@ rename∘rename ρ₁ ρ₂ (L N E)  =  cong₂ L refl (env-extensionality h)
               _<$>_ {𝓦 = Lam} (rename (select ρ₁ ρ₂)) E
             ∎ᴱ
 
-select-extend-ext-ρ≡step-ρ : ∀ {Γ Δ} {τ : Type} (ρ : Thinning Γ Δ)
-  → select (E.extend {σ = τ}) (ext ρ) ≡ᴱ step ρ
-eq (select-extend-ext-ρ≡step-ρ ρ) x = refl
-
-select-ρ-extend≡step-ρ : ∀ {Γ Δ} {τ : Type} (ρ : Thinning Γ Δ)
-  → select ρ (E.extend {σ = τ}) ≡ᴱ step ρ
-eq (select-ρ-extend≡step-ρ ρ) x = refl
-
-lemma-3 : ∀ {Γ Δ τ} {ρ : Thinning Γ Δ}
-  → lookup (ext {σ = τ} ρ) z ≡ z
-lemma-3 = refl
-
-lemma-4 : ∀ {Γ Δ τ} {ρ : Subst Γ Δ}
-  → lookup (exts {σ = τ} ρ) z ≡ V z
-lemma-4 = refl
-
-lemma-5 : ∀ {Γ Δ σ τ} {ρ : Thinning Γ Δ} {x : Var τ Γ}
-  → lookup (ext {σ = σ} ρ) (s x) ≡ s (lookup ρ x)
-lemma-5 = refl
-
-lookup-exts-sx : ∀ {Γ Δ σ τ} (ρ : Subst Γ Δ) (x : Var τ Γ)
-  → lookup (exts {σ = σ} ρ) (s x) ≡ rename E.extend (lookup ρ x)
-lookup-exts-sx ρ x = refl
+lemma-~subst-L-helper : ∀ {Γ Δ Θ τ} (ρ₁ : Subst Γ Θ) (ρ₂ : Subst Δ Γ)
+  → subst (exts {σ = τ} ρ₁) <$> (exts ρ₂) ≡ᴱ exts (subst ρ₁ <$> ρ₂)
+eq (lemma-~subst-L-helper ρ₁ ρ₂) z = refl
+eq (lemma-~subst-L-helper {τ = τ} ρ₁ ρ₂) (s x) = h
+  where f : subst (exts {σ = τ} ρ₁) (lookup (exts ρ₂) (s x))
+            ≡ subst (s-step ρ₁) (lookup ρ₂ x)
+        f = begin
+              subst (exts {σ = τ} ρ₁) (lookup (exts ρ₂) (s x))
+            ≡⟨⟩
+              subst (exts {σ = τ} ρ₁) (rename E.extend (lookup ρ₂ x))
+            ≡⟨ subst∘rename (exts ρ₁) E.extend (lookup ρ₂ x) ⟩
+              subst (select E.extend (exts ρ₁)) (lookup ρ₂ x)
+            ≡⟨⟩
+              subst (s-step ρ₁) (lookup ρ₂ x)
+            ∎
+        g : lookup (exts {σ = τ} (subst ρ₁ <$> ρ₂)) (s x)
+            ≡ subst (s-step ρ₁) (lookup ρ₂ x)
+        g = begin
+              lookup (exts {σ = τ} (subst ρ₁ <$> ρ₂)) (s x)
+            ≡⟨⟩
+              rename E.extend (lookup (_<$>_ {𝓦 = Lam} (subst ρ₁) ρ₂) x)
+            ≡⟨⟩
+              rename E.extend (subst ρ₁ (lookup ρ₂ x))
+            ≡⟨ rename∘subst E.extend ρ₁ (lookup ρ₂ x) ⟩
+              subst (rename E.extend <$> ρ₁) (lookup ρ₂ x)
+            ≡⟨⟩
+              subst (s-step ρ₁) (lookup ρ₂ x)
+            ∎
+        h : subst (exts {σ = τ} ρ₁) (lookup (exts ρ₂) (s x))
+            ≡ lookup (exts (subst ρ₁ <$> ρ₂)) (s x)
+        h = trans f (sym g)
 
 lemma-~ren-L-helper : ∀ {Γ Δ Θ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ)
   → rename (ext {σ = τ} ρρ) <$> (exts ρσ) ≡ᴱ exts (rename ρρ <$> ρσ)
-eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) z rewrite lemma-3 {τ = τ} {ρ = ρρ} = refl
+eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) z = refl
 eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) (s x) = h
   where 
         g : rename (ext {σ = τ} ρρ) (lookup (exts ρσ) (s x))
             ≡ rename (step ρρ) (lookup ρσ x)
         g = begin
               rename (ext {σ = τ} ρρ) (lookup (exts ρσ) (s x))
-            ≡⟨ cong (λ e → rename (ext {σ = τ} ρρ) e) (lookup-exts-sx {σ = τ} ρσ x) ⟩
+            ≡⟨⟩
               rename (ext {σ = τ} ρρ) (rename E.extend (lookup ρσ x))
             ≡⟨ rename∘rename E.extend (ext {σ = τ} ρρ) (lookup ρσ x) ⟩
               rename (select E.extend (ext {σ = τ} ρρ)) (lookup ρσ x)
-            ≡⟨ cong (λ e → rename e (lookup ρσ x)) (env-extensionality (select-extend-ext-ρ≡step-ρ ρρ)) ⟩
+            ≡⟨⟩
               rename (step ρρ) (lookup ρσ x)
             ∎
         f : lookup (exts (rename ρρ <$> ρσ)) (s x)
             ≡ rename (step ρρ) (lookup ρσ x)
         f = begin
               lookup (exts (rename ρρ <$> ρσ)) (s x)
-            ≡⟨ lookup-exts-sx (rename ρρ <$> ρσ) x ⟩
+            ≡⟨⟩
               rename E.extend (lookup (_<$>_ {𝓦 = Lam} (rename ρρ) ρσ) x)
             ≡⟨⟩
               rename E.extend (rename ρρ (lookup ρσ x))
             ≡⟨ rename∘rename ρρ E.extend (lookup ρσ x) ⟩
               rename (select ρρ E.extend) (lookup ρσ x)
-            ≡⟨ cong (λ e → rename e (lookup ρσ x)) (env-extensionality (select-ρ-extend≡step-ρ ρρ)) ⟩
+            ≡⟨⟩
               rename (step ρρ) (lookup ρσ x)
             ∎
         h : rename (ext {σ = τ} ρρ) (lookup (exts ρσ) (s x))
@@ -114,7 +155,7 @@ lemma-~ren-L : ∀ {Γ Δ Θ σ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ)
 lemma-~ren-L ρρ ρσ N =
   begin
     rename (ext ρρ) (subst (exts ρσ) N)
-  ≡⟨ rename∘subst {ρρ = ext ρρ} {exts ρσ} N ⟩
+  ≡⟨ rename∘subst (ext ρρ) (exts ρσ) N ⟩
     subst (rename (ext ρρ) <$> exts ρσ) N
   ≡⟨ cong (λ e → subst e N) (env-extensionality (lemma-~ren-L-helper ρρ ρσ)) ⟩
     subst (exts (rename ρρ <$> ρσ)) N
