@@ -171,3 +171,40 @@ lemma-~ren-L ρρ ρσ N =
   ≡⟨ cong (λ e → subst e N) (env-extensionality (lemma-~ren-L-helper ρρ ρσ)) ⟩
     subst (exts (rename ρρ <$> ρσ)) N
   ∎
+
+-- neat mutual recursion here
+
+h : ∀ {Γ σ τ} (VV : Lam σ Γ) (N : Lam τ Γ)
+  → subst (select E.extend (id-subst ∙ VV)) N ≡ N
+h1 : ∀ {Γ Δ σ} (E : Subst Δ Γ) (VV : Lam σ Γ)
+  → (subst (select E.extend (id-subst ∙ VV)) <$> E) ≡ᴱ E
+h VV (V x) = refl
+h VV (A M N) = cong₂ A (h VV M) (h VV N)
+h VV (L N E) = cong₂ L refl (env-extensionality (h1 E VV))
+eq (h1 E VV) x = h VV (lookup E x)
+
+subst-E∙V : ∀ {Γ Δ σ τ} (N : Lam τ (σ ∷ Δ)) (E : Subst Δ Γ) (VV : Lam σ Γ)
+  → subst (id-subst ∙ VV) (subst (exts E) N) ≡ subst (E ∙ VV) N
+subst-E∙V {Γ} N E VV =
+  begin
+    subst (id-subst ∙ VV) (subst (exts E) N)
+  ≡⟨ subst∘subst (id-subst ∙ VV) (exts E) N ⟩
+    subst (subst (id-subst ∙ VV) <$> exts E) N
+  ≡⟨ cong (λ e → subst e N) (env-extensionality E∙VV) ⟩
+    subst (E ∙ VV) N
+  ∎
+  where
+  E∙VV : subst (id-subst ∙ VV) <$> exts E ≡ᴱ E ∙ VV
+  eq E∙VV z = refl
+  eq E∙VV (s x) =
+    begin
+      lookup (_<$>_ {𝓦 = Lam} (subst (id-subst ∙ VV)) (exts E)) (s x)
+    ≡⟨⟩
+      subst (id-subst ∙ VV) (rename E.extend (lookup E x))
+    ≡⟨ subst∘rename (id-subst ∙ VV) E.extend (lookup E x) ⟩
+      subst (select E.extend (id-subst ∙ VV)) (lookup E x)
+    ≡⟨ h VV (lookup E x) ⟩
+      lookup E x
+    ≡⟨⟩
+      lookup (E ∙ VV) (s x)
+    ∎

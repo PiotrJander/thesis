@@ -14,7 +14,9 @@ open import Data.Nat.Base
 open import Data.List.Base hiding ([_] ; _++_ ; lookup)
 open import Function
 
-
-lookup-exts-sx : ∀ {Γ Δ σ τ} (ρ : Subst Γ Δ) (x : Var τ Γ)
-  → lookup (exts {σ = σ} ρ) (s x) ≡ rename E.extend (lookup ρ x)
-lookup-exts-sx ρ x = refl
+-- id-subst∙V : ∀ {Γ σ τ} (N : Lam τ (σ ∷ Γ)) (VV : Lam σ Γ)
+--   → subst (id-subst ∙ VV) N ≡ N / VV
+-- id-subst∙V (V z) VV = refl
+-- id-subst∙V (V (s x)) VV = refl
+-- id-subst∙V (A M N) VV = cong₂ A (id-subst∙V M VV) (id-subst∙V N VV)
+-- id-subst∙V (L N) VV = {!!}

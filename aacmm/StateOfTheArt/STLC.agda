@@ -76,13 +76,50 @@ exts : ∀ {Γ Δ σ}
      → Subst (σ ∷ Γ) (σ ∷ Δ)
 exts ρ  =  rename E.extend <$> ρ ∙ V z
 
+--------------------
+-- Identity substitution
+
+id-subst : ∀ {Γ} → Subst Γ Γ
+lookup id-subst x = V x
+
 --------------------------
 -- Single substitution
 
-_[_] : ∀ {σ τ} → [ (σ ∷_) ⊢ Lam τ ⟶ Lam σ ⟶ Lam τ ]
-_[_] {σ} {_} {Γ} N M =  subst ρ N
-  where
-  ρ : Subst (σ ∷ Γ) Γ
-  lookup ρ z      =  M
-  lookup ρ (s x)  =  V x
+_/_ : ∀ {σ τ} → [ (σ ∷_) ⊢ Lam τ ⟶ Lam σ ⟶ Lam τ ]
+_/_ {σ} {_} {Γ} N M = subst (id-subst ∙ M) N
+  -- subst ρ N
+  -- where
+  -- ρ : Subst (σ ∷ Γ) Γ
+  -- lookup ρ z      =  M
+  -- lookup ρ (s x)  =  V x
 
+-------
+-- Values
+
+data Value : ∀ {Γ σ} → Lam σ Γ → Set where
+
+  V-L : ∀ {Γ σ τ} {N : Lam τ (σ ∷ Γ)}
+      ---------------------------
+    → Value (L N)
+
+-----------
+-- Reductions
+
+infix 2 _—→_
+data _—→_ : ∀ {Γ σ} → (Lam σ Γ) → (Lam σ Γ) → Set where
+
+  ξ-A₁ : ∀ {Γ σ τ} {M M′ : Lam (σ ⇒ τ) Γ} {N : Lam σ Γ}
+    → M —→ M′
+      ---------------
+    → A M N —→ A M′ N
+
+  ξ-A₂ : ∀ {Γ σ τ} {V : Lam (σ ⇒ τ) Γ} {N N′ : Lam σ Γ}
+    → Value V
+    → N —→ N′
+      ---------------
+    → A V N —→ A V N′
+
+  β-L : ∀ {Γ σ τ} {N : Lam τ (σ ∷ Γ)} {V : Lam σ Γ}
+    → Value V
+      --------------------
+    → A (L N) V —→ N / V

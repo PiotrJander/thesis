@@ -67,5 +67,42 @@ subst ρ (V x) = lookup ρ x
 subst ρ (A M N) = A (subst ρ M) (subst ρ N)
 subst ρ (L N E) = L N (subst ρ <$> E)
 
+----------------------------
+-- Substitution combinators
+
 s-step : ∀ {Γ Δ τ} → Subst Γ Δ → Subst Γ (τ ∷ Δ)
 s-step ρ = rename E.extend <$> ρ
+
+id-subst : ∀ {Γ} → Subst Γ Γ
+lookup id-subst x = V x
+
+-------
+-- Values
+
+data Value : ∀ {Γ σ} → Lam σ Γ → Set where
+
+  V-L : ∀ {Γ Δ σ τ} {N : Lam τ (σ ∷ Δ)} {E : Subst Δ Γ}
+      ---------------------------
+    → Value (L N E)
+
+-----------
+-- Reductions
+
+infix 2 _—→_
+data _—→_ : ∀ {Γ σ} → (Lam σ Γ) → (Lam σ Γ) → Set where
+
+  ξ-A₁ : ∀ {Γ σ τ} {M M′ : Lam (σ ⇒ τ) Γ} {N : Lam σ Γ}
+    → M —→ M′
+      ---------------
+    → A M N —→ A M′ N
+
+  ξ-A₂ : ∀ {Γ σ τ} {V : Lam (σ ⇒ τ) Γ} {N N′ : Lam σ Γ}
+    → Value V
+    → N —→ N′
+      ---------------
+    → A V N —→ A V N′
+
+  β-L : ∀ {Γ Δ σ τ} {N : Lam τ (σ ∷ Δ)} {E : Subst Δ Γ} {V : Lam σ Γ}
+    → Value V
+      --------------------
+    → A (L N E) V —→ subst (E ∙ V) N
