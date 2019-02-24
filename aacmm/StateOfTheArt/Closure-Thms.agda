@@ -208,3 +208,14 @@ subst-E∙V {Γ} N E VV =
     ≡⟨⟩
       lookup (E ∙ VV) (s x)
     ∎
+
+exts-id-subst : ∀ {Γ σ}
+  → id-subst {Γ = σ ∷ Γ} ≡ᴱ exts {σ = σ} (id-subst {Γ = Γ})
+eq exts-id-subst z      =  refl
+eq exts-id-subst (s x)  =  refl
+
+subst-id-id : ∀ {Γ σ} (N : Lam σ Γ)
+  → subst id-subst N ≡ N
+subst-id-id (V x) = refl
+subst-id-id (A f e) = cong₂ A (subst-id-id f) (subst-id-id e)
+subst-id-id (L b ρ) = cong₂ L refl {!!}

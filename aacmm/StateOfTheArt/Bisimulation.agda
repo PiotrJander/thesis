@@ -15,7 +15,8 @@ import StateOfTheArt.STLC as S
 open S using (_/_)
 import StateOfTheArt.Closure as T
 import StateOfTheArt.STLC-Thms as ST
-import StateOfTheArt.Closure-Thms as TT 
+import StateOfTheArt.Closure-Thms as TT
+open import StateOfTheArt.Conversion
 
 infix  4 _~_
 
@@ -36,6 +37,31 @@ data _~_ : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set where
     → M ~ M†
       --------------------
     → S.A L M ~ T.A L† M†
+
+graph→relation : ∀ {Γ σ} (N : S.Lam σ Γ)
+  → N ~ convert N
+graph→relation (S.V x) = ~V
+graph→relation (S.A f e) = ~A (graph→relation f) (graph→relation e)
+graph→relation (S.L b) = ~L g
+  where
+  h : T.subst (T.exts T.id-subst) (convert b) ≡ convert b
+  h =
+    begin
+      T.subst (T.exts T.id-subst) (convert b)
+    ≡⟨ cong (λ e → T.subst e (convert b)) (sym (env-extensionality TT.exts-id-subst)) ⟩
+      T.subst T.id-subst (convert b)
+    ≡⟨ TT.subst-id-id (convert b) ⟩
+      convert b
+    ∎
+  g : b ~ T.subst (T.exts T.id-subst) (convert b)
+  g rewrite h = graph→relation b
+
+graph←relation : ∀ {Γ σ} {N : S.Lam σ Γ} {N† : T.Lam σ Γ}
+  → N ~ N†
+  → convert N ≡ N†
+graph←relation ~V = refl
+graph←relation (~L ~N) = {!!}
+graph←relation (~A ~M ~N) = cong₂ T.A (graph←relation ~M) {!graph←relation ~N!}
 
 ~val : ∀ {Γ σ} {M : S.Lam σ Γ} {M† : T.Lam σ Γ}
   → M ~ M†
@@ -125,4 +151,5 @@ sim (~A ~M ~N) (S.ξ-A₁ M—→)
 sim (~A ~M ~N) (S.ξ-A₂ VV N—→)
   with sim ~N N—→
 ... | leg ~N′ N†—→ = leg (~A ~M ~N′) (T.ξ-A₂ (~val ~M VV) N†—→)
-sim (~A (~L {N = N} {N†} ~N) ~VV) (S.β-L VV) = leg (/V≡E∙V† {N = N} {N†} ~N ~VV) (T.β-L (~val ~VV VV))
+sim (~A (~L {N = N} {N†} ~N) ~VV) (S.β-L VV)
+  = leg (/V≡E∙V† {N = N} {N†} ~N ~VV) (T.β-L (~val ~VV VV))
