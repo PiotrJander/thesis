@@ -1,3 +1,4 @@
+\begin{code}
 {-# OPTIONS --allow-unsolved-metas #-} 
 module StateOfTheArt.Bisimulation where
 
