@@ -227,7 +227,7 @@ data Value : ∀ {Γ A} → Γ ⊢ A → Set where
 
 \end{code}
 
-\section{GReduction}
+\section{Reduction}
 
 \begin{code}
 infix 2 _—→_

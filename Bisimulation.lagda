@@ -128,6 +128,5 @@ sim (~L ~· ~M) (S.ξ-·₁ L—→)
 sim (~L ~· ~M) (S.ξ-·₂ VV M—→)
   with sim ~M M—→
 ...  | leg ~M′ M†—→             =  leg (~L ~· ~M′) (T.ξ-·₂ (~val ~L VV) M†—→)
-sim ((~ƛ ~N) ~· ~V) (S.β-ƛ VV)  =  leg {!!} (T.β-⟪⟫ T.V-⟪⟫ (~val ~V VV))  -- TODO use ~subst, but first prove that the two substitutions are (extensionally equivalent)
-
+sim ((~ƛ ~N) ~· ~V) (S.β-ƛ VV)  =  leg {!!} (T.β-⟪⟫ T.V-⟪⟫ (~val ~V VV))  
 \end{code}
