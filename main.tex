@@ -11,6 +11,8 @@
 \usepackage{amssymb}
 \usepackage{bbm}
 \usepackage[greek,english]{babel}
+\usepackage{amsthm}
+\usepackage{catchfilebetweentags}
 
 % This handles the translation of unicode to latex:
 
@@ -31,7 +33,10 @@
 \DeclareUnicodeCharacter{10218}{\ensuremath{\langle\langle}}
 \DeclareUnicodeCharacter{10219}{\ensuremath{\rangle\rangle}}
 
-% Add more as you need them (shouldn't happen often).
+% Add more as you need them (shouldn't happen often). 
+
+\theoremstyle{definition}
+\newtheorem*{definition}{Definition}
 
 \begin{document}
 
@@ -127,10 +132,11 @@ indentation at the start of each paragraph.
 
 \chapter{The Real Thing}
 
-\include{PCF}
-\include{Closure}
-\include{Conversion}
-\include{SubContext}
+% \include{PCF}
+% \include{Closure}
+% \include{Conversion}
+% \include{SubContext}
+\include{StateOfTheArt/Bisimulation}
 
 Of course
 you may want to use several chapters and much more text than here.

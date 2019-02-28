@@ -1,3 +1,83 @@
+\newcommand{\APT}{\AgdaPrimitiveType}
+\newcommand{\AK}{\AgdaKeyword}
+\newcommand{\AM}{\AgdaModule}
+\newcommand{\AS}{\AgdaSymbol}
+\newcommand{\AStr}{\AgdaString}
+\newcommand{\AN}{\AgdaNumber}
+\newcommand{\AD}{\AgdaDatatype}
+\newcommand{\AF}{\AgdaFunction}
+\newcommand{\AR}{\AgdaRecord}
+\newcommand{\ARF}{\AgdaField}
+\newcommand{\AB}{\AgdaBound}
+\newcommand{\AIC}{\AgdaInductiveConstructor}
+\newcommand{\ti}{\textasciitilde}
+
+\chapter{Bisimulation}
+
+In the previous chapters, we defined the source and target languages
+of the closure conversion, together with reduction rules for each, and
+a translation function from source to target.
+
+TODO we or passive voice?
+
+Our implementation of closure conversion is type and scope-preserving
+by construction. The property of type preservation would be considered
+a strong indication of correctness in a real-world compiler, but in
+this theoretical development which deals with a small, toy language,
+we prove stronger correctness properties which speak about operation
+correctness.
+
+One such property of operational correctness of a pair of languages is
+bisimulation. Intuition about bisimulation is captured by a slogan: pairwise similar terms
+reduce to pairwise similar terms. Before we can formally define
+bisimulation, we need a definition of similarity between source
+and target terms of closure conversion.
+
+\begin{definition}
+  Given a source language term \AS{M} and a target language term \AS{M†},
+  the similarity relation \AS{M \ti M†} is defined inductively as
+  follows:
+
+  \begin{itemize}
+  \item
+    (Variable) For any given variable (proof of context membership) \AS{x}, we have
+    \AS{S.` x \ti T.` x}.
+
+  \item
+    (Application) If \AS{M \ti M†} and \AS{N \ti N†},
+    then \AS{M S.· N \ti M† T.· N†}.
+
+  \item
+    (Abstraction) If \AS{N \ti T.subst (T.exts E) N†},
+    then \AS{S.λ N \ti T.λ N† E}.
+  \end{itemize}
+\end{definition}
+
+We unpack the definition here. Recall that in our definition of
+closure conversion, source and target languages share the same (meta)
+type of (object) types, contexts, and variables (proofs of context
+membership). In fact, similarity is only defined for source and target
+terms of the type in the same context (this is explicit in the Agda
+definition). 
+
+Therefore, similarity of (syntactic) variables can be defined in terms
+of identity of proofs of membership.
+
+Similarity of applications is defined by congruence.
+
+Finally, the non-trivial case of abstractions. TODO continue here
+
+\begin{definition}{}
+Given two languages \AS{S} and \AS{T} and a similarity relation
+\AS{\_\textasciitilde\_}
+between them, \AS{S} and \AS{T} are in bisimulation if the following holds:
+Given source language terms \AS{M} and \AS{N}, and a target language
+term \AS{M†} such that \AS{M} reduces to \AS{N} (\AS{M —→ N}) and
+\AS{M} is similar to \AS{M†} (\AS{M \~ M†}), there exists a target
+language term \AS{N†} such that \AS{M†} reduces to \AS{N†} (\AS{M† —→
+  N†}) and \AS{N} is similar to \AS{N†} (\AS{N \~ N†}),
+\end{definition}
+
 \begin{code}
 {-# OPTIONS --allow-unsolved-metas #-} 
 module StateOfTheArt.Bisimulation where
@@ -17,7 +97,13 @@ open S using (_/_)
 import StateOfTheArt.Closure as T
 import StateOfTheArt.STLC-Thms as ST
 import StateOfTheArt.Closure-Thms as TT
-open import StateOfTheArt.Conversion
+
+convert : ∀ {Γ σ}
+  → S.Lam σ Γ
+  → T.Lam σ Γ
+convert (S.V x) = T.V x
+convert (S.A M N) = T.A (convert M) (convert N)
+convert (S.L N) = T.L (convert N) T.id-subst
 
 infix  4 _~_
 
@@ -120,14 +206,6 @@ _~∙_ : ∀ {Γ Δ σ}
 ... | ~ρN rewrite TT.lemma-~subst-L ρ† E N† = ~L ~ρN 
 ~subst ~ρ (~A ~M ~N) = ~A (~subst ~ρ ~M) (~subst ~ρ ~N) 
 
-data Leg {Γ σ} (M† : T.Lam σ Γ) (N : S.Lam σ Γ) : Set where
-
-  leg : ∀ {N† : T.Lam σ Γ}
-    → N ~ N†
-    → M† T.—→ N†
-      --------
-    → Leg M† N
-
 /V≡E∙V† : ∀ {Γ Δ σ τ}
     {N : S.Lam τ (σ ∷ Γ)} {N† : T.Lam τ (σ ∷ Δ)} {E : T.Subst Δ Γ}
     {V : S.Lam σ Γ} {V† : T.Lam σ Γ}
@@ -138,6 +216,14 @@ data Leg {Γ σ} (M† : T.Lam σ Γ) (N : S.Lam σ Γ) : Set where
 /V≡E∙V† {N = N} {N†} {E} {VV} {V†} ~N ~VV
   rewrite cong (λ e → (N / VV) ~ e) (sym (TT.subst-E∙V N† E V†))
   = ~subst (~id-subst ~∙ ~VV) ~N
+
+data Leg {Γ σ} (M† : T.Lam σ Γ) (N : S.Lam σ Γ) : Set where
+
+  leg : ∀ {N† : T.Lam σ Γ}
+    → N ~ N†
+    → M† T.—→ N†
+      --------
+    → Leg M† N
 
 sim : ∀ {Γ σ} {M N : S.Lam σ Γ} {M† : T.Lam σ Γ}
   → M ~ M†
@@ -154,3 +240,4 @@ sim (~A ~M ~N) (S.ξ-A₂ VV N—→)
 ... | leg ~N′ N†—→ = leg (~A ~M ~N′) (T.ξ-A₂ (~val ~M VV) N†—→)
 sim (~A (~L {N = N} {N†} ~N) ~VV) (S.β-L VV)
   = leg (/V≡E∙V† {N = N} {N†} ~N ~VV) (T.β-L (~val ~VV VV))
+\end{code}

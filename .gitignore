@@ -1,3 +1,4 @@
+.#*
 *.agdai
 *.aux
 *.ptb
@@ -8,4 +9,5 @@ Closure.tex
 Conversion.tex
 PCF.tex
 SubContext.tex
+StateOfTheArt/*.tex
 agda.sty
