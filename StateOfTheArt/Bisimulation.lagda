@@ -29,55 +29,11 @@ correctness.
 
 One such property of operational correctness of a pair of languages is
 bisimulation. Intuition about bisimulation is captured by a slogan: pairwise similar terms
-reduce to pairwise similar terms. Before we can formally define
-bisimulation, we need a definition of similarity between source
-and target terms of closure conversion.
+reduce to pairwise similar terms. 
 
-\begin{definition}
-  Given a source language term \AS{M} and a target language term \AS{M†},
-  the similarity relation \AS{M \ti M†} is defined inductively as
-  follows:
+\section{Similarity relation}
 
-  \begin{itemize}
-  \item
-    (Variable) For any given variable (proof of context membership) \AS{x}, we have
-    \AS{S.` x \ti T.` x}.
-
-  \item
-    (Application) If \AS{M \ti M†} and \AS{N \ti N†},
-    then \AS{M S.· N \ti M† T.· N†}.
-
-  \item
-    (Abstraction) If \AS{N \ti T.subst (T.exts E) N†},
-    then \AS{S.λ N \ti T.λ N† E}.
-  \end{itemize}
-\end{definition}
-
-We unpack the definition here. Recall that in our definition of
-closure conversion, source and target languages share the same (meta)
-type of (object) types, contexts, and variables (proofs of context
-membership). In fact, similarity is only defined for source and target
-terms of the type in the same context (this is explicit in the Agda
-definition). 
-
-Therefore, similarity of (syntactic) variables can be defined in terms
-of identity of proofs of membership.
-
-Similarity of applications is defined by congruence.
-
-Finally, the non-trivial case of abstractions. TODO continue here
-
-\begin{definition}{}
-Given two languages \AS{S} and \AS{T} and a similarity relation
-\AS{\_\textasciitilde\_}
-between them, \AS{S} and \AS{T} are in bisimulation if the following holds:
-Given source language terms \AS{M} and \AS{N}, and a target language
-term \AS{M†} such that \AS{M} reduces to \AS{N} (\AS{M —→ N}) and
-\AS{M} is similar to \AS{M†} (\AS{M \~ M†}), there exists a target
-language term \AS{N†} such that \AS{M†} reduces to \AS{N†} (\AS{M† —→
-  N†}) and \AS{N} is similar to \AS{N†} (\AS{N \~ N†}),
-\end{definition}
-
+\AgdaHide{
 \begin{code}
 {-# OPTIONS --allow-unsolved-metas #-} 
 module StateOfTheArt.Bisimulation where
@@ -97,16 +53,14 @@ open S using (_/_)
 import StateOfTheArt.Closure as T
 import StateOfTheArt.STLC-Thms as ST
 import StateOfTheArt.Closure-Thms as TT
+\end{code}}
 
-convert : ∀ {Γ σ}
-  → S.Lam σ Γ
-  → T.Lam σ Γ
-convert (S.V x) = T.V x
-convert (S.A M N) = T.A (convert M) (convert N)
-convert (S.L N) = T.L (convert N) T.id-subst
+Before we can precisely define
+bisimulation, we need a definition of similarity between source
+and target terms of closure conversion.
 
+\begin{code}
 infix  4 _~_
-
 data _~_ : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set where
 
   ~V : ∀ {Γ σ} {x : Var σ Γ}
@@ -124,7 +78,87 @@ data _~_ : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set where
     → M ~ M†
       --------------------
     → S.A L M ~ T.A L† M†
+\end{code}
 
+\begin{definition}
+  Given a source language term \AS{M} and a target language term \AS{M†},
+  the similarity relation \AS{M \ti M†} is defined inductively as
+  follows:
+
+  \begin{itemize}
+  \item
+    (Variable) For any given variable (proof of context membership) \AS{x}, we have
+    \AS{S.` x \ti T.` x}.
+
+  \item
+    (Application) If \AS{M \ti M†} and \AS{N \ti N†},
+    then \AS{M S.· N \ti M† T.· N†}.
+
+  \item
+    (Abstraction) If \AS{N \ti T.subst (T.exts E) N†},
+    then \AS{λ N \ti ⟪ N† , E ⟫}.
+  \end{itemize}
+\end{definition}
+
+We unpack the definition here. Recall that in our definition of
+closure conversion, source and target languages share the same (meta)
+type of (object) types, contexts, and variables (proofs of context
+membership). In fact, similarity is only defined for source and target
+terms of the same type in the same context (this is explicit in the Agda
+definition). 
+
+Therefore, similarity of (syntactic) variables can be defined in terms
+of identity of proofs of membership.
+
+Similarity of applications is defined by congruence.
+
+Finally, the non-trivial case of abstractions. What are the necessary
+conditions for \AS{λ N \ti ⟪ N† , E ⟫}, where \AS{λ N} and 
+\AS{⟪ N† , E ⟫} are defined in context \AS{Γ}? Clearly, we cannot require
+that \AS{N \ti N†}, as the context \AS{Δ} in which the closure body is
+defined is existentially quantified. However, recall that the closure environment
+\AS{E} is defined as a substitution from \AS{Δ} to \AS{Γ}. Applying
+this substitution to the closure body (\AS{T.subst (T.exts E) N†})
+results in a term in \AS{Γ} which can be in a similarity relation with
+\AS{N}, and this is precisely what we require in the definition.
+
+(Note: the \AS{exts} accounts for the fact that the closure body is
+defined in the context \AS{Δ} extended by the variable bound by the
+abstraction, similarly to the lambda body.)
+
+It is natural to ask what the relationship between a closure
+conversion function and the similarity relation. Is the similarity
+relation as graph relation of a closure conversion function? It is
+not. Recall that closure conversion can be implemented by any function
+which takes source terms to target terms and preserves the type and
+context. But an implementation has freedom in how it deals with
+closure environments; the meta language type of closures only requires
+that the environment is \textit{some} substitution from the closure
+body context \AS{Δ} to the outer context \AS{Γ}.
+
+For example, the closure conversion transformation we described in
+Chapter ??? had the property that closure environments were minimal:
+they only contained parts of context actually used by the closure
+body. In contrast, the simplest possible closure conversion could use
+identity environments:
+
+\begin{code}
+convert : ∀ {Γ σ}
+  → S.Lam σ Γ
+  → T.Lam σ Γ
+convert (S.V x) = T.V x
+convert (S.A M N) = T.A (convert M) (convert N)
+convert (S.L N) = T.L (convert N) T.id-subst
+\end{code}
+
+We require that for every well-behaved closure conversion function \AS{c}, any
+source term \AS{N} is similar to the result of its translation with
+\AS{c}: \AS{N \ti c N}. This is indeed the case for the \AS{convert}
+function. The proof is by straightforward induction; in the
+abstraction case, we need to argue that applying an identity substitution
+leaves the term unchanged.
+
+\begin{code}
 graph→relation : ∀ {Γ σ} (N : S.Lam σ Γ)
   → N ~ convert N
 graph→relation (S.V x) = ~V
@@ -142,14 +176,85 @@ graph→relation (S.L b) = ~L g
     ∎
   g : b ~ T.subst (T.exts T.id-subst) (convert b)
   g rewrite h = graph→relation b
+\end{code}
 
-graph←relation : ∀ {Γ σ} {N : S.Lam σ Γ} {N† : T.Lam σ Γ}
-  → N ~ N†
-  → convert N ≡ N†
-graph←relation ~V = refl
-graph←relation (~L ~N) = {!!}
-graph←relation (~A ~M ~N) = cong₂ T.A (graph←relation ~M) {!graph←relation ~N!}
+A similar result could be obtained for the closure conversion
+algorithm which minimises environments from Chapter ???, but the proof
+would be longer.
 
+However, given \AS{M \ti M†}, it is not
+necessarily the case that \AS{M† ≡ c M} for any \textit{fixed}
+function \AS{c}; instead, \AS{M† ≡ c M} holds for \textit{some}
+function \AS{c}. Therefore, the similarity relation is not the graph
+relation of any \textit{specific} conversion \AS{c}.
+
+Having defined the notion of similarity, we are in a position to
+define bisimulation.
+
+\section{Bisimulation}
+
+Bisimulation is a two-way property which is defined in terms of a
+simpler one-way property of simulation.
+
+\begin{definition}{}
+Given two languages \AS{S} and \AS{T} and a similarity relation
+\AS{\_\textasciitilde\_}
+between them, \AS{S} and \AS{T} are in \textbf{simulation} if and only
+if the following holds:
+Given source language terms \AS{M} and \AS{N}, and a target language
+term \AS{M†} such that \AS{M} reduces to \AS{N} in a single step (\AS{M —→ N}) and
+\AS{M} is similar to \AS{M†} (\AS{M \~ M†}), there exists a target
+language term \AS{N†} such that \AS{M†} reduces to \AS{N†} in some
+number of steps (\AS{M† —→* N†}) and \AS{N} is similar to \AS{N†} (\AS{N \~ N†}).
+\end{definition}
+
+\begin{definition}
+Given two languages \AS{S} and \AS{T},  \AS{S} and \AS{T} are in a
+\textbf{bisimulation} if and only if \AS{S} is in a simulation with \AS{T} and
+\AS{T} is in a simulation with \AS{S}.
+\end{definition}
+
+The essence of simulation can be captured in a diagram.
+
+TODO diagram here
+
+TODO give names to the source and target langs
+
+In fact, our source and target languages of closure conversion have a
+stronger property: \textit{lock-step} bisimulation, which is defined
+in terms of \textit{lock-step} simulations. A lock-step simulation is
+one where for each reduction step of the source term, there is exactly
+one corresponding reduction step in the target language. We illustrate
+this at another diagram:
+
+TODO another diagram
+
+Before we can prove that λ and λT are in simulation, we need three
+lemmas:
+
+\begin{enumerate}
+\item
+  Values commute with similarity. If \AS{M \ti M†} and \AS{M} is a
+  value, then \AS{M†} is also a value.
+
+\item
+  Renaming commutes with similarity. If \AS{ρ} is a renaming from
+  \AS{Γ} to \AS{Δ}, and \AS{M \ti M†} are similar terms in the context
+  \AS{Γ}, then the results of renaming \AS{M} and \AS{M†} with \AS{ρ}
+  are also similar: \AS{S.rename ρ M \ti T.rename ρ M†}.
+
+\item
+  Substitution commutes with similarity. Suppose \AS{ρ} and \AS{ρ†} are two
+  substitutions which take variables \AS{x} in \AS{Γ} to terms in \AS{Δ},
+  such that for all \AS{x} we have that \AS{lookup ρ x \ti lookup ρ†
+    x}. Then given similar terms \AS{M \ti M†} in \AS{Γ}, the results
+  of applying \AS{ρ} to \AS{M} and \AS{ρ†} to \AS{M†} are also
+  similar: \AS{S.subst ρ M \ti T.subst ρ† M†}.
+\end{enumerate}
+
+The proof that values commute with similarity is straightforward.
+
+\begin{code}
 ~val : ∀ {Γ σ} {M : S.Lam σ Γ} {M† : T.Lam σ Γ}
   → M ~ M†
   → S.Value M
@@ -158,6 +263,24 @@ graph←relation (~A ~M ~N) = cong₂ T.A (graph←relation ~M) {!graph←relati
 ~val ~V         ()
 ~val (~L ~N)    S.V-L  =  T.V-L
 ~val (~A ~M ~N) ()
+\end{code}
+
+Before we will be able to prove the lemmas about renaming and substitution, we need an interlude
+where we discuss so-called fusion lemmas for the closure language λT.
+
+TODO acknowledge PLFA here
+
+
+\section{Fusion lemmas for the closure language λT}
+
+% \ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-subst}
+
+foo
+
+
+\section{Back to \ti rename and \ti subst}
+
+\begin{code}
 
 ~rename : ∀ {Γ Δ}
   → (ρ : Thinning Γ Δ)

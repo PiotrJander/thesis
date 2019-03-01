@@ -5,6 +5,12 @@
 *.toc
 *.log
 *.bk
+*.fdb_latexmk
+*.fls
+*.bbl
+*.blg
+*.out
+*.xdv
 Closure.tex
 Conversion.tex
 PCF.tex

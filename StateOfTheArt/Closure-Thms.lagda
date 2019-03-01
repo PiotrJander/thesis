@@ -1,4 +1,4 @@
-{-# OPTIONS --allow-unsolved-metas #-} 
+\begin{code}
 module StateOfTheArt.Closure-Thms where
 
 open import indexed
@@ -14,7 +14,10 @@ open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.Nat.Base
 open import Data.List.Base hiding ([_] ; _++_ ; lookup)
 open import Function
+\end{code}
 
+%<*rename-subst>
+\begin{code}
 {-# TERMINATING #-}
 rename∘subst : ∀ {Γ Δ Θ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ)
   → (N : Lam τ Δ)
@@ -32,7 +35,10 @@ rename∘subst ρρ ρσ (L N E)  =  cong₂ L refl (env-extensionality h)
             ≡ᴱ⟨ <$>-fun {𝓦 = Lam} (λ v → rename∘subst ρρ ρσ v) E ⟩
               subst (_<$>_ {𝓦 = Lam} (rename ρρ) ρσ) <$> E
             ∎ᴱ
+\end{code}
+%</rename-subst>
 
+\begin{code}
 {-# TERMINATING #-}
 subst∘subst : ∀ {Γ Δ Θ τ} (ρ₁ : Subst Γ Θ) (ρ₂ : Subst Δ Γ)
   → (N : Lam τ Δ)
@@ -218,4 +224,8 @@ subst-id-id : ∀ {Γ σ} (N : Lam σ Γ)
   → subst id-subst N ≡ N
 subst-id-id (V x) = refl
 subst-id-id (A f e) = cong₂ A (subst-id-id f) (subst-id-id e)
-subst-id-id (L b ρ) = cong₂ L refl {!!}
+subst-id-id (L b ρ) = cong₂ L refl (env-extensionality g)
+  where
+  g : (subst id-subst <$> ρ) ≡ᴱ ρ
+  eq g x rewrite subst-id-id (lookup ρ x) = refl
+\end{code}
