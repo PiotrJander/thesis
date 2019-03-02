@@ -273,7 +273,7 @@ TODO acknowledge PLFA here
 
 \section{Fusion lemmas for the closure language λT}
 
-% \ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-subst}
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-subst}
 
 foo
 

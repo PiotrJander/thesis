@@ -23,6 +23,10 @@ rename∘subst : ∀ {Γ Δ Θ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ)
   → (N : Lam τ Δ)
     -------------
   → rename ρρ (subst ρσ N) ≡ subst (rename ρρ <$> ρσ) N
+\end{code}
+%</rename-subst>
+
+\begin{code}
 rename∘subst ρρ ρσ (V x)    =  refl
 rename∘subst ρρ ρσ (A M N)  =  cong₂ A (rename∘subst ρρ ρσ M) (rename∘subst ρρ ρσ N)
 rename∘subst ρρ ρσ (L N E)  =  cong₂ L refl (env-extensionality h)
@@ -36,14 +40,18 @@ rename∘subst ρρ ρσ (L N E)  =  cong₂ L refl (env-extensionality h)
               subst (_<$>_ {𝓦 = Lam} (rename ρρ) ρσ) <$> E
             ∎ᴱ
 \end{code}
-%</rename-subst>
 
+%<*subst-subst>
 \begin{code}
 {-# TERMINATING #-}
 subst∘subst : ∀ {Γ Δ Θ τ} (ρ₁ : Subst Γ Θ) (ρ₂ : Subst Δ Γ)
   → (N : Lam τ Δ)
     -------------
   → subst ρ₁ (subst ρ₂ N) ≡ subst (subst ρ₁ <$> ρ₂) N
+\end{code}
+%</subst-subst>
+
+\begin{code}
 subst∘subst ρ₁ ρ₂ (V x)    =  refl
 subst∘subst ρ₁ ρ₂ (A M N)  =  cong₂ A (subst∘subst ρ₁ ρ₂ M) (subst∘subst ρ₁ ρ₂ N)
 subst∘subst ρ₁ ρ₂ (L N E)  =  cong₂ L refl (env-extensionality h)
@@ -55,12 +63,19 @@ subst∘subst ρ₁ ρ₂ (L N E)  =  cong₂ L refl (env-extensionality h)
             ≡ᴱ⟨ <$>-fun {𝓦 = Lam} (λ e → subst∘subst ρ₁ ρ₂ e) E ⟩
               (subst (_<$>_ {𝓦 = Lam} (subst ρ₁) ρ₂) <$> E)
             ∎ᴱ
+\end{code}
 
+%<*subst-rename>
+\begin{code}
 {-# TERMINATING #-}
 subst∘rename : ∀ {Γ Δ Θ τ} (ρσ : Subst Γ Θ) (ρρ : Thinning Δ Γ)
   → (N : Lam τ Δ)
     -------------
   → subst ρσ (rename ρρ N) ≡ subst (select ρρ ρσ) N
+\end{code}
+%</subst-rename>
+
+\begin{code}
 subst∘rename ρσ ρρ (V x)    =  refl
 subst∘rename ρσ ρρ (A M N)  =  cong₂ A (subst∘rename ρσ ρρ M) (subst∘rename ρσ ρρ N)
 subst∘rename ρσ ρρ (L N E)  =  cong₂ L refl (env-extensionality h)
@@ -73,12 +88,19 @@ subst∘rename ρσ ρρ (L N E)  =  cong₂ L refl (env-extensionality h)
             ≡ᴱ⟨ <$>-fun {𝓦 = Lam} (λ e → subst∘rename ρσ ρρ e) E ⟩
               subst (select ρρ ρσ) <$> E
             ∎ᴱ
+\end{code}
 
+%<*rename-rename>
+\begin{code}
 {-# TERMINATING #-}
 rename∘rename : ∀ {Γ Δ Θ τ} (ρ₁ : Thinning Γ Δ) (ρ₂ : Thinning Δ Θ)
   → (N : Lam τ Γ)
     -------------
   → rename ρ₂ (rename ρ₁ N) ≡ rename (select ρ₁ ρ₂) N
+\end{code}
+%</rename-rename>
+
+\begin{code}
 rename∘rename ρ₁ ρ₂ (V x)    =  refl
 rename∘rename ρ₁ ρ₂ (A M N)  =  cong₂ A (rename∘rename ρ₁ ρ₂ M) (rename∘rename ρ₁ ρ₂ N)
 rename∘rename ρ₁ ρ₂ (L N E)  =  cong₂ L refl (env-extensionality h)
@@ -90,7 +112,9 @@ rename∘rename ρ₁ ρ₂ (L N E)  =  cong₂ L refl (env-extensionality h)
             ≡ᴱ⟨ <$>-fun {𝓦 = Lam} (λ e → rename∘rename ρ₁ ρ₂ e) E ⟩
               _<$>_ {𝓦 = Lam} (rename (select ρ₁ ρ₂)) E
             ∎ᴱ
+\end{code}
 
+\begin{code}
 lemma-~subst-L-helper : ∀ {Γ Δ Θ τ} (ρ₁ : Subst Γ Θ) (ρ₂ : Subst Δ Γ)
   → subst (exts {σ = τ} ρ₁) <$> (exts ρ₂) ≡ᴱ exts (subst ρ₁ <$> ρ₂)
 eq (lemma-~subst-L-helper ρ₁ ρ₂) z = refl
