@@ -77,6 +77,8 @@ s/→/\$\\to\$/g
 s/∎/\$\\blacksquare\$/g
 s/Σ/\$\\Sigma\$/g
 s/Θ/\$\\Theta\$/g
+s/ƛ/\$\\lambda\$/g
+s/λ/\$\\lambda\$/g
 s/Ξ/\$\\Xi\$/g
 s/ˡ/\\textsuperscript\{l\}/g
 s/ʳ/\\textsuperscript\{r\}/g

@@ -5,7 +5,8 @@ AGDA=agda
 all: latex/$(PAPER).pdf
 
 AGDA_FILES:=\
-  var.lagda
+  STLC.lagda \
+  Common.lagda
 
 AGDA_OUTPUT:=$(patsubst %.lagda,latex-agda-output/%.tex,$(AGDA_FILES))
 AGDA_OUTPUT_PROCESSED:=$(patsubst %.lagda,latex/%.tex,$(AGDA_FILES))
@@ -22,7 +23,7 @@ PAPER_DEPENDENCIES:=\
   $(AGDA_OUTPUT_PROCESSED)
 
 latex/$(PAPER).pdf: $(PAPER_DEPENDENCIES)
-	cd latex; latexmk -pdf -bibtex $(PAPER).tex
+	cd latex; latexmk -interaction=nonstopmode -halt-on-error -pdf -bibtex $(PAPER).tex
 
 latex/agda.sty: $(AGDA_OUTPUT)
 	@mkdir -p $(dir $@)
@@ -55,8 +56,8 @@ latex/syntax.tex: syntax.tex rules.sed
 latex/%.tex: latex-agda-output/%.tex rules.sed
 	@mkdir -p $(dir $@)
 	${SED} -f rules.sed $< > $@
-	${SED} -f rules.sed -i $@
-	${SED} -f rules.sed -i $@
+	${SED} -f rules.sed -i '' $@
+	${SED} -f rules.sed -i '' $@
 
 latex-agda-output/%.tex: %.lagda
 	@mkdir -p $(dir $@)

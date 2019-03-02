@@ -4,6 +4,8 @@
 \usepackage{catchfilebetweentags}
 \usepackage{amsthm}
 
+\input{commands}
+
 %\usepackage{agda}
 
 % The following packages are needed because unicode
@@ -137,16 +139,134 @@ paragraphs are separated by a vertical space, and there is no
 indentation at the start of each paragraph.
 \end{itemize}
 
-\chapter{The Real Thing}
 
-% \include{PCF}
-% \include{Closure}
-% \include{Conversion}
-% \include{SubContext}
-%\include{StateOfTheArt/Bisimulation}
 
-Of course
-you may want to use several chapters and much more text than here.
+
+
+
+\chapter{Background}
+
+\section{Type- and scope-safe representation}
+
+This project uses a number a languages and intermediate languages,
+which are variations of the simply-typed lambda calculus
+(STLC). Representations of those languages share two
+characteristics. They are scope-safe in the sense that every variables
+of a term is either bound by some binder, or it is explicitly
+accounted for in the context \cite{DBLP:journals/pacmpl/AllaisA0MM18}.
+They are type-safe in the sense that terms are represented by their
+typing derivation, so that ill-typed terms are not representable
+\cite{DBLP:conf/pldi/Chlipala07}.
+
+To see how type and scope safety is achieved in this project, it is
+useful to analyse our Agda encoding of STLC. The encoding uses
+dependently-typed de Bruijn variables which are proofs of context
+membership, and inherently-typed terms.
+
+TODO STLC as a figure here
+
+STLC has base types and function types.
+
+\ExecuteMetaData[Common.tex]{type}
+
+The context is simply a list of types.
+
+\ExecuteMetaData[Common.tex]{context}
+
+Variables are synonymous with proofs of context membership, hence the
+name \AS{\_∋\_}. Since a variable is identified by its position in
+the context, it is appropriate to call it a de~Bruijn
+variable. Accordingly, the \AS{\_∋\_} constructors are called after
+\textit{zero} and \textit{successor}. Notice that this definition
+assume that the leftmost type in the context corresponds to the most
+recently bound variable.
+
+\ExecuteMetaData[Common.tex]{var}
+
+We can now present the formulation of STLC terms:
+
+\ExecuteMetaData[STLC.tex]{terms}
+
+The syntactic variable \AS{`\_} constructor takes variables to
+terms. The abstraction constructor \AS{λ\_} requires that the body is
+well-typed in the context \AS{Γ} extended with the type \AS{A} of the
+variable bound by the abstraction. The application constructor
+\AS{\_·\_} follows the typing rule for application.
+
+This is the Altenkirch and Reus' STLC
+representation. \cite{DBLP:conf/csl/AltenkirchR99}.
+
+\section{Type- and scope-safe programs}
+
+TODO read about HOAS
+
+Many useful traversals of the abstract syntax tree involve maintaining
+a mapping from free variables to appropriate values. Two such
+traversals are sumultaneous renaming and substitution.
+
+Simultaneous renaming takes a term in the context \AS{Γ}. It maintains
+a mapping from variables in original context \AS{Γ} to variables in
+some other context \AS{Δ}. (TODO elaborate on renamings later). It
+produces a term in \AS{Δ}.
+
+Similarly, simultaneous substitution takes a term in the context
+\AS{Γ}. It maintains a mapping from variables in original context
+\AS{Γ} to terms in some other context \AS{Δ}. It produces a term in
+\AS{Δ}.
+
+Before we can give an implementation of renaming and substitution, we
+need to formalise the notion of a mapping from free variables to
+appropriate values, which we call the \textit{environment}.
+
+\ExecuteMetaData[STLC.tex]{env}
+
+A environment \AS{(Γ ─Env) 𝓥 Δ} encapsulates a mapping from variables in
+\AS{Γ} to values \AS{𝓥} (variables for renaming, terms for
+substitution) which are well-type and -scoped in \AS{Δ}.
+
+Environments which map to variables or terms are important enough to
+deserve their own names.
+
+\ExecuteMetaData[STLC.tex]{thinningsubst}
+
+There is a notion of an empty environment \AS{ε}, of extending an
+environment \AS{ρ} with a value \AS{v}: \AS{ρ ∙ v}, and of mapping a
+function \AS{f} over an environment \AS{ρ}: \AS{f <\$> ρ},
+corresponding to the analogous operations on contexts (which are just
+lists).
+
+\ExecuteMetaData[STLC.tex]{envops}
+
+Notice that those three operations on environments are defined using
+copatterns \cite{DBLP:conf/popl/AbelPTS13} by `observing` the
+behaviour of \AS{lookup}.
+
+Equipped with the notion of environments, we can give an
+implementation of renaming and substitution:
+
+\ExecuteMetaData[STLC.tex]{rename}
+\ExecuteMetaData[STLC.tex]{subst}
+
+Notice that those two implementation are indentical except (1)
+renaming wraps the result of \AS{lookup ρ x} in \AS{`\_}, and renaming
+and substitution extend the environment in a different way: \AS{S\_ <\$>
+  ρ ∙ Z} vs \AS{rename extend <\$> σ ∙ ` Z}. The observation that
+renaming and substitution for STLC share a common structure was a
+basis was the unpublished manuscript by McBride
+\cite{mcbride2005type}, and subsequently motivated the ACMM paper
+\cite{DBLP:conf/cpp/Allais0MM17}. In section~??, we will show how ACMM
+abstracts this common structure of renaming and substitution into a
+notion of a semantics.
+
+\section{TODO reductions, progress and preservation}
+
+\section{TODO ACMM and semantics}
+
+\section{TODO ACMM and synchronisation lemmas}
+
+\section{TODO ACMM and fusion lemmas}
+
+
 
 % use the following and \cite{} as above if you use BibTeX
 % otherwise generate bibtem entries
