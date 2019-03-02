@@ -1,3 +1,6 @@
+
+
+\begin{code}
 --------------------------------------------------------------------------------
 -- This module demonstrates the similitudes between various semantics for STLC
 -- before giving a generic notion of Scope-and-Type Safe Semantics à la
@@ -176,3 +179,4 @@ _ = refl
 _ : print ((α ⇒ α) ⇒ (α ⇒ α)) (L (L (A (V (s z)) (A (V (s z)) (V z)))))
         ≡ "λ0.λ1.0(0(1))"
 _ = refl
+\end{code}
