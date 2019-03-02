@@ -297,7 +297,7 @@ Before we can precisely define
 bisimulation, we need a definition of similarity between source
 and target terms of closure conversion.
 
-\ExecuteMetaData[STLC.tex]{tilde}
+\ExecuteMetaData[aacmm/StateOfTheArt/Bisimulation.tex]{tilde}
 
 \begin{definition}
   Given a source language term \AS{M} and a target language term \AS{M†},
@@ -361,7 +361,7 @@ they only contained parts of context actually used by the closure
 body. In contrast, the simplest possible closure conversion could use
 identity environments:
 
-\ExecuteMetaData[STLC.tex]{convert}
+% \ExecuteMetaData[STLC.tex]{convert}
 
 We require that for every well-behaved closure conversion function \AS{c}, any
 source term \AS{N} is similar to the result of its translation with
@@ -370,7 +370,7 @@ function. The proof is by straightforward induction; in the
 abstraction case, we need to argue that applying an identity substitution
 leaves the term unchanged.
 
-\ExecuteMetaData[STLC.tex]{graph}
+% \ExecuteMetaData[STLC.tex]{graph}
 
 A similar result could be obtained for the closure conversion
 algorithm which minimises environments from Chapter ???, but the proof
@@ -448,7 +448,7 @@ lemmas:
 
 The proof that values commute with similarity is straightforward.
 
-\ExecuteMetaData[STLC.tex]{val-comm}
+% \ExecuteMetaData[STLC.tex]{val-comm} 
 
 Before we will be able to prove the lemmas about renaming and substitution, we need an interlude
 where we discuss so-called fusion lemmas for the closure language λT.
@@ -458,7 +458,7 @@ TODO acknowledge PLFA here
 
 \section{Fusion lemmas for the closure language λT}
 
-\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-subst}
+% \ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-subst} 
 
 foo
 

@@ -86,3 +86,5 @@ s/↺/\$\\circlearrowleft\{\}\$/g
 s/↶/\$\\curvearrowleft\{\}\$/g
 s/δ/\$\\delta\$/g
 s/𝓡/$\\mathcal{R}$/g
+s/⟪/$\\langle\\langle$/g
+s/⟫/$\\rangle\\rangle$/g

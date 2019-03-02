@@ -6,7 +6,9 @@ all: latex/$(PAPER).pdf
 
 AGDA_FILES:=\
   STLC.lagda \
-  Common.lagda
+  Common.lagda \
+  aacmm/StateOfTheArt/Bisimulation.lagda \
+  aacmm/StateOfTheArt/Closure-Thms.lagda
 
 AGDA_OUTPUT:=$(patsubst %.lagda,latex-agda-output/%.tex,$(AGDA_FILES))
 AGDA_OUTPUT_PROCESSED:=$(patsubst %.lagda,latex/%.tex,$(AGDA_FILES))
