@@ -551,7 +551,7 @@ we believe that the proof function is in fact terminating.
 Recall the two result which we said would be needed for showing
 bisimulation. We start with:
 
-Renaming commutes with similarity. If \AS{ρ} is a renaming from
+\textit{Renaming commutes with similarity.} If \AS{ρ} is a renaming from
 \AS{Γ} to \AS{Δ}, and \AS{M \ti M†} are similar terms in the context
 \AS{Γ}, then the results of renaming \AS{M} and \AS{M†} with \AS{ρ}
 are also similar: \AS{S.rename ρ M \ti T.rename ρ M†}.
@@ -596,14 +596,15 @@ show that
 
 or, in Agda
 
-\ExecuteMetaData[StateOfTheArt/Closure-Thm.tex]{lemma-ren-comm}
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{lemma-ren-comm}
 
 This indeed holds, and the proof uses the fusion lemma lemmas for
 renaming and substitution in several places.
 
-TODO
+The remaining result to prove is quite similar, but the concept of a
+pointwise similar substitution makes it worth analysing.
 
-Substitution commutes with similarity. Suppose \AS{ρ} and \AS{ρ†}
+\textit{Substitution commutes with similarity.} Suppose \AS{ρ} and \AS{ρ†}
 are two 
 substitutions which take variables \AS{x} in \AS{Γ} to terms in \AS{Δ},
 such that for all \AS{x} we have that \AS{lookup ρ x \ti lookup ρ†
@@ -611,8 +612,37 @@ such that for all \AS{x} we have that \AS{lookup ρ x \ti lookup ρ†
 of applying \AS{ρ} to \AS{M} and \AS{ρ†} to \AS{M†} are also
 similar: \AS{S.subst ρ M \ti T.subst ρ† M†}.
 
+The notion of pointwise-similar substitutions \AS{ρ} and \AS{ρ†} from
+\AS{Γ} to \AS{Δ}
+can be captured by a function which, for each variables \AS{x} in
+\AS{Γ}, produces a proof that that the corresponsing terms are
+similar: \AS{lookup ρ x \ti lookup ρ† x}. We encapsulate this function
+in an Agda record:
 
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{pointwise-sim}
 
+The notion of a pointwise relation between environments (like
+substitutions) is used by ACMM to prove synchronisation and fusion
+lemmas for STLC. Unlike for STLC, the closure language \lcl does not
+require us to prove that pointwise similarity is preserved as a
+traversal goes under a binder.
+
+We can, however, show that pointwise similarity is preserved by
+applying \AS{exts} to both substitutions:
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{pointwise-sim-exts}
+
+In fact, exteding pointwise-similar substitutions with similar terms
+preserves pointwise similarity:
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{pointwise-sim-extend}
+
+With the notion of pointwise similarity, we can prove that
+substitution commutes with similarity:
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{subst-comm}
+
+TODO finish
 
 % use the following and \cite{} as above if you use BibTeX
 % otherwise generate bibtem entries

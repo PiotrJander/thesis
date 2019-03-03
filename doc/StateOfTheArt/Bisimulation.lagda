@@ -103,22 +103,39 @@ graph→relation (S.L b) = ~L g
 
 \begin{code}
 infix 3 _~σ_
+\end{code}
+
+%<*pointwise-sim>
+\begin{code}
 record _~σ_ {Γ Δ : Context} (ρ : S.Subst Γ Δ) (ρ† : T.Subst Γ Δ) : Set where
   field ρ~ρ† : ∀ {σ} → (x : Var σ Γ) → lookup ρ x ~ lookup ρ† x
+
+\end{code}
+%</pointwise-sim>
+
+\begin{code}
 open _~σ_ public
+\end{code}
 
-~exts : ∀ {Γ Δ σ}
-  → {ρ  : S.Subst Γ Δ}
-  → {ρ† : T.Subst Γ Δ}
+%<*pointwise-sim-exts>
+\begin{code}
+~exts : ∀ {Γ Δ σ} {ρ  : S.Subst Γ Δ} {ρ† : T.Subst Γ Δ}
   → ρ ~σ ρ†
-    --------------------------------------------------
+    ------------------------------
   → S.exts {σ = σ} ρ ~σ T.exts ρ†
-ρ~ρ† (~exts ~ρ) z = ~V
-ρ~ρ† (~exts {σ = σ} {ρ = ρ} {ρ†} ~ρ) (s x) = ~rename E.extend (ρ~ρ† ~ρ x)
+ρ~ρ† (~exts ~ρ) z  = ~V
+ρ~ρ† (~exts {σ = σ} {ρ = ρ} {ρ†} ~ρ) (s x)
+  = ~rename E.extend (ρ~ρ† ~ρ x)
+\end{code}
+%</pointwise-sim-exts>
 
+\begin{code}
 ~id-subst : ∀ {Γ} → S.id-subst {Γ} ~σ T.id-subst {Γ}
 ρ~ρ† ~id-subst x = ~V
+\end{code}
 
+%<*pointwise-sim-extend>
+\begin{code}
 _~∙_ : ∀ {Γ Δ σ}
     {ρ  : S.Subst Γ Δ} {ρ† : T.Subst Γ Δ}
     {M : S.Lam σ Δ} {M† : T.Lam σ Δ}
@@ -128,7 +145,11 @@ _~∙_ : ∀ {Γ Δ σ}
   → ρ ∙ M ~σ ρ† ∙ M†
 ρ~ρ† (ρ~σρ† ~∙ M~M†) z = M~M†
 ρ~ρ† (ρ~σρ† ~∙ M~M†) (s x) = ρ~ρ† ρ~σρ† x
+\end{code}
+%</pointwise-sim-extend>
 
+%<*subst-comm>
+\begin{code}
 ~subst : ∀ {Γ Δ}
   → {ρ  : S.Subst Γ Δ}
   → {ρ† : T.Subst Γ Δ}
@@ -136,10 +157,13 @@ _~∙_ : ∀ {Γ Δ σ}
     ---------------------------------------------------------
   → (∀ {τ} {M : S.Lam τ Γ} {M† : T.Lam τ Γ} → M ~ M† → S.subst ρ M ~ T.subst ρ† M†)
 ~subst ~ρ (~V {x = x}) = ρ~ρ† ~ρ x
+~subst ~ρ (~A ~M ~N) = ~A (~subst ~ρ ~M) (~subst ~ρ ~N) 
 ~subst {ρ† = ρ†} ~ρ (~L {N = N} {N†} {E} ~N) with ~subst (~exts ~ρ) ~N
 ... | ~ρN rewrite TT.lemma-~subst-L ρ† E N† = ~L ~ρN 
-~subst ~ρ (~A ~M ~N) = ~A (~subst ~ρ ~M) (~subst ~ρ ~N) 
+\end{code}
+%</subst-comm>
 
+\begin{code}
 /V≡E∙V† : ∀ {Γ Δ σ τ}
     {N : S.Lam τ (σ ∷ Γ)} {N† : T.Lam τ (σ ∷ Δ)} {E : T.Subst Δ Γ}
     {V : S.Lam σ Γ} {V† : T.Lam σ Γ}
