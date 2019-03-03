@@ -1,2 +1,3 @@
 latex
 latex-agda-output
+*.rel
