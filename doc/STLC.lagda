@@ -104,7 +104,6 @@ Substitution Γ Δ = (Γ ─Env) _⊢_ Δ
 \end{code}
 %</thinningsubst>
 
-
 %<*envops>
 \begin{code}
 ε : ∀ {𝓥 Δ} → ([] ─Env) 𝓥 Δ 
