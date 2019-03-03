@@ -1,3 +1,4 @@
+\begin{code}
 --------------------------------------------------------------------------------
 -- This module demonstrates the similitudes between various semantics for STLC
 -- before giving a generic notion of Scope-and-Type Safe Semantics à la
@@ -37,6 +38,12 @@ Subst Γ Δ = (Γ ─Env) Lam Δ
 Syntactic : Context → Context → Set
 Syntactic Γ Δ = ∀ {σ} → Lam σ Γ → Lam σ Δ
 
+ext  : ∀ {Γ Δ} {σ : Type}
+        → Thinning Γ Δ
+          -----------------------------------
+        → Thinning (σ ∷ Γ) (σ ∷ Δ)
+ext ρ  =  step ρ ∙ z
+
 {-# TERMINATING #-}
 rename : ∀ {Γ Δ}
         → Thinning Γ Δ
@@ -45,6 +52,12 @@ rename : ∀ {Γ Δ}
 rename ρ (V x) = V (lookup ρ x)
 rename ρ (A M N) = A (rename ρ M) (rename ρ N)
 rename ρ (L N E) = L N (rename ρ <$> E)
+
+exts : ∀ {Γ Δ σ}
+     → Subst Γ Δ
+       ----------------------------
+     → Subst (σ ∷ Γ) (σ ∷ Δ)
+exts ρ  =  rename E.extend <$> ρ ∙ V z
 
 {-# TERMINATING #-}
 subst : ∀ {Γ Δ}
@@ -94,3 +107,4 @@ data _—→_ : ∀ {Γ σ} → (Lam σ Γ) → (Lam σ Γ) → Set where
     → Value V
       --------------------
     → A (L N E) V —→ subst (E ∙ V) N
+\end{code}

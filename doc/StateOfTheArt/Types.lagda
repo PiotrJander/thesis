@@ -1,3 +1,4 @@
+\begin{code}
 open import Data.List using (List)
 
 module StateOfTheArt.Types where
@@ -9,3 +10,4 @@ data Type : Set where
   
 Context : Set
 Context = List Type
+\end{code}

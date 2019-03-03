@@ -1,3 +1,4 @@
+\begin{code}
 --------------------------------------------------------------------------------
 -- This module demonstrates the similitudes between various semantics for STLC
 -- before giving a generic notion of Scope-and-Type Safe Semantics à la
@@ -123,3 +124,4 @@ data _—→_ : ∀ {Γ σ} → (Lam σ Γ) → (Lam σ Γ) → Set where
     → Value V
       --------------------
     → A (L N) V —→ N / V
+\end{code}
