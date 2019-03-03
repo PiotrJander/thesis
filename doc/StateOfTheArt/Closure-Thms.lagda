@@ -16,12 +16,15 @@ open import Data.List.Base hiding ([_] ; _++_ ; lookup)
 open import Function
 \end{code}
 
-%<*rename-subst>
 \begin{code}
 {-# TERMINATING #-}
+\end{code}
+
+%<*rename-subst>
+\begin{code}
 rename∘subst : ∀ {Γ Δ Θ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ)
   → (N : Lam τ Δ)
-    -------------
+    ----------------------------------------------------
   → rename ρρ (subst ρσ N) ≡ subst (rename ρρ <$> ρσ) N
 \end{code}
 %</rename-subst>
@@ -41,12 +44,15 @@ rename∘subst ρρ ρσ (L N E)  =  cong₂ L refl (env-extensionality h)
             ∎ᴱ
 \end{code}
 
-%<*subst-subst>
 \begin{code}
 {-# TERMINATING #-}
+\end{code}
+
+%<*subst-subst>
+\begin{code}
 subst∘subst : ∀ {Γ Δ Θ τ} (ρ₁ : Subst Γ Θ) (ρ₂ : Subst Δ Γ)
   → (N : Lam τ Δ)
-    -------------
+    ----------------------------------------------------
   → subst ρ₁ (subst ρ₂ N) ≡ subst (subst ρ₁ <$> ρ₂) N
 \end{code}
 %</subst-subst>
@@ -65,12 +71,15 @@ subst∘subst ρ₁ ρ₂ (L N E)  =  cong₂ L refl (env-extensionality h)
             ∎ᴱ
 \end{code}
 
-%<*subst-rename>
 \begin{code}
 {-# TERMINATING #-}
+\end{code}
+
+%<*subst-rename>
+\begin{code}
 subst∘rename : ∀ {Γ Δ Θ τ} (ρσ : Subst Γ Θ) (ρρ : Thinning Δ Γ)
   → (N : Lam τ Δ)
-    -------------
+    ----------------------------------------------------
   → subst ρσ (rename ρρ N) ≡ subst (select ρρ ρσ) N
 \end{code}
 %</subst-rename>
@@ -90,12 +99,15 @@ subst∘rename ρσ ρρ (L N E)  =  cong₂ L refl (env-extensionality h)
             ∎ᴱ
 \end{code}
 
-%<*rename-rename>
 \begin{code}
 {-# TERMINATING #-}
+\end{code}
+
+%<*rename-rename>
+\begin{code}
 rename∘rename : ∀ {Γ Δ Θ τ} (ρ₁ : Thinning Γ Δ) (ρ₂ : Thinning Δ Θ)
   → (N : Lam τ Γ)
-    -------------
+    ----------------------------------------------------
   → rename ρ₂ (rename ρ₁ N) ≡ rename (select ρ₁ ρ₂) N
 \end{code}
 %</rename-rename>
