@@ -193,9 +193,14 @@ eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) (s x) = h
         h : rename (ext {σ = τ} ρρ) (lookup (exts ρσ) (s x))
             ≡ lookup (exts (rename ρρ <$> ρσ)) (s x)
         h = trans g (sym f)
+\end{code}
 
+\begin{code}
 lemma-~subst-L : ∀ {Γ Δ Θ σ τ} (ρ₁ : Subst Γ Θ) (ρ₂ : Subst Δ Γ) (N : Lam τ (σ ∷ Δ))
   → subst (exts ρ₁) (subst (exts ρ₂) N) ≡ subst (exts (subst ρ₁ <$> ρ₂)) N
+\end{code}
+
+\begin{code}
 lemma-~subst-L ρ₁ ρ₂ N =
   begin
     subst (exts ρ₁) (subst (exts ρ₂) N)
@@ -204,9 +209,15 @@ lemma-~subst-L ρ₁ ρ₂ N =
   ≡⟨ cong (λ e → subst e N) (env-extensionality (lemma-~subst-L-helper ρ₁ ρ₂)) ⟩
     subst (exts (subst ρ₁ <$> ρ₂)) N
   ∎
+\end{code}
 
+%<*lemma-ren-comm>
+\begin{code}
 lemma-~ren-L : ∀ {Γ Δ Θ σ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ) (N : Lam τ (σ ∷ Δ))
   → rename (ext ρρ) (subst (exts ρσ) N) ≡ subst (exts (rename ρρ <$> ρσ)) N
+\end{code}
+%</lemma-ren-comm>
+\begin{code}
 lemma-~ren-L ρρ ρσ N =
   begin
     rename (ext ρρ) (subst (exts ρσ) N)
@@ -215,7 +226,9 @@ lemma-~ren-L ρρ ρσ N =
   ≡⟨ cong (λ e → subst e N) (env-extensionality (lemma-~ren-L-helper ρρ ρσ)) ⟩
     subst (exts (rename ρρ <$> ρσ)) N
   ∎
+\end{code}
 
+\begin{code}
 -- neat mutual recursion here
 
 h : ∀ {Γ σ τ} (VV : Lam σ Γ) (N : Lam τ Γ)

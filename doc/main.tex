@@ -548,9 +548,68 @@ we believe that the proof function is in fact terminating.
 
 \section{Back to \ti rename and \ti subst}
 
+Recall the two result which we said would be needed for showing
+bisimulation. We start with:
 
+Renaming commutes with similarity. If \AS{ρ} is a renaming from
+\AS{Γ} to \AS{Δ}, and \AS{M \ti M†} are similar terms in the context
+\AS{Γ}, then the results of renaming \AS{M} and \AS{M†} with \AS{ρ}
+are also similar: \AS{S.rename ρ M \ti T.rename ρ M†}.
 
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{rename-comm} 
 
+The proof is by induction on the similarity relation. The variable and
+application cases are easy, but as ever, the abstraction case is worth
+looking at. Recall that a source abstraction is similar to the target
+closure \AS{S.L N \ti T.L N† E} when \AS{N \ti T.subst (T.exts E) N†}
+by the inductive constructor \AS{\ti L}.
+
+In the abstraction case, we have that
+
+\AS{S.L N \ti T.L N† E} (1)
+
+We need to show that
+
+\AS{S.rename ρ (S.L N) \ti T.rename ρ (T.L N† E)} (2)
+
+but (2) simplifies to
+
+\AS{S.L (S.rename (S.exts ρ) N) \ti T.L N† (T.rename ρ <\$> E)} (3)
+
+which holds by \AS{\ti L} when the following holds
+
+\AS{S.rename (S.exts ρ) N \ti T.subst (T.exts (T.rename ρ <\$> E)) N†} (4)
+
+On the other hand, from (1) by \AS{\ti L} we have that
+
+\AS{N \ti T.subst (T.exts E) N†} (5)
+
+Applying the induction hypotesis to (5), we get
+
+\AS{S.rename (S.exts ρ) N \ti T.rename (S.exts ρ) (T.subst (T.exts E) N†)} (6)
+
+Thus we require (4) and have (6), so to complete the proof, we need to
+show that 
+
+\AS{T.subst (T.exts (T.rename ρ <\$> E)) N† ≡ T.rename (S.exts ρ) (T.subst
+  (T.exts E) N†)}
+
+or, in Agda
+
+\ExecuteMetaData[StateOfTheArt/Closure-Thm.tex]{lemma-ren-comm}
+
+This indeed holds, and the proof uses the fusion lemma lemmas for
+renaming and substitution in several places.
+
+TODO
+
+Substitution commutes with similarity. Suppose \AS{ρ} and \AS{ρ†}
+are two 
+substitutions which take variables \AS{x} in \AS{Γ} to terms in \AS{Δ},
+such that for all \AS{x} we have that \AS{lookup ρ x \ti lookup ρ†
+  x}. Then given similar terms \AS{M \ti M†} in \AS{Γ}, the results
+of applying \AS{ρ} to \AS{M} and \AS{ρ†} to \AS{M†} are also
+similar: \AS{S.subst ρ M \ti T.subst ρ† M†}.
 
 
 
