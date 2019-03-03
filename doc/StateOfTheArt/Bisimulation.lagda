@@ -15,7 +15,6 @@ open import StateOfTheArt.Types
 import StateOfTheArt.STLC as S
 open S using (_/_)
 import StateOfTheArt.Closure as T
-import StateOfTheArt.STLC-Thms as ST
 import StateOfTheArt.Closure-Thms as TT
 \end{code}}
 
@@ -90,14 +89,15 @@ graph→relation (S.L b) = ~L g
 
 \begin{code}
 
-~rename : ∀ {Γ Δ}
+~rename : ∀ {Γ Δ σ} {M : S.Lam σ Γ} {M† : T.Lam σ Γ}
   → (ρ : Thinning Γ Δ)
+  → M ~ M†
     ----------------------------------------------------------
-  → ∀ {σ} {M : S.Lam σ Γ} {M† : T.Lam σ Γ} → M ~ M† → S.rename ρ M ~ T.rename ρ M†
+  → S.rename ρ M ~ T.rename ρ M†
 ~rename ρ ~V = ~V
 ~rename ρ (~A ~M ~N) = ~A (~rename ρ ~M) (~rename ρ ~N)
-~rename ρ (~L {N = N} {N†} {E} ~N) with ~rename (T.ext ρ) ~N
-... | ~ρN rewrite TT.lemma-~ren-L ρ E N† = ~L ~ρN
+~rename ρ (~L {N = N} {N†} {E} ~N) = {!!} -- with ~rename (T.ext ρ) ~N
+-- ... | ~ρN rewrite TT.lemma-~ren-L ρ E N† = ~L ~ρN
 
 infix 3 _~σ_
 record _~σ_ {Γ Δ : Context} (ρ : S.Subst Γ Δ) (ρ† : T.Subst Γ Δ) : Set where

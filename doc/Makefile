@@ -8,7 +8,8 @@ AGDA_FILES:=\
   STLC.lagda \
   Common.lagda \
   StateOfTheArt/Bisimulation.lagda \
-  StateOfTheArt/Closure-Thms.lagda
+  StateOfTheArt/Closure-Thms.lagda \
+  StateOfTheArt/Closure.lagda
 
 AGDA_OUTPUT:=$(patsubst %.lagda,latex-agda-output/%.tex,$(AGDA_FILES))
 AGDA_OUTPUT_PROCESSED:=$(patsubst %.lagda,latex/%.tex,$(AGDA_FILES))

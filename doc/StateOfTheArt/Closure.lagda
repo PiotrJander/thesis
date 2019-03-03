@@ -32,42 +32,66 @@ data Lam where
   V : {σ : Type} →    [ Var σ                ⟶ Lam σ        ]
   A : {σ τ : Type} →  [ Lam (σ ⇒ τ) ⟶ Lam σ  ⟶ Lam τ        ]
   L : {σ τ : Type} {Γ Δ : Context} → Lam τ (σ ∷ Δ) → Subst Δ Γ → Lam (σ ⇒ τ) Γ
+\end{code}
 
+%<*syntactic>
+\begin{code}
 Subst Γ Δ = (Γ ─Env) Lam Δ
 
 Syntactic : Context → Context → Set
 Syntactic Γ Δ = ∀ {σ} → Lam σ Γ → Lam σ Δ
+\end{code}
+%</syntactic>
 
+\begin{code}
 ext  : ∀ {Γ Δ} {σ : Type}
         → Thinning Γ Δ
           -----------------------------------
         → Thinning (σ ∷ Γ) (σ ∷ Δ)
 ext ρ  =  step ρ ∙ z
+\end{code}
 
+\begin{code}
 {-# TERMINATING #-}
+\end{code}
+
+%<*rename>
+\begin{code}
 rename : ∀ {Γ Δ}
         → Thinning Γ Δ
           ---------------------------
         → Syntactic Γ Δ
-rename ρ (V x) = V (lookup ρ x)
-rename ρ (A M N) = A (rename ρ M) (rename ρ N)
-rename ρ (L N E) = L N (rename ρ <$> E)
+rename ρ (V x)    =  V (lookup ρ x)
+rename ρ (A M N)  =  A (rename ρ M) (rename ρ N)
+rename ρ (L N E)  =  L N (rename ρ <$> E)
+\end{code}
+%</rename>
 
+\begin{code}
 exts : ∀ {Γ Δ σ}
      → Subst Γ Δ
        ----------------------------
      → Subst (σ ∷ Γ) (σ ∷ Δ)
 exts ρ  =  rename E.extend <$> ρ ∙ V z
+\end{code}
 
+\begin{code}
 {-# TERMINATING #-}
+\end{code}
+
+%<*subst>
+\begin{code}
 subst : ∀ {Γ Δ}
      → Subst Γ Δ
        ----------------
      → Syntactic Γ Δ
-subst ρ (V x) = lookup ρ x
-subst ρ (A M N) = A (subst ρ M) (subst ρ N)
-subst ρ (L N E) = L N (subst ρ <$> E)
+subst ρ (V x)    =  lookup ρ x
+subst ρ (A M N)  =  A (subst ρ M) (subst ρ N)
+subst ρ (L N E)  =  L N (subst ρ <$> E)
+\end{code}
+%</subst>
 
+\begin{code}
 ----------------------------
 -- Substitution combinators
 

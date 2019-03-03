@@ -84,6 +84,7 @@ subst∘rename : ∀ {Γ Δ Θ τ} (ρσ : Subst Γ Θ) (ρρ : Thinning Δ Γ)
 \end{code}
 %</subst-rename>
 
+%<*subst-rename-proof>
 \begin{code}
 subst∘rename ρσ ρρ (V x)    =  refl
 subst∘rename ρσ ρρ (A M N)  =  cong₂ A (subst∘rename ρσ ρρ M) (subst∘rename ρσ ρρ N)
@@ -98,6 +99,7 @@ subst∘rename ρσ ρρ (L N E)  =  cong₂ L refl (env-extensionality h)
               subst (select ρρ ρσ) <$> E
             ∎ᴱ
 \end{code}
+%</subst-rename-proof>
 
 \begin{code}
 {-# TERMINATING #-}

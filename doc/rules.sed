@@ -53,6 +53,7 @@ s/`2/`\\!2/g
 #s/𝓡/\\mathcal{R}/g
 s/𝓔/\\mathcal\{E\}/g
 s/𝓜/\\mathcal\{M\}/g
+s/𝓦/\$\\mathcal\{W\}\$/g
 s/𝓢/$\\mathcal\{S\}$/g
 s/𝓒\(_.\)/\$\\mathcal\{C\1\}\$/g
 s/𝓒/\$\\mathcal\{C\}\$/g
@@ -82,6 +83,7 @@ s/λ/\$\\lambda\$/g
 s/Ξ/\$\\Xi\$/g
 s/ˡ/\\textsuperscript\{l\}/g
 s/ʳ/\\textsuperscript\{r\}/g
+s/ᴱ/\\textsuperscript\{E\}/g
 s/↺/\$\\circlearrowleft\{\}\$/g
 s/↶/\$\\curvearrowleft\{\}\$/g
 s/δ/\$\\delta\$/g

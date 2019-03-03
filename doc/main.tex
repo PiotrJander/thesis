@@ -473,18 +473,78 @@ combinations of them:
   \end{enumerate}
 
 As it turns out, the first composition (a renaming followed by a
-renaming) is equivalent to a renaming, and the other three composition
-are equivalent to substitutions.
+renaming) is equivalent to a renaming, and the other three compositions
+are equivalent to substitutions. 
 
 We state the results as signatures of Agda functions, using the
 environment combinators \AS{\_<\$>\_} and \AS{select} we described in Section~??.
 
-\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-rename} 
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-rename}
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-rename}  
 \ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-subst} 
-\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-rename} 
-\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-subst} 
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-subst}
 
-Proofs of all four lemmas proceed
+The Agda proofs of those four lemmas can be found in the appendix
+(TODO ref); here we outline the proof structure, analyse one of the
+four lemmas, and compare
+fusion lemmas for \lcl with the corresponding lemmas for STLC.
+
+A generic technique to prove fusion lemmas for STLC,
+including the ones about renaming and substitution, is one of the main
+contributions of ACMM \cite{DBLP:conf/cpp/Allais0MM17}. Their proof
+uses logical relations (TODO explain) and it relies on the invariant
+that corresponding environment values are in appropriate relations,
+including when environments are extended when going under a
+binder. Maintaining this invariant is possible thanks to the generic
+framework for writing traversals (semantics) introduced by ACMM.
+
+As it turns out, fusion lemmas for the closure language are simpler,
+as they do not require the logical relation machinery of ACMM. This is
+because renaming and substitution in \lcl `do not go under binders`,
+as can be seen from their definitions:
+
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{syntactic}
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{rename}
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{subst}
+
+For both renaming and substitution, in the closure case (\AS{L}), the
+closure body is left untouched; only the closure environment is
+modified.
+
+We are now ready to take a closer look at the proof of the fusion
+lemma for a renaming followed by a subsitution:
+
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-rename} 
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-rename-proof} 
+
+The proof is by induction on the typing derivation of the term:
+
+\begin{itemize}
+\item In the variable case, the LHS and the RHS normalise to the same
+  term, so \AS{refl} suffices.
+\item In the application case, the proof is by congruence (TODO
+  wording).
+\item In the closure case, the proof is also by congruence, but
+  an equational proof is required to show that the LHS and RHS act the
+  same of the environment \AS{E}.
+\end{itemize}
+
+The equational proof for \AS{E} proceeds as follows:
+
+\begin{enumerate}
+\item It uses the fact that function composition \AS{\_∘\_}
+  distributes through mapping over environments \AS{\_<\$>\_}: we have
+  \AS{f <\$> g <\$> E ≡ f ∘ g <\$> E} which is capture by the lemma
+  \AS{< \$>-distr},
+\item It uses the fact that when \AS{f} and \AS{g} are extensionally
+  equal (\AS{∀ \{x\} → f x ≡ g x}), then \AS{f <\$> E ≡ g <\$> E} which
+  is captured by the lemma \AS{<\$>-fun},
+\item \AS{<\$>-fun} is instantiated with the inductive hypothesis.
+\end{enumerate}
+
+Unfortunately, Agda does not recognise our fusion lemmas as
+terminating, and we were unable to provide a termination proof. Still,
+we believe that the proof function is in fact terminating.
 
 \section{Back to \ti rename and \ti subst}
 
