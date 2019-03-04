@@ -644,6 +644,194 @@ substitution commutes with similarity:
 
 TODO finish
 
+\chapter{Relationship to the UG4 project}
+
+This work is a natural continuation of the UG4 project, but it
+admittedly takes the project in a new direction. In terms of its
+goals, the UG4 project was concerned with program
+derivations. Derivations are distinct from program transformations or
+traversals, as found in compilers or in this UG5 project.
+
+Program transformations like closure conversion, or continuation
+passing style (CPS) transformation, have two distinct characteristics.
+
+\section{Program transformation vs derivation}
+\label{sec:progr-transf-vs}
+
+Firstly, the source and target languages can be different, e.g. the
+source language may have lambda abstractions with free variables, and
+the target language may have closures with environments. Of course,
+many transformations in compilers happen within the same language,
+e.g. constant expression folding.
+
+Secondly, compiler transformations are usually characterised by
+replacing one program construct with another, in a one-way fashion,
+e.g. lambda abstractions with closures. It would be strange if changes
+happened both ways. One might imagine a language with both lambda
+abstractions and closures, and a transformation which replaces some
+closures with lambda abstractions, and some abstraction with closures,
+according to arbitrary rules. It is difficult to see how such a
+transformation would be useful in a compiler.
+
+Of course, one might imagine a transformation which replaces some
+occurrences of constructs A and constructs B, and vice versa, in order
+to optimise the program. But any such optimising transformation is
+still guided by some measure of performance.
+
+In contrast, program derivation consists of transforming a program in
+arbitrary places, and using arbitrary rules, with a specific goal of
+obtaining one program from another, so that the obtained program has
+some desirable features, like efficiency, or even faster asymptotic
+running time. Importantly, the derivation happens within a single
+language. (TODO but specification can be in terms of relations, which
+are not part of the language).
+
+\section{Program derivations in the UG4 project}
+\label{sec:progr-deriv-ug4}
+
+The UG4 project analyses two instances of program derivation in
+detail. The first one is a derivation of an efficient implementation
+of the maximum segment sum problem (MSS). While the input
+specification (which is also a runnable program) runs in cubic time in
+the length of the input list, the output program runs in linear
+time. The asymptotic speed-up is achieved by applying several "rewrite
+rules" involving higher-order functions on lists such as map, foldr,
+and filter.
+
+The second case study involved a derivation for a program for
+matrix-vector multiplication. The input program takes a dense matrix,
+and the output program takes a sparse matrix in the compressed sparse
+row (CSR) format. Or, to be precise, the input program which acts on a
+dense matrix, is transformed into a composition of two programs: (a) a
+conversion from a dense to a CSR-sparse matrix, and (b) a
+matrix-vector multiplication program which acts on a CSR-sparse
+matrix. This is because, as a rule, the input and output types of the
+program must stay the same in the course of the derivation. This
+second derivation was similarly accomplished with "rewrite rules"
+involving higher-order functions.
+
+\section{Rewrite rules}
+\label{sec:rewrite-rules}
+
+The notion of a rewrite rule is central to program derivation. A
+classical example of a rewrite rule for a function program is one
+stating: "a composition of mappings is a mapping with a composition":
+
+\begin{verbatim}
+forall f g xs. map f (map g xs) == map (f . g) xs (*)
+\end{verbatim}
+
+where f, g, xs are metavariables. An application of a rewrite rule
+consists of unifying the LHS of the rule with a subterm of the program
+(and thus obtaining a substitution σ), and then replacing the
+subterm with the RHS of the rule, instantiated with the substitution
+σ.
+
+Notably, such simple form of a rewrite rule only supports first-order
+abstract syntax trees, but not higher-order abstract syntax. (TODO
+elaborate on what it would mean to have a context and go under a
+binder in a rewrite rule). (TODO can't express conditions)
+
+In their simplest form, a program derivation is a sequence of
+intermediate forms of the program, intertwined with rewrite rules
+which justify each step of the derivation. For examples, the reader
+may consult the UG4 project \cite{TODO}.
+
+\section{Program derivations in compilers and their limitations}
+\label{sec:progr-deriv-comp}
+
+While we argued that compiler transformations and program derivations
+are distinct in their character, the lines may arguably be blurry at
+times. A good example of this is the support for rewrite rules in GHC,
+a Haskell compiler. A Haskell programmer may specify a rule like (*)
+as part of the code, and in one of early compilation passes, GHC will
+apply the rule wherever possible (i.e. replace the occurrences of the
+LHS with the RHS). Such compiler pass may be considered an instance of
+program derivation, and it would go some way towards deriving the
+aforementioned efficient implementation for the maximum segment sum
+problem (MSS).
+
+However, rewriting as implemented in compilers is too limited to carry
+out most derivations. To see one limitation, consider a derivation
+which needs to apply the rule (*) right to left: replace an occurrence
+of the RHS with the LHS. But clearly, unguided application of rewrite
+rules can only be one way, otherwise it would not terminate.
+
+Another limitation is the fact that "the right" derivation can require
+that rules be applied in a specific order. Thus, rewriting a program
+becomes a search problem, where rewrites are applied until a program
+satisfying some (performance) objective is found. This is the approach
+taken by the Lift compiler \cite{TODO}
+
+Yet another limitation is that many derivations elude the notion of an
+objective function, thus rendering a search futile. It seems that
+human insight is required to guide a derivation.
+
+A final limitation is that there are conceivable rewrite rules which
+are only applicable when certain conditions are met. Such conditions
+could range algebraic properties of operators to general predicates
+and relations on terms. And these are undecidable in general (TODO how
+to phrase this).
+
+These considerations, taken together, mean that the technique of
+program derivation is more useful to the programmer than the
+compiler. Benefits of employing a sort of program derivation (more or
+less formal) for the programmer include: (a) a structured process of
+obtaining an implementation from specification, (b) greater confidence
+about correctness of an implementation, (c) possibility of discovering
+further optimisations, and finally (d) a framework for a proof of
+correctness. This last use case could be explained as follows: suppose
+we can prove the correctness of the "specification" program, and the
+correctness of each rewrite rule. Then we can obtain correctness of
+the "implementation" program.
+
+\section{Implementation of rewriting in the UG4 project}
+\label{sec:impl-rewr-ug4}
+
+The UG4 project included a purpose-built framework for specifying
+derivations. The framework included:
+
+\begin{enumerate}
+\item A simple functional language with parametricity. The language is
+point-free, that is, based on function composition rather than on
+lambda abstractions. This was because variables and abstraction are
+difficult to implement correctly, as demonstrated by this UG5 project,
+and even more difficult to rewrite.
+
+\item A type-checker for the language.
+
+\item Rewriting functionality and declaring derivations as sequences of
+  rewrites.
+
+\item An interpreter for the language, which was used to empirically
+  verify claims about performance gains from derivations.
+\end{enumerate}
+
+Writing the framework was a good exercise in implementing routine
+parts of compiler front-ends, such as type checking and
+unification. Writing it in Scala made sense given the stretch
+objective of compiling the language to Lift, which was not realised,
+however.
+
+Importantly, rewrite rules were stated without justification, much as
+postulates in Agda. One could prove the rules externally – but then
+one is pressed to ask, why not express a derivation in a proof
+assistant, which supports unification and rewriting natively? Indeed,
+with hindsight, we can say with certainty that a proof assistant is
+perfectly suited for the job, its only downside being that it requires
+considerable expertise, which I did not have during my fourth
+year. (TODO I/me?)
+
+\section{Program derivation in Agda: sparse matrix-vector
+  multiplication}
+\label{sec:progr-deriv-agda}
+
+To complete last year's work, we conduct a derivation of the program
+for matrix-vector multiplication which acts on CSR-sparse
+matrices. Unlike last year, we can now provide proofs of individual
+rewrite rules. Indeed, some proofs are quite involved. TODO whether
+and how to do it.
+
 % use the following and \cite{} as above if you use BibTeX
 % otherwise generate bibtem entries
 \bibliographystyle{plain}

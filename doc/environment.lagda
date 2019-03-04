@@ -210,4 +210,4 @@ module _ {𝓥 : I ─Scoped} {A : Set → Set} (app : RawApplicative A) where
    go : ∀ Γ {Δ} → (Γ ─Env) (λ i Γ → A (𝓥 i Γ)) Δ → A ((Γ ─Env) 𝓥 Δ)
    go []       ρ = pure ε
    go (σ ∷ Γ)  ρ = flip _∙_ A.<$> lookup ρ z ⊛ go Γ (select extend ρ)
-\end{coe}
+\end{code}

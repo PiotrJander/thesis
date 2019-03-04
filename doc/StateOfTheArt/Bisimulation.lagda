@@ -1,5 +1,4 @@
 \begin{code}
-{-# OPTIONS --allow-unsolved-metas #-} 
 module StateOfTheArt.Bisimulation where
 
 open import Data.List using (List; []; _∷_)

@@ -64,7 +64,7 @@ latex/%.tex: latex-agda-output/%.tex rules.sed
 
 latex-agda-output/%.tex: %.lagda
 	@mkdir -p $(dir $@)
-	${AGDA} -i . --allow-unsolved-metas --latex $< --latex-dir=latex-agda-output > $(basename $@).log
+	${AGDA} -i . --latex $< --latex-dir=latex-agda-output > $(basename $@).log
 
 clean:
 	find . -name '*.agdai' | xargs rm
