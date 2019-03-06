@@ -45,23 +45,13 @@ lemma-2 : (xs : List ℕ)
 lemma-2 [] = refl
 lemma-2 (x ∷ xs) with non-zero x
 lemma-2 (x ∷ xs) | yes p rewrite lemma-2 xs = refl
-lemma-2 (x ∷ xs) | no ¬p rewrite ¬¬ℕ ¬p | lemma-2 xs = refl
+lemma-2 (x ∷ xs) | no ¬p rewrite decidable-stable (x ≟ zero) ¬p | lemma-2 xs = refl
 
 non-zero-proj₂ : (p : ℕ × ℕ) → Dec (proj₂ p ≢ zero)
 non-zero-proj₂ = non-zero ∘ proj₂
 
 non-zero-snd' : (p : ℕ × ℕ) → Dec (proj₂ p ≢ zero)
 non-zero-snd' p = ¬? (proj₂ p ≟ zero)
-
-postulate
-  ¬¬ℕ : {m n : ℕ} → ¬ ¬ (n ≡ m) → n ≡ m
-
-lemma-2 : (xs : List ℕ)
-  → L.sum (filter non-zero xs) ≡ L.sum xs
-lemma-2 [] = refl
-lemma-2 (x ∷ xs) with non-zero x
-lemma-2 (x ∷ xs) | yes p rewrite lemma-2 xs = refl
-lemma-2 (x ∷ xs) | no ¬p rewrite ¬¬ℕ ¬p | lemma-2 xs = refl
 
 suc-n<m : ∀ {n m}
   → suc n < m
@@ -79,10 +69,6 @@ fins (suc m) = fromℕ m v∷ fins' ≤-refl
 enumeration : {m : ℕ} → Vec (Fin m) m
 enumeration {m} = reverse (fins m)
 
-data VecSuffix {A : Set} : ∀ {m n} → Vec A m → Vec A n → Set where
-  here   :  ∀ {n} (v : Vec A n) → VecSuffix v v
-  there  :  ∀ {m n} {v1 : Vec A m} {v2 : Vec A n} (e : A) → VecSuffix v1 v2 → VecSuffix v1 (e v∷ v2)
-
 -- we actually might need a pointwise relation: x R (i, x) iff x ≡ x
 -- then we would do induction on row' and vec' and enum-row
 -- and a proof that enum-row is a suffix of zip enumeration row
@@ -90,11 +76,53 @@ data VecSuffix {A : Set} : ∀ {m n} → Vec A m → Vec A n → Set where
 -- use suffix view here?
 -- and a proof that the first i in enum-row equals
 -- the number of elems skipped
--- also 
+-- also
+
+-- now make enumerate by prefixes
+-- start by refl
+-- then type is fin n
+-- here is zero
+-- there here is one
+-- etc
+
+-- todo show that if x ∷ xs is a suffix of ys, then so is xs
+
+module _ {A : Set} where
+
+  data VecSuffix : ∀ {m n} → Vec A m → Vec A n → Set where
+    here   :  ∀ {n} (v : Vec A n) → VecSuffix v v
+    there  :  ∀ {m n} {v1 : Vec A m} {v2 : Vec A n} (e : A) → VecSuffix v1 v2 → VecSuffix v1 (e v∷ v2)
+
+  tail-suffix : ∀ {m n} {x : A} {xs : Vec A m} {xs' : Vec A n} → VecSuffix (x v∷ xs) xs' → VecSuffix xs xs'
+  tail-suffix (here (x v∷ xs)) = there x (here xs)
+  tail-suffix (there e suffix) = there e (tail-suffix suffix)
+
+  suffix-to-fin' : ∀ {m n : ℕ} {xs' : Vec A (suc m)} {xs : Vec A n} → VecSuffix xs' xs → Fin (suc m)
+  suffix-to-fin' {xs' = x v∷ v[]} suffix = zero
+  suffix-to-fin' {xs' = x v∷ x' v∷ xs'} suffix = suc (suffix-to-fin' (tail-suffix suffix))
+
+  suffix-to-fin : ∀ {m n : ℕ} {xs' : Vec A (suc m)} {xs : Vec A n} → VecSuffix xs' xs → Fin n
+  suffix-to-fin (here xs) = suffix-to-fin' (here xs)
+  suffix-to-fin (there e suffix) = suc (suffix-to-fin suffix)
+
+  enumerate' : {n m : ℕ} {xs' : Vec A m} {xs : Vec A n} → VecSuffix xs' xs → Vec (Fin n × A) m
+  enumerate' {xs' = v[]} suffix = v[]
+  enumerate' {xs' = x v∷ xs'} suffix = ((suffix-to-fin suffix) , x) v∷ (enumerate' (tail-suffix suffix))
+  
+  enumerate : {n : ℕ} → Vec A n → Vec (Fin n × A) n
+  enumerate xs = enumerate' (here xs)
+
+  -- now the proof would need to proceed by setting up a parallel structure
+  -- if xs' is a suffix of xs, then enumerate' suffix ≡ drop n (zip allFin n) xs, where n is the number of dropped elements
+  -- tedious
+
+  zip-allFin≡enumerate : ∀ {n} (xs : Vec A n) → enumerate xs ≡ zip (V.allFin n) xs
+  zip-allFin≡enumerate xs with enumerate' (here xs)
+  ... | p = {!!}
 
 postulate
   lemma-3 : ∀ {n m} {row' : Vec Num m} (row vec : Vec Num n)
-    → V.map (uncurry′ _*_) (zip vec row) ≡ V.map (λ { (i , v) → lookup i vec * v }) (zip enumeration row)
+    → V.map (uncurry′ _*_) (zip vec row) ≡ V.map (λ { (i , v) → lookup i vec * v }) (zip (V.allFin n) row)
 -- lemma-3 v[] vec = {!!}
 -- lemma-3 (x v∷ row) vec = {!!}
 
