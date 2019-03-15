@@ -6,7 +6,7 @@
 module StateOfTheArt.ClosureConversion where
 
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; cong; sym; trans)
+open Eq using (_≡_; refl; cong; sym; trans; inspect; [_])
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Nat using (ℕ; zero; suc)
@@ -83,7 +83,7 @@ cc : ∀ {Γ A} → S.Lam A Γ → Closure A Γ
 cc {A = A} (S.V x) = ∃[ A ∷ [] ] Var→⊆ x ∧ T.V z
 cc (S.A M N) with cc M | cc N
 cc (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ M† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ N† with merge Δ⊆Γ Δ₁⊆Γ
-cc (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ M† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ N† | subContextSum Γ₁ Γ₁⊆Γ Δ⊆Γ₁ Δ₁⊆Γ₁
+cc (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ M† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ N† | subContextSum Γ₁ Γ₁⊆Γ Δ⊆Γ₁ Δ₁⊆Γ₁ _ _
   = ∃[ Γ₁ ] Γ₁⊆Γ ∧ (T.A (T.rename (⊆→ρ Δ⊆Γ₁) M†) (T.rename (⊆→ρ Δ₁⊆Γ₁) N†))
 cc (S.L N) with cc N
 cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† with adjust-context Δ⊆Γ
@@ -108,35 +108,28 @@ eq (bar (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ)) z = refl
 eq (bar (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ)) (s x) = cong s (eq (bar Δ₁⊆Γ₁ Γ₁⊆Γ) x)
 
 baz : ∀ {Δ₁ Γ₁ Γ τ} (Δ₁⊆Γ₁ : Δ₁ ⊆ Γ₁) (Γ₁⊆Γ : Γ₁ ⊆ Γ) (Δ₁⊆Γ : Δ₁ ⊆ Γ) (M† : T.Lam τ Δ₁)
+  → ⊆-trans Δ₁⊆Γ₁ Γ₁⊆Γ ≡ Δ₁⊆Γ
   → T.rename (⊆→ρ Γ₁⊆Γ) (T.rename (⊆→ρ Δ₁⊆Γ₁) M†) ≡ T.rename (⊆→ρ Δ₁⊆Γ) M†
-baz Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† =
+baz Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† well =
   begin
     T.rename (⊆→ρ Γ₁⊆Γ) (T.rename (⊆→ρ Δ₁⊆Γ₁) M†)
   ≡⟨ rename∘rename (⊆→ρ Δ₁⊆Γ₁) (⊆→ρ Γ₁⊆Γ) M† ⟩
     T.rename (select (⊆→ρ Δ₁⊆Γ₁) (⊆→ρ Γ₁⊆Γ)) M†
   ≡⟨ cong (λ e → T.rename e M†) (env-extensionality (bar Δ₁⊆Γ₁ Γ₁⊆Γ)) ⟩
     T.rename (⊆→ρ (⊆-trans Δ₁⊆Γ₁ Γ₁⊆Γ)) M†
-  ≡⟨ cong (λ e → T.rename (⊆→ρ e) M†) p ⟩
+  ≡⟨ cong (λ e → T.rename (⊆→ρ e) M†) well ⟩
     T.rename (⊆→ρ Δ₁⊆Γ) M†
   ∎
-  where
-  postulate p : ⊆-trans Δ₁⊆Γ₁ Γ₁⊆Γ ≡ Δ₁⊆Γ
 
 N~N† : ∀ {Γ A} (N : S.Lam A Γ)
   → N ~ N †
 N~N† (S.V x) with cc (S.V x)
 N~N† (S.V x) | ∃[ Δ ] Δ⊆Γ ∧ N rewrite foo x = ~V
-N~N† {Γ} {A} (S.A {σ = B} M N) = h1 (cc (S.A M N)) (cc M) (cc N)
-  where
-  h1 : Γ ⊩ A → Γ ⊩ (B ⇒ A) → Γ ⊩ B → (S.A {σ = B} M N) ~ (S.A {σ = B} M N) †
-  h1 (∃[ Δ ] Δ⊆Γ ∧ N) (∃[ Δ₁ ] Δ⊆Γ₁ ∧ N₁) (∃[ Δ₂ ] Δ₂⊆Γ ∧ N†) = {!!}
--- N~N† (S.A M N) with cc (S.A M N) | cc M | cc N
--- N~N† (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ MN† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† with merge Δ₁⊆Γ Δ₂⊆Γ
--- N~N† (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ MN† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | subContextSum Γ₁ Γ₁⊆Γ Δ₁⊆Γ₁ Δ₂⊆Γ₁
---   = let h1 : T.rename (⊆→ρ Δ₁⊆Γ) M† ≡ M †
---         h1 = {!refl!}
---     in ~A {!!} {!!} 
-    
+N~N† (S.A M N) with cc M | cc N | inspect _† M | inspect _† N
+N~N† (S.A M N) | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | [ p ] | [ q ] with merge Δ₁⊆Γ Δ₂⊆Γ
+N~N† (S.A M N) | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | [ p ] | [ q ] | subContextSum Γ₁ Γ₁⊆Γ Δ₁⊆Γ₁ Δ₂⊆Γ₁ well well₁
+  rewrite baz Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† well | baz Δ₂⊆Γ₁ Γ₁⊆Γ Δ₂⊆Γ N† well₁ | sym p | sym q
+  = ~A (N~N† M) (N~N† N)
 N~N† (S.L N) = {!!}
 
 \end{code}
