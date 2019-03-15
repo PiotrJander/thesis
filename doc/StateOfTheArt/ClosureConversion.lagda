@@ -6,7 +6,7 @@
 module StateOfTheArt.ClosureConversion where
 
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl)
+open Eq using (_≡_; refl; cong; sym; trans)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (¬_)
@@ -22,6 +22,7 @@ import StateOfTheArt.STLC as S
 open S using (_/_)
 import StateOfTheArt.Closure as T
 open import StateOfTheArt.SubContext
+open import StateOfTheArt.Bisimulation
 \end{code}
 
 \section{Existential types for environments}
@@ -90,5 +91,28 @@ cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁
 _† : ∀ {Γ A} → S.Lam A Γ → T.Lam A Γ
 _† M with cc M
 _† M | ∃[ Δ ] Δ⊆Γ ∧ N = T.rename (⊆→ρ Δ⊆Γ) N
+
+foo : ∀ {Γ A} (x : Var A Γ)
+  → lookup (⊆→ρ (Var→⊆ x)) z ≡ x
+foo z = refl
+foo (s x) = cong s (foo x)
+
+bar : ∀ {Δ₁ Γ₁ Γ τ} (Δ₁⊆Γ₁ : Δ₁ ⊆ Γ₁) (Γ₁⊆Γ : Γ₁ ⊆ Γ) (x : Var τ Δ₁)
+  → lookup (select (⊆→ρ Δ₁⊆Γ₁) (⊆→ρ Γ₁⊆Γ)) x ≡ lookup (⊆→ρ (⊆-trans Δ₁⊆Γ₁ Γ₁⊆Γ)) x
+bar base base ()
+bar Δ₁⊆Γ₁ (skip Γ₁⊆Γ) x = cong s (bar Δ₁⊆Γ₁ Γ₁⊆Γ x)
+bar (skip Δ₁⊆Γ₁) (keep Γ₁⊆Γ) x = cong s (bar Δ₁⊆Γ₁ Γ₁⊆Γ x)
+bar (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ) z = refl
+bar (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ) (s x) = cong s (bar Δ₁⊆Γ₁ Γ₁⊆Γ x)
+
+N~N† : ∀ {Γ A} (N : S.Lam A Γ)
+  → N ~ N †
+N~N† (S.V x) with cc (S.V x)
+N~N† (S.V x) | ∃[ Δ ] Δ⊆Γ ∧ N rewrite foo x = ~V
+N~N† (S.A M N) with cc (S.A M N) | cc M | cc N
+N~N† (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ MN† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† with merge Δ₁⊆Γ Δ₂⊆Γ
+N~N† (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ MN† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | subContextSum Γ₁ Γ₁⊆Γ Δ₁⊆Γ₁ Δ₂⊆Γ₁
+  = ~A {!N~N† M!} {!!}
+N~N† (S.L N) = {!!}
 
 \end{code}
