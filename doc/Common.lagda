@@ -32,15 +32,8 @@ Context = List Type
 %<*var>
 \begin{code}
 data _∋_ : Context → Type → Set where
-
-  Z : ∀ {Γ A}
-      ---------
-    → A ∷ Γ ∋ A
-
-  S_ : ∀ {Γ A B}
-    → Γ ∋ B
-      ---------
-    → A ∷ Γ ∋ B
+  Z   : ∀ {Γ A}    → A ∷ Γ ∋ A
+  S_  : ∀ {Γ A B}  → Γ ∋ B  → A ∷ Γ ∋ B
 \end{code}
 %</var>
 

@@ -1,6 +1,7 @@
 \chapter{Merging subcontexts}
 
 \begin{code}
+module StateOfTheArt.SubContext where
 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
@@ -11,14 +12,7 @@ open import Data.List using (List ; _∷_ ; [])
 open import Data.List.Relation.Sublist.Propositional using (_⊆_ ; []⊆_ ; base ; keep ; skip)
 open import Data.List.Relation.Sublist.Propositional.Properties using (⊆-refl ; ⊆-trans)
 
-open import Common
-
-⊆→ρ : {Γ Δ : Context} → Γ ⊆ Δ → Renaming Γ Δ
-⊆→ρ base ()
-⊆→ρ (skip Γ⊆Δ) with ⊆→ρ Γ⊆Δ
-... | ρ = λ x → S (ρ x)
-⊆→ρ (keep Γ⊆Δ) with ⊆→ρ Γ⊆Δ
-... | ρ = λ { Z → Z ; (S v) → S (ρ v) }
+open import StateOfTheArt.Types
 \end{code}
 
 \section{Sum of subcontexts}

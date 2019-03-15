@@ -146,21 +146,20 @@ indentation at the start of each paragraph.
 
 
 \chapter{Background}
-
 \section{Type- and scope-safe representation}
 
-This project uses a number a languages and intermediate languages,
+This project uses several intermediate languages,
 which are variations of the simply-typed lambda calculus
 (STLC). Representations of those languages share two
-characteristics. They are scope-safe in the sense that every variables
-of a term is either bound by some binder, or it is explicitly
+characteristics. Firstly, they are scope-safe in the sense that all variables
+of a term are either bound by some binder, or explicitly
 accounted for in the context \cite{DBLP:journals/pacmpl/AllaisA0MM18}.
 They are type-safe in the sense that terms are represented by their
 typing derivation, so that ill-typed terms are not representable
 \cite{DBLP:conf/pldi/Chlipala07}.
 
 To see how type and scope safety is achieved in this project, it is
-useful to analyse our Agda encoding of STLC. The encoding uses
+instructive to analyse our Agda encoding of STLC. The encoding uses
 dependently-typed de Bruijn variables which are proofs of context
 membership, and inherently-typed terms.
 
@@ -177,9 +176,9 @@ The context is simply a list of types.
 Variables are synonymous with proofs of context membership, hence the
 name \AS{\_∋\_}. Since a variable is identified by its position in
 the context, it is appropriate to call it a de~Bruijn
-variable. Accordingly, the \AS{\_∋\_} constructors are called after
-\textit{zero} and \textit{successor}. Notice that this definition
-assume that the leftmost type in the context corresponds to the most
+variable. Accordingly, the constructors of \AS{\_∋\_} are named after
+\textit{zero} and \textit{successor}. Notice that the definition
+assumes that the leftmost type in the context corresponds to the most
 recently bound variable.
 
 \ExecuteMetaData[Common.tex]{var}
@@ -266,6 +265,100 @@ notion of a semantics.
 \section{TODO ACMM and synchronisation lemmas}
 
 \section{TODO ACMM and fusion lemmas}
+
+\chapter{Related literature}
+\section{Closure conversion}
+
+Closure conversion is a compilation phase where functions or lambda
+abstractions with free variables are transformed to /closures/. A
+closure consists of a body (code) and the /environment/, which is a
+record holding the values corresponding to the free variables in the
+body (code). Closure conversion transforms abstractions to closures,
+and replaces references to variables with lookups in the environment.
+
+Closure conversion was necessarily used in every compiler for a
+language which supports functions with free variables (TODO wording:
+scope?). But the first work which provided a rigorous treatment of
+closure conversion was the paper "Typed Closure Conversion" by
+Minamide et al. \cite{TODO}. It demonstrated type-preserving closure
+conversion, where closure environments have existential types (TODO
+wording). On top of a proof of type-safety, the paper contains a proof
+of operational correctness of the typed closure conversion algorithm
+by logical relations.
+
+Another notable paper about closure conversion is "Typed Closure
+Conversion Preserves Observational Equivalence" by Ahmed and Blum
+\cite{TODO}. The paper's title explains its main result, so we should
+explain the title.
+
+(TODO bring up the Reynolds' paper) Within a language L, we have a
+program P = C[A], where A is an implementation of an abstraction and C
+is the "context", or "the rest of the program". Given some other
+implementation A' of the abstraction, we say that A and A' are
+contextually equivalent when for all possible contexts C, programs P =
+C[A] and P' = C[A'] behave identically.
+
+We say that another abstraction A' is contextually equivalent to A if
+for all contexts C, programs C[A] and C[A'] are equivalent. This
+corresponds to a programmer's intuition that A and A' behave in the
+same way in all possible programs.
+
+TODO OE matters for security and safety: If an attack would be
+possible by exposing a certain implementation detail, then this detail
+is made inaccessible / private, for example by using an existential
+type.
+
+Why this matters: modern software systems are made up of multiple
+components, of which some might not be trusted.
+
+// To ensure reliable and secure operation, it is important to defend
+against faulty or malicious code. Language-based security is built
+upon the concept of abstraction: if access to some private
+implementation detail might enable an attack, then this detail is made
+inaccessible by hiding it behind an abstract interface, for example
+using an existential type. //
+
+TODO I have quite a bit about the paper and we don't want to duplicate
+the paper's introduction: how do I make it shorter?
+
+\section{Verified compilation}
+
+Closure conversion is just one possible verification phase, and its
+verification constitutes part of a wider effort to verify compilation
+end-to-end, which usually entails verifying type preservation or
+operational correctness of all compilation phases.
+
+As far as type safety is concerned, the reference is a paper by
+Morrisett et al., "From System F to Typed Assembly Language"
+\cite{TODO}. It builds upon previous results in type safety of
+compilation phases (like the aforementioned \cite{TCC}) and describes
+a typed RISC-like assembly (named TAL), which is the target of the
+final phases of compilation. As a whole, the paper proves type safety
+for a compilation pipeline from System F to TAL. It does not, however,
+prove end-to-end operational correctness.
+
+The first compiler which was verified for end-to-end operational
+correctness was described by Adam Chlipala in his paper "A Certified
+Type-Preserving Compiler from Lambda Calculus to Assembly
+Language". The source is a variant of the simply-typed lambda calculus
+(STLC). Compilation proceeds through six phases, eventually yielding
+idealised assembly code. The compiler is implemented in Coq, where
+terms and functions on terms are dependently typed, guaranteeing type
+preservation. This is also the approach taken in this project, except
+that we use Agda instead of Coq \cite{TODO}. Operational
+correctness is proved by adopting denotational semantics, unlike in
+this project, which uses operational semantics. Due to unfamiliarity
+with operational semantics, we cannot comment on which approach is
+better (TODO or can we?).
+
+A final example of a certified compiler is CompCert \cite{TODOcompcert}, which is the result of the first successful attempt to
+implement a certified compiler of a real-world (TODO wording)
+language. Even compared with the simply-typed lambda calculus (STLC),
+which was the source language in Chlipala's work \cite{TODO}, the C
+language is in some ways simpler, especially since it does not have
+first-class functions with free variables (TODO wording:
+scoping?). But, being a fully-fledged language, C presents enough
+challenges as the source language of a verified compiler.
 
 \chapter{TODO Target language}
 

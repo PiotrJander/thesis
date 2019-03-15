@@ -2,15 +2,16 @@
 module UG4 where
 
 import Data.Vec as V
-open V using (Vec; zip; toList)
+open V using (Vec; zip; toList; allFin)
 open V renaming ([] to v[]; _∷_ to _v∷_)
 import Data.List as L
 open import Data.Sum using (_⊎_; inj₁; inj₂) renaming ([_,_] to case-⊎)
 open L using (List; []; _∷_; filter)
 -- open import Data.List.Relation.Binary.Suffix.Heterogeneous
-open import Data.Nat -- using (ℕ; zero; suc; _*_; _+_)
+open import Data.Nat
+open import Agda.Builtin.Nat using (_-_)
 open import Data.Nat.Properties -- using (_≟_)
-open import Data.Fin hiding (_≟_; _<_)
+open import Data.Fin hiding (_≟_; _<_; _-_)
 open import Relation.Nullary -- using (Dec)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Relation.Nullary.Negation
@@ -69,24 +70,6 @@ fins (suc m) = fromℕ m v∷ fins' ≤-refl
 enumeration : {m : ℕ} → Vec (Fin m) m
 enumeration {m} = reverse (fins m)
 
--- we actually might need a pointwise relation: x R (i, x) iff x ≡ x
--- then we would do induction on row' and vec' and enum-row
--- and a proof that enum-row is a suffix of zip enumeration row
--- and a proof that vec' is a suffix of vec
--- use suffix view here?
--- and a proof that the first i in enum-row equals
--- the number of elems skipped
--- also
-
--- now make enumerate by prefixes
--- start by refl
--- then type is fin n
--- here is zero
--- there here is one
--- etc
-
--- todo show that if x ∷ xs is a suffix of ys, then so is xs
-
 module _ {A : Set} where
 
   data VecSuffix : ∀ {m n} → Vec A m → Vec A n → Set where
@@ -112,13 +95,12 @@ module _ {A : Set} where
   enumerate : {n : ℕ} → Vec A n → Vec (Fin n × A) n
   enumerate xs = enumerate' (here xs)
 
-  -- now the proof would need to proceed by setting up a parallel structure
-  -- if xs' is a suffix of xs, then enumerate' suffix ≡ drop n (zip allFin n) xs, where n is the number of dropped elements
-  -- tedious
+  -- drop-zip-allFin≡enumerate' : {n m : ℕ} {xs' : Vec A m} {xs : Vec A n} (suffix : VecSuffix xs' xs)
+  --   → enumerate' suffix ≡ V.drop (n ∸ m) (zip (V.allFin n) xs)
+  -- drop-zip-allFin≡enumerate' suffix = ?
 
   zip-allFin≡enumerate : ∀ {n} (xs : Vec A n) → enumerate xs ≡ zip (V.allFin n) xs
-  zip-allFin≡enumerate xs with enumerate' (here xs)
-  ... | p = {!!}
+  zip-allFin≡enumerate xs = {!!}
 
 postulate
   lemma-3 : ∀ {n m} {row' : Vec Num m} (row vec : Vec Num n)

@@ -38,22 +38,9 @@ infix  9 #_
 %<*terms>
 \begin{code}
 data _⊢_ : Context → Type → Set where
-
-  `_ : ∀ {Γ A}
-    → Γ ∋ A
-      -----
-    → Γ ⊢ A
-
-  ƛ_  :  ∀ {Γ A B}
-    → A ∷ Γ ⊢ B
-      ---------
-    → Γ ⊢ A ⇒ B
-
-  _·_ : ∀ {Γ A B}
-    → Γ ⊢ A ⇒ B
-    → Γ ⊢ A
-      ---------
-    → Γ ⊢ B
+  `_   : ∀ {Γ A}     → Γ ∋ A      → Γ ⊢ A
+  ƛ_   : ∀ {Γ A B}   → A ∷ Γ ⊢ B  → Γ ⊢ A ⇒ B
+  _·_  : ∀ {Γ A B}   → Γ ⊢ A ⇒ B  → Γ ⊢ A   → Γ ⊢ B
 \end{code}
 %</terms>
 
