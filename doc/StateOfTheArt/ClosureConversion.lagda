@@ -7,6 +7,7 @@ module StateOfTheArt.ClosureConversion where
 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; cong; sym; trans)
+open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (¬_)
@@ -21,6 +22,7 @@ open import StateOfTheArt.Types
 import StateOfTheArt.STLC as S
 open S using (_/_)
 import StateOfTheArt.Closure as T
+open import StateOfTheArt.Closure-Thms hiding (h; h1)
 open import StateOfTheArt.SubContext
 open import StateOfTheArt.Bisimulation
 \end{code}
@@ -97,13 +99,13 @@ foo : ∀ {Γ A} (x : Var A Γ)
 foo z = refl
 foo (s x) = cong s (foo x)
 
-bar : ∀ {Δ₁ Γ₁ Γ τ} (Δ₁⊆Γ₁ : Δ₁ ⊆ Γ₁) (Γ₁⊆Γ : Γ₁ ⊆ Γ) (x : Var τ Δ₁)
-  → lookup (select (⊆→ρ Δ₁⊆Γ₁) (⊆→ρ Γ₁⊆Γ)) x ≡ lookup (⊆→ρ (⊆-trans Δ₁⊆Γ₁ Γ₁⊆Γ)) x
-bar base base ()
-bar Δ₁⊆Γ₁ (skip Γ₁⊆Γ) x = cong s (bar Δ₁⊆Γ₁ Γ₁⊆Γ x)
-bar (skip Δ₁⊆Γ₁) (keep Γ₁⊆Γ) x = cong s (bar Δ₁⊆Γ₁ Γ₁⊆Γ x)
-bar (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ) z = refl
-bar (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ) (s x) = cong s (bar Δ₁⊆Γ₁ Γ₁⊆Γ x)
+bar : ∀ {Δ₁ Γ₁ Γ} (Δ₁⊆Γ₁ : Δ₁ ⊆ Γ₁) (Γ₁⊆Γ : Γ₁ ⊆ Γ)
+  → select (⊆→ρ Δ₁⊆Γ₁) (⊆→ρ Γ₁⊆Γ) ≡ᴱ ⊆→ρ (⊆-trans Δ₁⊆Γ₁ Γ₁⊆Γ)
+eq (bar base base) ()
+eq (bar Δ₁⊆Γ₁ (skip Γ₁⊆Γ)) x = cong s (eq (bar Δ₁⊆Γ₁ Γ₁⊆Γ) x)
+eq (bar (skip Δ₁⊆Γ₁) (keep Γ₁⊆Γ)) x = cong s (eq (bar Δ₁⊆Γ₁ Γ₁⊆Γ) x)
+eq (bar (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ)) z = refl
+eq (bar (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ)) (s x) = cong s (eq (bar Δ₁⊆Γ₁ Γ₁⊆Γ) x)
 
 N~N† : ∀ {Γ A} (N : S.Lam A Γ)
   → N ~ N †
@@ -112,7 +114,28 @@ N~N† (S.V x) | ∃[ Δ ] Δ⊆Γ ∧ N rewrite foo x = ~V
 N~N† (S.A M N) with cc (S.A M N) | cc M | cc N
 N~N† (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ MN† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† with merge Δ₁⊆Γ Δ₂⊆Γ
 N~N† (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ MN† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | subContextSum Γ₁ Γ₁⊆Γ Δ₁⊆Γ₁ Δ₂⊆Γ₁
-  = ~A {!N~N† M!} {!!}
+  = g
+  where
+  postulate p : ⊆-trans Δ₁⊆Γ₁ Γ₁⊆Γ ≡ Δ₁⊆Γ  -- TODO
+  h : T.rename (⊆→ρ Γ₁⊆Γ) (T.rename (⊆→ρ Δ₁⊆Γ₁) M†) ≡ M †
+  h =
+    begin
+      T.rename (⊆→ρ Γ₁⊆Γ) (T.rename (⊆→ρ Δ₁⊆Γ₁) M†)
+    ≡⟨ rename∘rename (⊆→ρ Δ₁⊆Γ₁) (⊆→ρ Γ₁⊆Γ) M† ⟩
+      T.rename (select (⊆→ρ Δ₁⊆Γ₁) (⊆→ρ Γ₁⊆Γ)) M†
+    ≡⟨ cong (λ e → T.rename e M†) (env-extensionality (bar Δ₁⊆Γ₁ Γ₁⊆Γ)) ⟩
+      T.rename (⊆→ρ (⊆-trans Δ₁⊆Γ₁ Γ₁⊆Γ)) M†
+    ≡⟨ cong (λ e → T.rename (⊆→ρ e) M†) p ⟩
+      T.rename (⊆→ρ Δ₁⊆Γ) M†
+    ≡⟨ {!!} ⟩  -- TODO this should come through
+      M †
+    ∎
+  h1 : T.rename (⊆→ρ Γ₁⊆Γ) (T.rename (⊆→ρ Δ₂⊆Γ₁) N†) ≡ N †
+  h1 = {!!}
+  g : S.A M N ~
+      T.A (T.rename (⊆→ρ Γ₁⊆Γ) (T.rename (⊆→ρ Δ₁⊆Γ₁) M†))
+      (T.rename (⊆→ρ Γ₁⊆Γ) (T.rename (⊆→ρ Δ₂⊆Γ₁) N†))
+  g rewrite h | h1 = ~A {!!} {!!}  -- TODO is the where clause aware of the with refinements?
 N~N† (S.L N) = {!!}
 
 \end{code}
