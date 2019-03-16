@@ -55,13 +55,19 @@ Var→⊆ (s x) = skip (Var→⊆ x)
 record AdjustContext {A Γ Δ} (Δ⊆A∷Γ : Δ ⊆ A ∷ Γ) : Set where
   constructor adjust
   field
-    Δ₁ : Context
-    Δ₁⊆Γ : Δ₁ ⊆ Γ
-    Δ⊆AΔ₁ : Δ ⊆ A ∷ Δ₁
+    Δ₁     : Context
+    Δ₁⊆Γ   : Δ₁ ⊆ Γ
+    Δ⊆AΔ₁  : Δ ⊆ A ∷ Δ₁
+    well   : Δ⊆A∷Γ ≡ ⊆-trans Δ⊆AΔ₁ (keep Δ₁⊆Γ)
+
+helper-1 : {Γ Δ : Context} (Δ⊆Γ : Δ ⊆ Γ) → ⊆-trans ⊆-refl Δ⊆Γ ≡ Δ⊆Γ
+helper-1 base = refl
+helper-1 (skip Δ⊆Γ) = cong skip (helper-1 Δ⊆Γ)
+helper-1 (keep Δ⊆Γ) = cong keep (helper-1 Δ⊆Γ)
 
 adjust-context : ∀ {Γ Δ A} → (Δ⊆A∷Γ : Δ ⊆ A ∷ Γ) → AdjustContext Δ⊆A∷Γ
-adjust-context (skip {xs = Δ₁} Δ⊆Γ) = adjust Δ₁ Δ⊆Γ (skip ⊆-refl)
-adjust-context (keep {xs = Δ₁} Δ⊆Γ) = adjust Δ₁ Δ⊆Γ (keep ⊆-refl)
+adjust-context (skip {xs = Δ₁} Δ⊆Γ) = adjust Δ₁ Δ⊆Γ (skip ⊆-refl) (cong skip (sym (helper-1 Δ⊆Γ)))
+adjust-context (keep {xs = Δ₁} Δ⊆Γ) = adjust Δ₁ Δ⊆Γ (keep ⊆-refl) (cong keep (sym (helper-1 Δ⊆Γ)))
 \end{code}
 
 \section{Closure conversion}
@@ -87,7 +93,7 @@ cc (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ M† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ N† | s
   = ∃[ Γ₁ ] Γ₁⊆Γ ∧ (T.A (T.rename (⊆→ρ Δ⊆Γ₁) M†) (T.rename (⊆→ρ Δ₁⊆Γ₁) N†))
 cc (S.L N) with cc N
 cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† with adjust-context Δ⊆Γ
-cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁
+cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁ _
   = ∃[ Δ₁ ] Δ₁⊆Γ ∧ (T.L (T.rename (⊆→ρ Δ⊆AΔ₁) N†) T.id-subst)
 
 _† : ∀ {Γ A} → S.Lam A Γ → T.Lam A Γ
@@ -121,6 +127,11 @@ baz Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† well =
     T.rename (⊆→ρ Δ₁⊆Γ) M†
   ∎
 
+-- cc (S.L N) with cc N
+-- cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† with adjust-context Δ⊆Γ
+-- cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁
+--   = ∃[ Δ₁ ] Δ₁⊆Γ ∧ (T.L (T.rename (⊆→ρ Δ⊆AΔ₁) N†) T.id-subst)
+
 N~N† : ∀ {Γ A} (N : S.Lam A Γ)
   → N ~ N †
 N~N† (S.V x) with cc (S.V x)
@@ -130,6 +141,8 @@ N~N† (S.A M N) | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ �
 N~N† (S.A M N) | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | [ p ] | [ q ] | subContextSum Γ₁ Γ₁⊆Γ Δ₁⊆Γ₁ Δ₂⊆Γ₁ well well₁
   rewrite baz Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† well | baz Δ₂⊆Γ₁ Γ₁⊆Γ Δ₂⊆Γ N† well₁ | sym p | sym q
   = ~A (N~N† M) (N~N† N)
-N~N† (S.L N) = {!!}
+N~N† (S.L N) with cc N
+N~N† (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N' with adjust-context Δ⊆Γ
+N~N† (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N' | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁ _ = ~L {!!}
 
 \end{code}
