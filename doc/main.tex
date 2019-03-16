@@ -240,7 +240,87 @@ scoping?). But, being a fully-fledged language, C presents enough
 challenges as the source language of a verified compiler.
 
 \chapter{Background}
-\section{Type- and scope-safe representation}
+
+This chapter will introduce the relevant concepts. It will start with
+closure conversion, then discuss compilation phases and intermediate
+languages, and finally explain the Agda definitions and encodings
+which were borrowed from ACMM and PLFA.
+
+\section{Closure conversion}
+
+TODO explain and give an example
+
+TODO explain why existential types
+
+\section{Compilation phases and intermediate representations}
+
+In all but the most trivial compilers, compilation proceeds in
+phases, or transformations. A compilation phase transforms the
+compilation unit to bring it one step closer from the source code to
+the target representation.
+
+[diagram here]
+
+\paragraph{Intermediate representations} As illustrated in the figure,
+each compilation phase takes a source representation to a target
+representation [relate to diagram]. An intermediate representation can
+also be called an intermediate language, and abbreviated to IR or
+IL. For some phases, the source and target representation may be the
+same. Arguably, this is the case for constant expression folding.
+
+However, other phases benefit from using different source and target
+representations. An example of such transformation is closure
+conversion, which as the reader may recall from [section], transforms
+abstractions with free variables to so called closures, which take an
+explit environement and can only reference values from that
+environment.
+
+\paragraph{Typed and untyped IRs} To question of whether closure
+conversion must necessarily use different source and target languages
+hinges on the distinction between typed and untyped intermediate
+language. Using a typed IR requires that at each point along the
+compilation pipeline, intermediate representantions are well-typed.
+
+Suppose that closure conversion is performed on simply typed lambda
+calculus (STLC) (without existential types). Then the target representation
+cannot be the same (STLC), as STLC does not have existential types,
+and closure environments must be existentially typed in order for
+programs to be well-typed in general, as discussed in [section]. This
+is why an intermediate language with existential types is necessary.
+
+On the other hand, if the source and target representations are
+untyped, then the compiler architect might get away with using the
+same intermediate language as both source and target (for example
+Scheme, which is sometimes used as a compilation target). But even
+in this case, compilation process might benefit if the abstract syntax
+has explicit closures.
+
+\paragraph{IRs in this project} This project uses a dependently typed
+meta language (Agda) to implement compilation phases (specifically,
+closure conversion), so typed intermediate representations are a
+natural choice. Therefore, in the following sections, we will describe
+two intermediate representations, which are both variants of lambda
+calculus. The source representation will be simply typed lambda
+calculus, which we will refer to as STLC or λst. The target
+representation will be simply typed lambda calculus with closures,
+denoted with λcl.
+
+The two intermediate representations are similar, and differ mainly in
+having either abstractions with free variables in λst or closures with
+environments in λcl. Unfortunately, this means that formalisations of
+λst and λcl share a lot of duplication. This is a common problem in
+formalising languages which has recently been addressed by
+\cite{DBLP:journals/pacmpl/AllaisA0MM18}. Whether techniques from
+Allais et al. are applicable to this work will be discussed in [related
+work]. On the other hand, [section] demonstrates that while two
+intermediate languages can only differ in a handful of syntactic
+constructs and reduction steps, they can behave very differently with
+respect to the ubiquitious operations of renaming and substitution.
+
+\section{Type- and scope-safe representation of simply typed lambda
+  calculus λst}
+
+
 
 This project uses several intermediate languages,
 which are variations of the simply-typed lambda calculus
