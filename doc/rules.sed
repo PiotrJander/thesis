@@ -80,6 +80,7 @@ s/Σ/\$\\Sigma\$/g
 s/Θ/\$\\Theta\$/g
 s/ƛ/\$\\lambda\$/g
 s/λ/\$\\lambda\$/g
+s/α/\$\\alpha\$/g
 s/Ξ/\$\\Xi\$/g
 s/ˡ/\\textsuperscript\{l\}/g
 s/ʳ/\\textsuperscript\{r\}/g

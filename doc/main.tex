@@ -320,55 +320,56 @@ respect to the ubiquitious operations of renaming and substitution.
 \section{Type- and scope-safe representation of simply typed lambda
   calculus λst}
 
+This section will discuss the encoding of simply typed lambda calculus
+(abbreviated as STLC, denoted with λst), which is the source language
+of closure conversion. Typing and reduction rules are standard for
+call-by-value lambda calculus, so it is the encoding in Agda which is
+of interest in this section. As similar encoding is used for the
+closure language λcl.
 
-
-This project uses several intermediate languages,
-which are variations of the simply-typed lambda calculus
-(STLC). Representations of those languages share two
-characteristics. Firstly, they are scope-safe in the sense that all variables
-of a term are either bound by some binder, or explicitly
-accounted for in the context \cite{DBLP:journals/pacmpl/AllaisA0MM18}.
-They are type-safe in the sense that terms are represented by their
-typing derivation, so that ill-typed terms are not representable
-\cite{DBLP:conf/pldi/Chlipala07}.
-
-To see how type and scope safety is achieved in this project, it is
-instructive to analyse our Agda encoding of STLC. The encoding uses
-dependently-typed de Bruijn variables which are proofs of context
-membership, and inherently-typed terms.
+Using dependently typed Agda as the meta language allows us to encode
+certain invariants in the representation. Two such invariants are
+scope and type safety. The representation is scope-safe in the sense
+that all variables in a term are either bound by some binder in the
+term, or explicitly accounted for in the context. It is type-safe in
+the sense that terms are synonymous with their typing derivations,
+which makes ill-typed terms unrepresentable. This kind of scope and
+type safety is due to \cite{DBLP:conf/csl/AltenkirchR99}. The rest of
+this section shows how this is achieved in Agda; the Agda encoding is
+based on the one used in \cite{DBLP:conf/cpp/Allais0MM17},
+\cite{DBLP:journals/pacmpl/AllaisA0MM18}, and
+\cite{DBLP:conf/sbmf/Wadler18}.
 
 TODO STLC as a figure here
 
-STLC has base types and function types.
+To start with, λst typed are defined as follows.
 
-\ExecuteMetaData[Common.tex]{type}
+\ExecuteMetaData[StateOfTheArt/Types.tex]{type}
 
 The context is simply a list of types.
 
-\ExecuteMetaData[Common.tex]{context}
+\ExecuteMetaData[StateOfTheArt/Types.tex]{context}
 
-Variables are synonymous with proofs of context membership, hence the
-name \AS{\_∋\_}. Since a variable is identified by its position in
-the context, it is appropriate to call it a de~Bruijn
-variable. Accordingly, the constructors of \AS{\_∋\_} are named after
-\textit{zero} and \textit{successor}. Notice that the definition
-assumes that the leftmost type in the context corresponds to the most
-recently bound variable.
+Variables are synonymous with proofs of context membership. Since a
+variable is identified by its position in the context, it is
+appropriate to call it a de~Bruijn variable. Accordingly, the
+constructors of \AS{Var} are named after \textit{zero} and
+\textit{successor}. Notice that the definition assumes that the
+leftmost type in the context corresponds to the most recently bound
+variable.
 
-\ExecuteMetaData[Common.tex]{var}
+\ExecuteMetaData[StateOfTheArt/Types.tex]{var}
 
-We can now present the formulation of STLC terms:
+We can now present the formulation of λst terms, which is synonymous
+with their typing derivations:
 
-\ExecuteMetaData[STLC.tex]{terms}
+\ExecuteMetaData[StateOfTheArt/STLC.tex]{terms}
 
-The syntactic variable \AS{`\_} constructor takes variables to
-terms. The abstraction constructor \AS{λ\_} requires that the body is
-well-typed in the context \AS{Γ} extended with the type \AS{A} of the
+The syntactic variable \AS{V} constructor takes a de~Bruijn variable to
+a term. The abstraction constructor \AS{L} requires that the body is
+well-typed in the context \AS{Γ} extended with the type \AS{σ} of the
 variable bound by the abstraction. The application constructor
-\AS{\_·\_} follows the typing rule for application.
-
-This is the Altenkirch and Reus' STLC
-representation. \cite{DBLP:conf/csl/AltenkirchR99}.
+\AS{A} follows the typing rule for application.
 
 \section{Type- and scope-safe programs}
 

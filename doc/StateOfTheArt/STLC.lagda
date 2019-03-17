@@ -19,12 +19,18 @@ open import Function
 
 --------------------------------------------------------------------------------
 -- Well scoped-and-typed Simply-Typed Lambda Calculus
+\end{code}
 
-data Lam : Type ─Scoped where
-  V : {σ : Type} →    [ Var σ                ⟶ Lam σ        ]
-  A : {σ τ : Type} →  [ Lam (σ ⇒ τ) ⟶ Lam σ  ⟶ Lam τ        ]
-  L : {σ τ : Type} →  [ (σ ∷_) ⊢ Lam τ       ⟶ Lam (σ ⇒ τ)  ]
+%<*terms>
+\begin{code}
+data Lam : Type → Context → Set where
+  V  : ∀ {Γ σ}    → Var σ Γ        → Lam σ Γ
+  A  : ∀ {Γ σ τ}  → Lam (σ ⇒ τ) Γ  → Lam σ Γ  → Lam τ Γ
+  L  : ∀ {Γ σ τ}  → Lam τ (σ ∷ Γ)  → Lam (σ ⇒ τ) Γ
+\end{code}
+%</terms>
 
+\begin{code}
 --------------------------------------------------------------------------------
 -- A Generic Notion of Semantics and the corresponding generic traversal
 

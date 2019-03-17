@@ -68,15 +68,21 @@ count {[]}     _        =  ⊥-elim impossible
 \begin{code}
 
 Model : Set₁
-Model = Context → Type → Set
+Model = Type → Context → Set
+
+Var : Model
+Var σ Γ = Γ ∋ σ
+
+Lam : Model
+Lam σ Γ = Γ ⊢ σ
 \end{code}
 
 %<*env>
 \begin{code}
 infix 4 _─Env
-record _─Env (Γ : Context) (𝓥 : Context → Type → Set) (Δ : Context) : Set where
+record _─Env (Γ : Context) (𝓥 : Type → Context → Set) (Δ : Context) : Set where
   constructor pack
-  field lookup : ∀ {σ} → Γ ∋ σ → 𝓥 Δ σ
+  field lookup : ∀ {σ} → Var σ Γ → 𝓥 σ Δ
 open _─Env public
 \end{code}
 %</env>
@@ -84,10 +90,10 @@ open _─Env public
 %<*thinningsubst>
 \begin{code}
 Thinning : Context → Context → Set
-Thinning Γ Δ = (Γ ─Env) _∋_ Δ
+Thinning Γ Δ = (Γ ─Env) Var Δ
 
 Substitution : Context → Context → Set
-Substitution Γ Δ = (Γ ─Env) _⊢_ Δ
+Substitution Γ Δ = (Γ ─Env) Lam Δ
 \end{code}
 %</thinningsubst>
 
@@ -97,13 +103,13 @@ Substitution Γ Δ = (Γ ─Env) _⊢_ Δ
 lookup ε ()
 
 infixl 4 _∙_
-_∙_ : ∀ {Γ Δ σ 𝓥} → (Γ ─Env) 𝓥 Δ → 𝓥 Δ σ → (σ ∷ Γ ─Env) 𝓥 Δ
+_∙_ : ∀ {Γ Δ σ 𝓥} → (Γ ─Env) 𝓥 Δ → 𝓥 σ Δ → (σ ∷ Γ ─Env) 𝓥 Δ
 lookup (ρ ∙ v) Z = v
 lookup (ρ ∙ v) (S x) = lookup ρ x
 
 infixr 5 _<$>_
 _<$>_ : ∀ {Γ Δ Θ 𝓥₁ 𝓥₂}
-      → (∀ {σ} → 𝓥₁ Δ σ → 𝓥₂ Θ σ) → (Γ ─Env) 𝓥₁ Δ → (Γ ─Env) 𝓥₂ Θ
+      → (∀ {σ} → 𝓥₁ σ Δ → 𝓥₂ σ Θ) → (Γ ─Env) 𝓥₁ Δ → (Γ ─Env) 𝓥₂ Θ
 lookup (f <$> ρ) x = f (lookup ρ x)
 \end{code}
 %</envops>
@@ -116,20 +122,20 @@ lookup extend v = S v
 -- lookup extend x = S x
 
 record Sem (𝓥 𝓒 : Model) : Set where
-  field  th^𝓥  :  ∀ {Γ Δ σ} → Thinning Γ Δ → 𝓥 Γ σ → 𝓥 Δ σ
+  field  th^𝓥  :  ∀ {Γ Δ σ} → Thinning Γ Δ → 𝓥 σ Γ → 𝓥 σ Δ
          ⟦V⟧    :  ∀ {Δ σ} → 𝓥 Δ σ → 𝓒 Δ σ
-         ⟦A⟧    :  ∀ {Δ σ τ} → 𝓒 Δ (σ ⇒ τ) → 𝓒 Δ σ → 𝓒 Δ τ
-         ⟦L⟧    :  ∀ {Δ} → (σ : Type) → {τ : Type} → (Thinning Δ (σ ∷ Δ) → 𝓥 (σ ∷ Δ) σ → 𝓒 (σ ∷ Δ) τ) → 𝓒 Δ (σ ⇒ τ)  -- can we and should we generalise σ ∷ Δ to Θ ?
+         ⟦A⟧    :  ∀ {Δ σ τ} → 𝓒 (σ ⇒ τ) Δ → 𝓒 σ Δ → 𝓒 τ Δ
+         ⟦L⟧    :  ∀ {Δ} → (σ : Type) → {τ : Type} → (Thinning Δ (σ ∷ Δ) → 𝓥 σ (σ ∷ Δ) → 𝓒 τ (σ ∷ Δ)) → 𝓒 (σ ⇒ τ) Δ  -- can we and should we generalise σ ∷ Δ to Θ ?
 
-  sem : ∀ {Γ Δ σ} → (Γ ─Env) 𝓥 Δ → Γ ⊢ σ → 𝓒 Δ σ
+  sem : ∀ {Γ Δ σ} → (Γ ─Env) 𝓥 Δ → Γ ⊢ σ → 𝓒 σ Δ
   sem ρ (` x)    =  ⟦V⟧ (lookup ρ x)
   sem ρ (L · M)  =  ⟦A⟧ (sem ρ L) (sem ρ M)
   sem ρ (ƛ_ N)   =  ⟦L⟧ _ (λ γ v → sem (extend' ρ γ v) N)
     where
-    extend' : ∀ {Γ Δ Θ σ} → (Γ ─Env) 𝓥 Δ → Thinning Δ Θ → 𝓥 Θ σ → (σ ∷ Γ ─Env) 𝓥 Θ
+    extend' : ∀ {Γ Δ Θ σ} → (Γ ─Env) 𝓥 Δ → Thinning Δ Θ → 𝓥 σ Θ → (σ ∷ Γ ─Env) 𝓥 Θ
     extend' ρ γ v = th^𝓥 γ <$> ρ ∙ v
 
-Renaming' : Sem _∋_ _⊢_
+Renaming' : Sem Var Lam
 Renaming' = record
   { th^𝓥  =  λ ρ v → lookup ρ v
   ; ⟦V⟧    =  `_
@@ -139,21 +145,21 @@ Renaming' = record
 ren : ∀ {Γ Δ σ} → Thinning Γ Δ → Γ ⊢ σ → Δ ⊢ σ
 ren = Sem.sem Renaming'
 
-Substitution' : Sem _⊢_ _⊢_
+Substitution' : Sem Lam Lam
 Substitution' = record
   { th^𝓥  =  λ ρ v → Sem.sem Renaming' ρ v 
   ; ⟦V⟧    =  id
   ; ⟦A⟧    =  _·_
   ; ⟦L⟧    =  λ _ b → ƛ (b (pack S_) (` Z)) }
 
-sub : ∀ {Γ Δ σ} → (Γ ─Env) _⊢_ Δ → Γ ⊢ σ → Δ ⊢ σ
+sub : ∀ {Γ Δ σ} → (Γ ─Env) Lam Δ → Γ ⊢ σ → Δ ⊢ σ
 sub = Sem.sem Substitution'
 
 Kripke : Model → Model → Context → Type → Type → Set
-Kripke 𝓥 𝓒 Δ σ τ = Thinning Δ (σ ∷ Δ) → 𝓥 (σ ∷ Δ) σ → 𝓒 (σ ∷ Δ) τ
+Kripke 𝓥 𝓒 Δ σ τ = Thinning Δ (σ ∷ Δ) → 𝓥 σ (σ ∷ Δ) → 𝓒 τ (σ ∷ Δ)
 
 Applicative :  Model → Set
-Applicative 𝓒 = {Γ : Context} {σ τ : Type} → 𝓒 Γ (σ ⇒ τ) → 𝓒 Γ σ → 𝓒 Γ τ
+Applicative 𝓒 = {Γ : Context} {σ τ : Type} → 𝓒 (σ ⇒ τ) Γ → 𝓒 σ Γ → 𝓒 τ Γ
 
 \end{code}
 
