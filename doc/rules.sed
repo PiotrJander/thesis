@@ -82,6 +82,7 @@ s/ƛ/\$\\lambda\$/g
 s/λ/\$\\lambda\$/g
 s/α/\$\\alpha\$/g
 s/Ξ/\$\\Xi\$/g
+s/ξ/\$\\xi\$/g
 s/ˡ/\\textsuperscript\{l\}/g
 s/ʳ/\\textsuperscript\{r\}/g
 s/ᴱ/\\textsuperscript\{E\}/g

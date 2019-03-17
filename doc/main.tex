@@ -4,6 +4,7 @@
 \usepackage{catchfilebetweentags}
 \usepackage{amsthm}
 \usepackage{url}
+\usepackage[hidelinks]{hyperref}
 
 \input{commands}
 
@@ -432,7 +433,43 @@ common structure was a basis was the unpublished manuscript by McBride
 abstracts this common structure of renaming and substitution into a
 notion of a semantics.
 
-\section{TODO reductions, progress and preservation}
+To see the usefulness of simultaneous renaming and substitution,
+consider that once an identity substitution is defined (one which
+leaves its argument unchanged):
+
+\ExecuteMetaData[StateOfTheArt/STLC.tex]{id-subst}
+
+Then defining a single substitution is simple. (A single substitution
+replaces occurrences of the last-bound variable in the context, and it
+is useful for defining the beta reduction for abstractions).
+
+\ExecuteMetaData[StateOfTheArt/STLC.tex]{single-subst}
+
+\section{Small-step operational semantics}
+
+The formalisation of small step semantics for a call-by-value lambda
+calculus is adapted from \cite{DBLP:conf/sbmf/Wadler18}.
+
+Values are terms which do not reduce further. In this most basic
+version of lambda calculus language, the only values are abstractions:
+
+\ExecuteMetaData[StateOfTheArt/STLC.tex]{values}
+
+Our operational semantics include two kinds of reduction rules. Compatibility rules, whose
+names start with \AS{ξ}, reduce parts of the term (specifically, the LHS
+and RHS of application). Beta reduction \AS{β-L}, on the other hand,
+describes what an abstraction applied to a value reduces to.
+
+\ExecuteMetaData[StateOfTheArt/STLC.tex]{reductions}
+
+A term which can take a reduction step is called a reducible
+expression, or a redex. A property of a language that every well-typed
+term is either a value or a redux is called type-safety. This property
+is captured by a slogan `well-typed terms don't get stuck` and can be
+proved by techniques like `progress and preservation` and logical
+relations. Simply typed lambda calculus is type-safe, and so is this
+formalisation. For a proof of type safety for a similar formalisation
+of STLC, cf. \cite{DBLP:conf/sbmf/Wadler18}.
 
 \section{TODO ACMM and semantics}
 

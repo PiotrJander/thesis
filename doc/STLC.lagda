@@ -212,11 +212,11 @@ subst σ (L · M)        =  (subst σ L) · (subst σ M)
 --   → Γ ⊢ A
 --   ------------
 --   → Γ ⊢ B
--- _[_] {Γ} {A} N V =  subst {A ∷ Γ} {Γ} σ N
---   where
---   σ : ∀ {B} → A ∷ Γ ∋ B → Γ ⊢ B
---   σ Z      =  V
---   σ (S x)  =  ` x
+-- _[_] {Γ} {A} N V = {!!} -- subst {A ∷ Γ} {Γ} σ N
+--   -- where
+--   -- σ : ∀ {B} → A ∷ Γ ∋ B → Γ ⊢ B
+--   -- σ Z      =  V
+--   -- σ (S x)  =  ` x
 -- \end{code}
 
 -- \section{Values}

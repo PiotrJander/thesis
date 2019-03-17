@@ -129,6 +129,7 @@ _/_ {σ} {_} {Γ} N M = subst (id-subst ∙ M) N
 -------
 -- Values
 
+%<*values>
 \begin{code}
 data Value : ∀ {Γ σ} → Lam σ Γ → Set where
 
@@ -136,6 +137,7 @@ data Value : ∀ {Γ σ} → Lam σ Γ → Set where
       ---------------------------
     → Value (L N)
 \end{code}
+%</values>
 
 -----------
 -- Reductions
@@ -144,6 +146,7 @@ data Value : ∀ {Γ σ} → Lam σ Γ → Set where
 infix 2 _—→_
 \end{code}
 
+%<*reductions>
 \begin{code}
 data _—→_ : ∀ {Γ σ} → (Lam σ Γ) → (Lam σ Γ) → Set where
 
@@ -163,3 +166,4 @@ data _—→_ : ∀ {Γ σ} → (Lam σ Γ) → (Lam σ Γ) → Set where
       --------------------
     → A (L N) V —→ N / V
 \end{code}
+%</reductions>
