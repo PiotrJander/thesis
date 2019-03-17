@@ -30,6 +30,28 @@ data Lam : Type → Context → Set where
 \end{code}
 %</terms>
 
+\section{Renaming}
+
+%<*rename>
+\begin{code}
+rename : ∀ {Γ Δ σ} → Thinning Γ Δ → Lam σ Γ → Lam σ Δ
+rename ρ (V x)          =  V (lookup ρ x)
+rename ρ (L N)          =  L (rename (s <$> ρ ∙ z) N)
+rename ρ (A M N)        =  A (rename ρ M) (rename ρ N)
+\end{code}
+%</rename>
+
+\section{Simultaneous substitution}
+
+%<*subst>
+\begin{code}
+subst : ∀ {Γ Δ σ} → (Γ ─Env) Lam Δ → Lam σ Γ → Lam σ Δ
+subst σ (V x)          =  lookup σ x
+subst σ (L N)          =  L (subst (rename (pack s) <$> σ ∙ V z) N)
+subst σ (A M N)        =  A (subst σ M) (subst σ N)
+\end{code}
+%</subst>
+
 \begin{code}
 --------------------------------------------------------------------------------
 -- A Generic Notion of Semantics and the corresponding generic traversal
@@ -61,8 +83,8 @@ Renaming = record
   ; ⟦A⟧    = A
   ; ⟦L⟧    = λ σ b → L (b (pack s) z) }
 
-rename : ∀ {Γ Δ σ} → (Γ ─Env) Var Δ → Lam σ Γ → Lam σ Δ
-rename = Sem.sem Renaming
+rename' : ∀ {Γ Δ σ} → (Γ ─Env) Var Δ → Lam σ Γ → Lam σ Δ
+rename' = Sem.sem Renaming
 
 Substitution : Sem Lam Lam
 Substitution = record
@@ -74,8 +96,8 @@ Substitution = record
 Subst : Context → Context → Set
 Subst Γ Δ = (Γ ─Env) Lam Δ
 
-subst : ∀ {Γ Δ σ} → (Γ ─Env) Lam Δ → Lam σ Γ → Lam σ Δ
-subst = Sem.sem Substitution
+subst' : ∀ {Γ Δ σ} → (Γ ─Env) Lam Δ → Lam σ Γ → Lam σ Δ
+subst' = Sem.sem Substitution
 
 exts : ∀ {Γ Δ σ}
      → Subst Γ Δ

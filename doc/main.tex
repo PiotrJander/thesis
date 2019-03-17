@@ -373,36 +373,35 @@ variable bound by the abstraction. The application constructor
 
 \section{Type- and scope-safe programs}
 
-TODO read about HOAS
-
 Many useful traversals of the abstract syntax tree involve maintaining
 a mapping from free variables to appropriate values. Two such
-traversals are sumultaneous renaming and substitution.
+traversals are simultaneous renaming and substitution.
 
-Simultaneous renaming takes a term in the context \AS{Γ}. It maintains
-a mapping from variables in original context \AS{Γ} to variables in
-some other context \AS{Δ}. (TODO elaborate on renamings later). It
-produces a term in \AS{Δ}.
+Simultaneous renaming takes a term \AS{N} in the context \AS{Γ}. It maintains
+a mapping \AS{ρ} from variables in the original context \AS{Γ} to
+\textit{variables} in some other context \AS{Δ}. It produces a term in
+\AS{Δ}, which is \AS{N} with variables renamed with \AS{ρ}.
 
-Similarly, simultaneous substitution takes a term in the context
-\AS{Γ}. It maintains a mapping from variables in original context
-\AS{Γ} to terms in some other context \AS{Δ}. It produces a term in
-\AS{Δ}.
+Similarly, simultaneous substitution takes a term \AS{N} in the context
+\AS{Γ}. It maintains a mapping \AS{σ} from variables in the original context
+\AS{Γ} to \textit{terms} in some other context \AS{Δ}. It produces a
+term in \AS{Δ}, which is \AS{N} with variables substitution for with \AS{σ}.
 
-Before we can give an implementation of renaming and substitution, we
-need to formalise the notion of a mapping from free variables to
-appropriate values, which we call the \textit{environment}.
+Before we can demonstrate an implementation of renaming and
+substitution, we need to formalise the notion of a mapping from free
+variables to appropriate values, which we call the
+\textit{environment}.
 
 \ExecuteMetaData[STLC.tex]{env}
 
 A environment \AS{(Γ ─Env) 𝓥 Δ} encapsulates a mapping from variables in
 \AS{Γ} to values \AS{𝓥} (variables for renaming, terms for
-substitution) which are well-type and -scoped in \AS{Δ}.
+substitution) which are well-typed and -scoped in \AS{Δ}.
 
-Environments which map to variables or terms are important enough to
-deserve their own names.
+An environment which maps variables to variables is important enough
+to deserve its own name.
 
-\ExecuteMetaData[STLC.tex]{thinningsubst}
+\ExecuteMetaData[STLC.tex]{thinning}
 
 There is a notion of an empty environment \AS{ε}, of extending an
 environment \AS{ρ} with a value \AS{v}: \AS{ρ ∙ v}, and of mapping a
@@ -419,17 +418,17 @@ behaviour of \AS{lookup}.
 Equipped with the notion of environments, we can give an
 implementation of renaming and substitution:
 
-\ExecuteMetaData[STLC.tex]{rename}
-\ExecuteMetaData[STLC.tex]{subst}
+\ExecuteMetaData[StateOfTheArt/STLC.tex]{rename}
+\ExecuteMetaData[StateOfTheArt/STLC.tex]{subst}
 
-Notice that those two implementation are indentical except (1)
-renaming wraps the result of \AS{lookup ρ x} in \AS{`\_}, and renaming
-and substitution extend the environment in a different way: \AS{S\_ <\$>
-  ρ ∙ Z} vs \AS{rename extend <\$> σ ∙ ` Z}. The observation that
-renaming and substitution for STLC share a common structure was a
-basis was the unpublished manuscript by McBride
+Notice that those two traversals are indentical except (1)
+\textit{renaming} wraps the result of \AS{lookup ρ x} in \AS{V}, and
+\textit{renaming} and \textit{substitution} extend the environment in
+a different way: \AS{s <\$> ρ ∙ z} vs \AS{rename (pack s) <\$> σ ∙ V
+  z}. The observation that renaming and substitution for STLC share a
+common structure was a basis was the unpublished manuscript by McBride
 \cite{mcbride2005type}, and subsequently motivated the ACMM paper
-\cite{DBLP:conf/cpp/Allais0MM17}. In section~??, we will show how ACMM
+\cite{DBLP:conf/cpp/Allais0MM17}. In [section], we will show how ACMM
 abstracts this common structure of renaming and substitution into a
 notion of a semantics.
 

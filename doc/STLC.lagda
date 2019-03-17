@@ -75,39 +75,46 @@ Var σ Γ = Γ ∋ σ
 
 Lam : Model
 Lam σ Γ = Γ ⊢ σ
+
+infix 4 _─Env
 \end{code}
 
 %<*env>
 \begin{code}
-infix 4 _─Env
 record _─Env (Γ : Context) (𝓥 : Type → Context → Set) (Δ : Context) : Set where
   constructor pack
   field lookup : ∀ {σ} → Var σ Γ → 𝓥 σ Δ
-open _─Env public
 \end{code}
 %</env>
 
-%<*thinningsubst>
+\begin{code}
+open _─Env public
+
+infixl 4 _∙_
+infixr 5 _<$>_
+\end{code}
+
+%<*thinning>
 \begin{code}
 Thinning : Context → Context → Set
 Thinning Γ Δ = (Γ ─Env) Var Δ
+\end{code}
+%</thinning>
 
+\begin{code}
 Substitution : Context → Context → Set
 Substitution Γ Δ = (Γ ─Env) Lam Δ
 \end{code}
-%</thinningsubst>
 
 %<*envops>
 \begin{code}
 ε : ∀ {𝓥 Δ} → ([] ─Env) 𝓥 Δ 
 lookup ε ()
 
-infixl 4 _∙_
 _∙_ : ∀ {Γ Δ σ 𝓥} → (Γ ─Env) 𝓥 Δ → 𝓥 σ Δ → (σ ∷ Γ ─Env) 𝓥 Δ
 lookup (ρ ∙ v) Z = v
 lookup (ρ ∙ v) (S x) = lookup ρ x
 
-infixr 5 _<$>_
 _<$>_ : ∀ {Γ Δ Θ 𝓥₁ 𝓥₂}
       → (∀ {σ} → 𝓥₁ σ Δ → 𝓥₂ σ Θ) → (Γ ─Env) 𝓥₁ Δ → (Γ ─Env) 𝓥₂ Θ
 lookup (f <$> ρ) x = f (lookup ρ x)
