@@ -445,6 +445,10 @@ is useful for defining the beta reduction for abstractions).
 
 \ExecuteMetaData[StateOfTheArt/STLC.tex]{single-subst}
 
+\section{ACMM's notion of a semantics}
+
+TODO ACMM, synch, fusions
+
 \section{Small-step operational semantics}
 
 The formalisation of small step semantics for a call-by-value lambda
@@ -466,20 +470,179 @@ A term which can take a reduction step is called a reducible
 expression, or a redex. A property of a language that every well-typed
 term is either a value or a redux is called type-safety. This property
 is captured by a slogan `well-typed terms don't get stuck` and can be
-proved by techniques like `progress and preservation` and logical
+proved by techniques like `progress and preservation` or logical
 relations. Simply typed lambda calculus is type-safe, and so is this
 formalisation. For a proof of type safety for a similar formalisation
 of STLC, cf. \cite{DBLP:conf/sbmf/Wadler18}.
 
-\section{TODO ACMM and semantics}
+Operational semantics are needed for the treatment of bisimulation.
 
-\section{TODO ACMM and synchronisation lemmas}
+\chapter{The Agda development}
 
-\section{TODO ACMM and fusion lemmas}
+This chapter presents the parts of the Agda development which are
+original to this project. It starts by discussing the closure language
+λcl, an intermediate language which is like STLC but with abstractions
+replaced by closures. Then it demonstrates a type-preserving
+conversion for λst to λcl which has the property that the obtained
+closure environments are `minimal`.  Finally, a result is presented
+about the source and target programs of closure conversion being in a
+bisimulation.
 
-\chapter{TODO Target language}
+\section{Closure language λcl}
+\label{sec:closure-language-cl}
 
-\section{Renaming and substitution}
+As discussed in the Background [or maybe Intro?] chapter, some
+compilation phases must use different source and target intermediate
+representations. This is the case with closure conversion, and this
+section presents a formalisation of an intermediate language with
+closures. The language is very similar the formalised simply typed
+lambda calculus, except that abstraction with free variables are
+replaced by closures with environments. What might seem like a simple
+change has interesting implications for traversals like renaming and
+substitution.
+
+The closure language λcl shares types, contexts, and
+de-Bruijn-variables-as-proofs-of-context-membership, and their
+respective Agda formalisations, with the source representation. In
+general, two different intermediate representations do not need to
+share the same type system, but if they do, this simplifies
+formalisation. The descriptions of those formalisations can be found
+in Section~[TODO].
+
+\subsection{Terms}
+\label{sec:closure-language-cl-1}
+
+The definition of terms of λcl differs from terms of λst in the \AS{L}
+constructor, which, in λcl, holds the closure body and the closure
+environment.
+
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{terms}
+
+Notice that the typing rule for the closure constructor \AS{L}
+mentions two contexts, \AS{Γ} and \AS{Δ}. We call \AS{Γ} the
+\textit{outer context} and \AS{Δ} the \textit{inner context} of a
+closure.
+
+\begin{verbatim}
+Γ , x : σ ⊢ e : τ
+--------------
+Γ ⊢ λ x : σ . e : σ → τ
+
+e_{ev} : Δ ⊆ Γ      Δ , x : σ ⊢ e : τ
+----------------------------
+Γ ⊢ ⟪ e , e_{ev} ⟫ : σ → τ
+\end{verbatim}
+
+The closure as a whole is typed in \AS{Γ}, but the closure body (also
+called the \textit{closure code}) is typed in \AS{σ ∷ Δ}. The
+relationship between \AS{Γ} and \AS{Δ} is given by the closure
+environment.
+
+A closure environment is traditionally implemented as a record, and
+variables in the closure code reference fields of that record. In this
+development, on the other hand, the environment is represented as a
+substitution environment, that is, a mapping from variables in \AS{Δ}
+to terms in \AS{Γ}. This representation is isomorphic to the one using
+a record, and it has several benefits, especially eliminating the need
+for products in the language, and overall simplification of the
+formalisation.
+
+Finally, recall from [section] that in order for a closure-converted
+program to be well-typed, a closure environment should have an
+existential type. It is important to note that in this formalisation,
+existential typing is achieved in the meta language Agda, not in the
+object language λcl, which does not have existential types. Indeed,
+existential quantification (including over types) can in achieved in
+Agda through dependent products, a datatype constructor is a dependent
+product, and the environment is a parameter to the \AS{L} constructor.
+
+\subsection{Renaming and substitution}
+\label{sec:renam-subst}
+
+Consider the case for the constructor \AS{L} of renaming and
+substitution in λcl and how it is different from the corresponding
+definition in λst.
+
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{rename}
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{subst}
+
+Unlike in λst, renaming and substitution in λcl \textit{do not go
+  under binders} (do not change the closure body). This is because
+renaming and substitution take a term in a context \AS{Γ} to a term in
+a context \AS{Γ'}. But the code (body) of a closure is typed in a
+different context \AS{Δ}. So upon recursing on a closure, renaming and
+substitution adjust the closure environment and leave the closure body
+unchanged. The adjustment to the environment is \AS{rename ρ <\$> E}
+in the case of renaming and \AS{subst ρ <\$> E} in the case of
+substitution. In either case, the adjustment consists of mapping the
+renaming/substitution over the values in the environment.
+
+The fact that in λcl, renaming and substitution do not go under
+binders will allow us to prove `fusion lemmas` in [section] without
+using the machinery of ACMM, which will significantly simplify the
+proofs.
+
+\subsection{Operational semantics}
+\label{sec:oper-semant}
+
+Operational semantics are similar to the semantics for λst, except for
+adjustments for closures. Values in λcl are closures, and the rule for
+beta reduction is different:
+
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{subst}
+
+Recall that a closure is a function without free variables,
+partially applied to an environment. When the closure argument reduces
+to a value, the argument and the values in the environment get
+simultaneously substituted into the closure body. The simplicity of
+this reduction rule is another benefit of representing environments as
+substitution environments.
+
+\subsection{Conversion from λst to λcl}
+\label{sec:conversion-from-st}
+
+This project's approach to typed, or type-preserving, closure
+conversion follows \cite{DBLP:conf/popl/MinamideMH96}. An important
+point here is that the specification of typed closure conversion
+allows for different implementations which might differ in their
+treatment of environments. The only requirement in the specification
+is that
+
+\begin{enumerate}
+\item If the source term is an abstraction typed in the context
+  \AS{Γ};
+\item if the body of the source abstraction can be typed in a smaller
+  context \AS{Δ}, such that \AS{Δ ⊆ Γ};
+\item then the target terms is a closure whose environment is a
+  substitution from \AS{Δ} to \AS{Γ}.
+\end{enumerate}
+
+This is given by the following converison rule:
+
+\begin{verbatim}
+e_{ev} : Δ ⊆ Γ        Δ , x : σ ⊢ e ↝ e' : τ
+----------------------------------
+Γ ⊢ λ x : σ . e ↝ ⟪ e' , e_{ev} ⟫ : σ → τ 
+\end{verbatim}
+
+It is up to the implementation of closure conversion to decide how big
+to make \AS{Δ}, on the spectrum between (1) \AS{Δ} being equal to
+\AS{Γ}, and (2) \AS{Δ} being `minimal`, i.e. only containing the parts
+of \AS{Γ} which are necessary to type the term. We present two Agda
+implementation of closure conversion, corresponding to the two ends of
+the spectrum.
+
+Closure conversion where \AS{Δ} is the same as \AS{Γ} is a simple
+transformation:
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{convert}
+
+where \AS{T.id-subst} is the identity substitution which maps a term
+in \AS{Γ} to itself, defined as:
+
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{id-subst}
+
+cont
 
 \chapter{TODO Minimising closure conversion}
 

@@ -21,21 +21,23 @@ open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.Nat.Base
 open import Data.List.Base hiding ([_] ; _++_ ; lookup)
 open import Function
+\end{code}
 
 --------------------------------------------------------------------------------
 -- Well scoped-and-typed Simply-Typed Lambda Calculus
 
-data Lam : Type ─Scoped 
-Subst : Context → Context → Set
-
-data Lam where
-  V : {σ : Type} →    [ Var σ                ⟶ Lam σ        ]
-  A : {σ τ : Type} →  [ Lam (σ ⇒ τ) ⟶ Lam σ  ⟶ Lam τ        ]
-  L : {σ τ : Type} {Γ Δ : Context} → Lam τ (σ ∷ Δ) → Subst Δ Γ → Lam (σ ⇒ τ) Γ
+%<*terms>
+\begin{code}
+data Lam : Type → Context → Set where
+  V  : ∀ {Γ σ}      → Var σ Γ        → Lam σ Γ
+  A  : ∀ {Γ σ τ}    → Lam (σ ⇒ τ) Γ  → Lam σ Γ         → Lam τ Γ
+  L  : ∀ {Γ Δ σ τ}  → Lam τ (σ ∷ Δ)  → (Δ ─Env) Lam Γ  → Lam (σ ⇒ τ) Γ
 \end{code}
+%</terms>
 
 %<*syntactic>
 \begin{code}
+Subst : Context → Context → Set
 Subst Γ Δ = (Γ ─Env) Lam Δ
 
 Syntactic : Context → Context → Set
@@ -44,11 +46,8 @@ Syntactic Γ Δ = ∀ {σ} → Lam σ Γ → Lam σ Δ
 %</syntactic>
 
 \begin{code}
-ext  : ∀ {Γ Δ} {σ : Type}
-        → Thinning Γ Δ
-          -----------------------------------
-        → Thinning (σ ∷ Γ) (σ ∷ Δ)
-ext ρ  =  step ρ ∙ z
+ext : ∀ {Γ Δ} {σ : Type} → Thinning Γ Δ  → Thinning (σ ∷ Γ) (σ ∷ Δ)
+ext ρ = s <$> ρ ∙ z
 \end{code}
 
 \begin{code}
@@ -57,10 +56,7 @@ ext ρ  =  step ρ ∙ z
 
 %<*rename>
 \begin{code}
-rename : ∀ {Γ Δ}
-        → Thinning Γ Δ
-          ---------------------------
-        → Syntactic Γ Δ
+rename : ∀ {Γ Δ σ} → Thinning Γ Δ → Lam σ Γ → Lam σ Δ
 rename ρ (V x)    =  V (lookup ρ x)
 rename ρ (A M N)  =  A (rename ρ M) (rename ρ N)
 rename ρ (L N E)  =  L N (rename ρ <$> E)
@@ -68,11 +64,8 @@ rename ρ (L N E)  =  L N (rename ρ <$> E)
 %</rename>
 
 \begin{code}
-exts : ∀ {Γ Δ σ}
-     → Subst Γ Δ
-       ----------------------------
-     → Subst (σ ∷ Γ) (σ ∷ Δ)
-exts ρ  =  rename E.extend <$> ρ ∙ V z
+exts : ∀ {Γ Δ σ} → Subst Γ Δ → Subst (σ ∷ Γ) (σ ∷ Δ)
+exts ρ = rename (pack s) <$> ρ ∙ V z
 \end{code}
 
 \begin{code}
@@ -81,10 +74,7 @@ exts ρ  =  rename E.extend <$> ρ ∙ V z
 
 %<*subst>
 \begin{code}
-subst : ∀ {Γ Δ}
-     → Subst Γ Δ
-       ----------------
-     → Syntactic Γ Δ
+subst : ∀ {Γ Δ σ} → Subst Γ Δ → Lam σ Γ → Lam σ Δ
 subst ρ (V x)    =  lookup ρ x
 subst ρ (A M N)  =  A (subst ρ M) (subst ρ N)
 subst ρ (L N E)  =  L N (subst ρ <$> E)
@@ -97,10 +87,16 @@ subst ρ (L N E)  =  L N (subst ρ <$> E)
 
 s-step : ∀ {Γ Δ τ} → Subst Γ Δ → Subst Γ (τ ∷ Δ)
 s-step ρ = rename E.extend <$> ρ
+\end{code}
 
+%<*id-subst>
+\begin{code}
 id-subst : ∀ {Γ} → Subst Γ Γ
 lookup id-subst x = V x
+\end{code}
+%</id-subst>
 
+\begin{code}
 -------
 -- Values
 
@@ -112,10 +108,21 @@ data Value : ∀ {Γ σ} → Lam σ Γ → Set where
 
 -----------
 -- Reductions
+\end{code}
 
+%<*beta>
+\begin{code}
 infix 2 _—→_
 data _—→_ : ∀ {Γ σ} → (Lam σ Γ) → (Lam σ Γ) → Set where
 
+  β-L : ∀ {Γ Δ σ τ} {N : Lam τ (σ ∷ Δ)} {E : Subst Δ Γ} {V : Lam σ Γ}
+    → Value V
+      --------------------
+    → A (L N E) V —→ subst (E ∙ V) N
+\end{code}
+$</beta>
+
+\begin{code}
   ξ-A₁ : ∀ {Γ σ τ} {M M′ : Lam (σ ⇒ τ) Γ} {N : Lam σ Γ}
     → M —→ M′
       ---------------
@@ -126,9 +133,4 @@ data _—→_ : ∀ {Γ σ} → (Lam σ Γ) → (Lam σ Γ) → Set where
     → N —→ N′
       ---------------
     → A V N —→ A V N′
-
-  β-L : ∀ {Γ Δ σ τ} {N : Lam τ (σ ∷ Δ)} {E : Subst Δ Γ} {V : Lam σ Γ}
-    → Value V
-      --------------------
-    → A (L N E) V —→ subst (E ∙ V) N
 \end{code}

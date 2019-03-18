@@ -42,9 +42,7 @@ data _~_ : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set where
 
 %<*convert>
 \begin{code}
-convert : ∀ {Γ σ}
-  → S.Lam σ Γ
-  → T.Lam σ Γ
+convert : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ
 convert (S.V x) = T.V x
 convert (S.A M N) = T.A (convert M) (convert N)
 convert (S.L N) = T.L (convert N) T.id-subst
