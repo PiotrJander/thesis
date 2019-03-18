@@ -530,7 +530,7 @@ closure.
 
 e_{ev} : Δ ⊆ Γ      Δ , x : σ ⊢ e : τ
 ----------------------------
-Γ ⊢ ⟪ e , e_{ev} ⟫ : σ → τ
+Γ ⊢ ⟪ λ x : σ . e , e_{ev} ⟫ : σ → τ
 \end{verbatim}
 
 The closure as a whole is typed in \AS{Γ}, but the closure body (also
@@ -621,8 +621,8 @@ This is given by the following converison rule:
 
 \begin{verbatim}
 e_{ev} : Δ ⊆ Γ        Δ , x : σ ⊢ e ↝ e' : τ
-----------------------------------
-Γ ⊢ λ x : σ . e ↝ ⟪ e' , e_{ev} ⟫ : σ → τ 
+---------------------------------------------------
+Γ ⊢ λ x : σ . e ↝ ⟪ λ x : σ . e' , e_{ev} ⟫ : σ → τ 
 \end{verbatim}
 
 It is up to the implementation of closure conversion to decide how big
@@ -642,7 +642,37 @@ in \AS{Γ} to itself, defined as:
 
 \ExecuteMetaData[StateOfTheArt/Closure.tex]{id-subst}
 
+We call the other end of the spectrum \textit{minimising closure
+  conversion}. Its implementation in Agda is rather more involved and
+is described in the next section.
+
+\subsection{Minimising closure conversion}
+\label{sec:minim-clos-conv}
+
+Minimising closure conversion is given by the following deduction
+rules, where a statement \AS{Γ ⊢ e : σ ↝ Δ ⊢ e : σ} should be read as:
+`the term \AS{e} of type \AS{σ} which is typed in \AS{Γ} can also be
+typed in \AS{Δ}`:
+
+\begin{verbatim}
+----------------------------- (min-V)
+Γ ⊢ x : σ ↝ ∅ , x : σ ⊢ x : σ 
+
+Γ ⊢ e₁ : σ → τ ↝ Δ₁ ⊢ e₁ : σ → τ
+Γ ⊢ e₂ : σ     ↝ Δ₂ ⊢ e₂ : σ
+Δ = merge Δ₁ Δ₂
+-------------------------------- (min-A)
+Γ ⊢ e₁ e₂ : τ  ↝ Δ  ⊢ e₁ e₂ : τ
+
+Γ , x : σ ⊢ e : τ ↝ Δ , x : τ ⊢ e : τ
+e_{id} : Δ ⊆ Δ
+-------------------------------------------------------------- (min-L)
+Γ ⊢ λ x : σ . e : σ → τ ↝ Δ ⊢ ⟪ λ x : σ . e , e_{id} ⟫ : σ → τ
+\end{verbatim}
+
 cont
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc}
 
 \chapter{TODO Minimising closure conversion}
 
