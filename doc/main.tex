@@ -699,7 +699,73 @@ converted to the term \AS{e'} in \AS{Δ}`:
     \rangle\rangle : \sigma \to \tau} \; \text{(min-L)}
 \]
 
-cont
+\textbf{min-V}: Any variables can be typed in a singleton context
+containing just itself.
+
+\textbf{min-A}: If the conversion \AS{e₁'} of \AS{e₁} can be typed in
+$\Delta_1$, and the conversion \AS{e₂'} of \AS{e₂} can be typed in \AS{Δ₂},
+then the application \AS{e₁' e₂'} can be typed in \AS{Δ}, where \AS{Δ}
+is the result of merging \AS{Δ₁} and \AS{Δ₂}.
+
+\textbf{min-L}: If the conversion \AS{e'} of the abstraction body
+\AS{e} can be typed in context \AS{σ ∷ Δ} (or $\Delta, x : \sigma$,
+using the notation with names), then the closure resulting from the
+conversion of the abstraction can be typed in \AS{Δ}, and it has the
+identity environment $\Delta \subseteq \Delta$.
+
+To formalise this conversion in Agda, we need several helper
+definitions.
+
+\subsubsection{Merging subcontexts}
+\label{sec:merging-subcontexts}
+
+The deduction rules for minimising closure conversion contained
+statements of the form \AS{Δ ⊆ Γ}, which reads: `\AS{Δ} is a
+subcontext of \AS{Γ}`. Since in this development, a context is just a
+list of types, the notion of subcontexts can be captured with the
+\AS{\_⊆\_} (sublist) relation from Agda's standard library. The
+inductive definition of the relation is:
+
+\ExecuteMetaData[StateOfTheArt/Sublist.tex]{sublist}
+
+This project's contribution is to define the operation of merging two
+subcontexts. Given contexts \AS{Γ}, \AS{Δ}, and \AS{Δ₁} such that
+\AS{Δ ⊆ Γ} and \AS{Δ₁ ⊆ Γ}, the result of merging the subcontexts
+\AS{Δ} and \AS{Δ₁} is a context \AS{Γ₁} which satisfies the following
+conditions:
+
+\begin{enumerate}
+\item It is contained in the big context: \AS{Γ₁ ⊆ Γ}.
+\item It contains the small contexts: \AS{Δ ⊆ Γ₁} and \AS{Δ₁ ⊆ Γ₁}.
+\item The proof that \AS{Δ ⊆ Γ} obtained by transitivity from \AS{Δ ⊆
+    Γ₁} and \AS{Γ₁ ⊆ Γ} is the same as the input proof that \AS{Δ ⊆
+    Γ}; similarly for \AS{Δ₁ ⊆ Γ}.
+\end{enumerate}
+
+All those requirements are captured by the following dependent record
+in Agda:
+
+\ExecuteMetaData[StateOfTheArt/SubContext.tex]{sublistsum}
+
+The type of the function which merges two subcontexts can be stated
+as:
+
+\ExecuteMetaData[StateOfTheArt/SubContext.tex]{merge}
+
+We argue that the type of the function completely captures its
+behaviour (TODO how would we prove this?). The fact that a type can
+completely capture the behaviour of a function is a remarkable feature
+of programming with dependent types. Even more remarkable is the fact
+that the logical properties of \AS{Γ₁} are useful computationally. E.g
+the proof that \AS{Δ ⊆ Γ₁} determines a renaming from \AS{Δ} to
+\AS{Γ₁}, which is used in the minimising closure conversion
+algorithm. A further example: the fact that \AS{⊆-trans Δ⊆Γ₁ Γ₁⊆Γ ≡
+  Δ⊆Γ} is used in proofs of certain equivalences involving subcontexts
+and renaming.
+
+
+
+
 
 \ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc}
 
