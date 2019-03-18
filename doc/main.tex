@@ -1,8 +1,11 @@
 \documentclass[bsc,frontabs,twoside,singlespacing,parskip,deptreport]{infthesis}
 
+\batchmode
 \usepackage{agda}
 \usepackage{catchfilebetweentags}
 \usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
 
@@ -523,15 +526,22 @@ mentions two contexts, \AS{Γ} and \AS{Δ}. We call \AS{Γ} the
 \textit{outer context} and \AS{Δ} the \textit{inner context} of a
 closure.
 
-\begin{verbatim}
-Γ , x : σ ⊢ e : τ
---------------
-Γ ⊢ λ x : σ . e : σ → τ
-
-e_{ev} : Δ ⊆ Γ      Δ , x : σ ⊢ e : τ
-----------------------------
-Γ ⊢ ⟪ λ x : σ . e , e_{ev} ⟫ : σ → τ
-\end{verbatim}
+\begin{minipage}{.5\textwidth}
+  \[
+  \frac
+  {\Gamma , x : \sigma \vdash e : \tau}
+  {\Gamma \vdash \lambda x : \sigma . e : \sigma \rightarrow \tau}
+  \text{T-abs}
+  \]
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \[
+  \frac
+  {e_{ev} = subst ( \Delta \subseteq \Gamma ) \quad \quad \Delta , x : \sigma \vdash e : \tau}
+  {\Gamma \vdash \langle\langle \lambda x : \sigma . e \; , \; e_{ev} \rangle\rangle : \sigma \rightarrow \tau}
+  \text{T-clos}
+  \]
+\end{minipage}
 
 The closure as a whole is typed in \AS{Γ}, but the closure body (also
 called the \textit{closure code}) is typed in \AS{σ ∷ Δ}. The
@@ -617,13 +627,14 @@ is that
   substitution from \AS{Δ} to \AS{Γ}.
 \end{enumerate}
 
-This is given by the following converison rule:
+This is given by the following conversion rule:
 
-\begin{verbatim}
-e_{ev} : Δ ⊆ Γ        Δ , x : σ ⊢ e ↝ e' : τ
----------------------------------------------------
-Γ ⊢ λ x : σ . e ↝ ⟪ λ x : σ . e' , e_{ev} ⟫ : σ → τ 
-\end{verbatim}
+\[
+  \frac
+  {e_{ev} = subst (\Delta \subseteq \Gamma) \quad \quad \Delta , x : \sigma \vdash e \leadsto e' : \tau }
+  {\Gamma \vdash \lambda x : \sigma . e \leadsto
+    \langle\langle \lambda x : \sigma . e' \; , \; e_{ev} \rangle\rangle : \sigma \rightarrow \tau}
+\]
 
 It is up to the implementation of closure conversion to decide how big
 to make \AS{Δ}, on the spectrum between (1) \AS{Δ} being equal to
@@ -650,25 +661,43 @@ is described in the next section.
 \label{sec:minim-clos-conv}
 
 Minimising closure conversion is given by the following deduction
-rules, where a statement \AS{Γ ⊢ e : σ ↝ Δ ⊢ e : σ} should be read as:
-`the term \AS{e} of type \AS{σ} which is typed in \AS{Γ} can also be
-typed in \AS{Δ}`:
+rules, where a statement \AS{Γ ⊢ e : σ ↝ Δ ⊢ e' : σ} should be read as:
+`the term \AS{e} of type \AS{σ} in the context \AS{Γ} can be closure
+converted to the term \AS{e'} in \AS{Δ}`:
 
-\begin{verbatim}
------------------------------ (min-V)
-Γ ⊢ x : σ ↝ ∅ , x : σ ⊢ x : σ 
+\begin{minipage}{.5\textwidth}
+  \[
+    \frac
+    {}
+    {\Gamma \vdash x : \sigma \leadsto \emptyset , x : \sigma \vdash x : \sigma}
+    \;\text{(min-V)}
+  \]
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \[
+    \frac
+    {
+      \begin{matrix}
+        \Gamma \vdash e_1 : \sigma \to \tau \leadsto \Delta_1 \vdash
+        e_1' : \sigma \to \tau \\
+        \Gamma \vdash e_2 : \sigma \leadsto \Delta_2 \vdash e_2' :
+        \sigma \\
+        \Delta = merge \; \Delta_1 \; \Delta_2
+      \end{matrix}
+      }
+    {\Gamma ⊢ e_1 e_2 : \tau  \leadsto \Delta  \vdash e_1' e_2' : \tau}
+     \;\text{(min-A)}
+  \]
+\end{minipage}
 
-Γ ⊢ e₁ : σ → τ ↝ Δ₁ ⊢ e₁ : σ → τ
-Γ ⊢ e₂ : σ     ↝ Δ₂ ⊢ e₂ : σ
-Δ = merge Δ₁ Δ₂
--------------------------------- (min-A)
-Γ ⊢ e₁ e₂ : τ  ↝ Δ  ⊢ e₁ e₂ : τ
-
-Γ , x : σ ⊢ e : τ ↝ Δ , x : τ ⊢ e : τ
-e_{id} : Δ ⊆ Δ
--------------------------------------------------------------- (min-L)
-Γ ⊢ λ x : σ . e : σ → τ ↝ Δ ⊢ ⟪ λ x : σ . e , e_{id} ⟫ : σ → τ
-\end{verbatim}
+\[
+  \frac {\Gamma , x : \sigma ⊢ e : \tau \leadsto \Delta , x : \tau
+    \vdash e : \tau \quad \quad e_{id} = subst ( \Delta \subseteq
+    \Delta )}
+  {\Gamma \vdash \lambda x : \sigma . e : \sigma \to \tau \leadsto
+    \Delta \vdash \langle\langle \lambda x : \sigma . e \; , \; e_{id}
+    \rangle\rangle : \sigma \to \tau} \; \text{(min-L)}
+\]
 
 cont
 

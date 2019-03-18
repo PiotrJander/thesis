@@ -12,7 +12,8 @@ AGDA_FILES:=\
   StateOfTheArt/Closure.lagda \
   StateOfTheArt/Types.lagda \
   StateOfTheArt/STLC.lagda \
-  StateOfTheArt/Closure.lagda 
+  StateOfTheArt/Closure.lagda \
+  StateOfTheArt/ClosureConversion.lagda 
 
 AGDA_OUTPUT:=$(patsubst %.lagda,latex-agda-output/%.tex,$(AGDA_FILES))
 AGDA_OUTPUT_PROCESSED:=$(patsubst %.lagda,latex/%.tex,$(AGDA_FILES))
@@ -67,7 +68,7 @@ latex/%.tex: latex-agda-output/%.tex rules.sed
 
 latex-agda-output/%.tex: %.lagda
 	@mkdir -p $(dir $@)
-	${AGDA} -i . --latex $< --latex-dir=latex-agda-output > $(basename $@).log
+	${AGDA} -i . --allow-unsolved-metas --latex $< --latex-dir=latex-agda-output > $(basename $@).log
 
 clean:
 	find . -name '*.agdai' | xargs rm

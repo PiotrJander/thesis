@@ -84,7 +84,10 @@ lookup (⊆→ρ base) ()
 lookup (⊆→ρ (skip Γ⊆Δ)) x = s (lookup (⊆→ρ Γ⊆Δ) x)
 lookup (⊆→ρ (keep Γ⊆Δ)) z = z
 lookup (⊆→ρ (keep Γ⊆Δ)) (s x) = s (lookup (⊆→ρ Γ⊆Δ) x)
+\end{code}
 
+%<*min-cc>
+\begin{code}
 cc : ∀ {Γ A} → S.Lam A Γ → Closure A Γ
 cc {A = A} (S.V x) = ∃[ A ∷ [] ] Var→⊆ x ∧ T.V z
 cc (S.A M N) with cc M | cc N
@@ -95,7 +98,10 @@ cc (S.L N) with cc N
 cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† with adjust-context Δ⊆Γ
 cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁ _
   = ∃[ Δ₁ ] Δ₁⊆Γ ∧ (T.L (T.rename (⊆→ρ Δ⊆AΔ₁) N†) T.id-subst)
+\end{code}
+%</min-cc>
 
+\begin{code}
 _† : ∀ {Γ A} → S.Lam A Γ → T.Lam A Γ
 _† M with cc M
 _† M | ∃[ Δ ] Δ⊆Γ ∧ N = T.rename (⊆→ρ Δ⊆Γ) N
@@ -132,17 +138,17 @@ baz Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† well =
 -- cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁
 --   = ∃[ Δ₁ ] Δ₁⊆Γ ∧ (T.L (T.rename (⊆→ρ Δ⊆AΔ₁) N†) T.id-subst)
 
-N~N† : ∀ {Γ A} (N : S.Lam A Γ)
-  → N ~ N †
-N~N† (S.V x) with cc (S.V x)
-N~N† (S.V x) | ∃[ Δ ] Δ⊆Γ ∧ N rewrite foo x = ~V
-N~N† (S.A M N) with cc M | cc N | inspect _† M | inspect _† N
-N~N† (S.A M N) | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | [ p ] | [ q ] with merge Δ₁⊆Γ Δ₂⊆Γ
-N~N† (S.A M N) | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | [ p ] | [ q ] | subContextSum Γ₁ Γ₁⊆Γ Δ₁⊆Γ₁ Δ₂⊆Γ₁ well well₁
-  rewrite baz Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† well | baz Δ₂⊆Γ₁ Γ₁⊆Γ Δ₂⊆Γ N† well₁ | sym p | sym q
-  = ~A (N~N† M) (N~N† N)
-N~N† (S.L N) with cc N
-N~N† (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N' with adjust-context Δ⊆Γ
-N~N† (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N' | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁ _ = ~L {!!}
+-- N~N† : ∀ {Γ A} (N : S.Lam A Γ)
+--   → N ~ N †
+-- N~N† (S.V x) with cc (S.V x)
+-- N~N† (S.V x) | ∃[ Δ ] Δ⊆Γ ∧ N rewrite foo x = ~V
+-- N~N† (S.A M N) with cc M | cc N | inspect _† M | inspect _† N
+-- N~N† (S.A M N) | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | [ p ] | [ q ] with merge Δ₁⊆Γ Δ₂⊆Γ
+-- N~N† (S.A M N) | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | [ p ] | [ q ] | subContextSum Γ₁ Γ₁⊆Γ Δ₁⊆Γ₁ Δ₂⊆Γ₁ well well₁
+--   rewrite baz Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† well | baz Δ₂⊆Γ₁ Γ₁⊆Γ Δ₂⊆Γ N† well₁ | sym p | sym q
+--   = ~A (N~N† M) (N~N† N)
+-- N~N† (S.L N) with cc N
+-- N~N† (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N' with adjust-context Δ⊆Γ
+-- N~N† (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N' | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁ _ = ~L {!!}
 
 \end{code}
