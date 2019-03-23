@@ -919,18 +919,18 @@ terms of λst and target terms of λcl.
 
 \begin{definition}
   Given a term \AS{M} in λst and a term \AS{M†} in λcl,
-  the similarity relation \AS{M \ti M†} is defined inductively as
+  the similarity relation \AS{M \tis M†} is defined inductively as
   follows:
 
   \begin{itemize}
   \item (\textit{Variable}) For any given variable (proof of context
-    membership) \AS{x}, we have \AS{S.` x \ti T.` x}.
+    membership) \AS{x}, we have \AS{S.` x \tis T.` x}.
 
-  \item (\textit{Application}) If \AS{M \ti M†} and \AS{N \ti N†},
-    then \AS{M · N \ti M† · N†}.
+  \item (\textit{Application}) If \AS{M \tis M†} and \AS{N \tis N†},
+    then \AS{M · N \tis M† · N†}.
 
-  \item (\textit{Abstraction}) If \AS{N \ti subst (exts E) N†},
-    then \AS{S.L N \ti T.L N† E}.
+  \item (\textit{Abstraction}) If \AS{N \tis subst (exts E) N†},
+    then \AS{S.L N \tis T.L N† E}.
     
   \end{itemize}
 \end{definition}
@@ -952,9 +952,9 @@ bound variable.
 
 \ExecuteMetaData[StateOfTheArt/Closure.tex]{exts}
 
-What are the necessary conditions for \AS{S.L N \ti T.L N† E}, where
+What are the necessary conditions for \AS{S.L N \tis T.L N† E}, where
 \AS{S.L N} and \AS{T.L N† E} are defined in a context \AS{Γ}? Clearly,
-we cannot require that \AS{N \ti N†}, as the context \AS{Δ} in which
+we cannot require that \AS{N \tis N†}, as the context \AS{Δ} in which
 the closure body is defined is different from \AS{Γ}. However, recall
 that the closure environment \AS{E} is defined as a substitution from
 \AS{Δ} to \AS{Γ}. Applying this substitution, extended with a newly
@@ -981,7 +981,7 @@ contained within the similarity relation.
 
 For example, consider the trivial closure conversion algorithm
 \AS{simple-cc}, which uses full contexts as environments (through
-idenitity substitutions \AS{id-subst}):
+identity substitutions \AS{id-subst}):
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{convert}
 
@@ -992,14 +992,33 @@ substitution leaves the argument term unchanged.
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{graph}
 
-\subsubsection{Minimising closure conversion is contained in the
+\subsubsection{The minimising closure conversion and the
   similarity relation}
 \label{sec:minim-clos-conv-1}
 
-TODO
+Similarly, the graph relation of the minimising closure conversion
+function is also contained in the similarity relation.
 
-With the notion of similarity formalised, we are in a position to
-define bisimulation.
+To be precise, we define the function \AS{\_†}:
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{dag}
+
+This function is a wrapper over the \AS{min-cc} function which undoes
+the minimisation on the outer level. In other words, all closures in
+the term are still minimised, but the outer term is typed in the same
+context as the input source term, so that the statement `contained in
+the similarity relation` type-checks.
+
+The claim is that 
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-sim-t}
+
+The proof of the claim is too long to discuss here, but the reader can
+find it in the technical appendix of this report.
+
+***
+
+With the notion of similarity formalised, bisimulation can be defined.
 
 \section{Bisimulation}
 
@@ -1362,5 +1381,16 @@ and how to do it.
 % otherwise generate bibtem entries
 \bibliographystyle{plain}
 \bibliography{main}
+
+\chapter{Technical appendix}
+\label{cha:technical-appendix}
+
+\section{Minimising closure conversion and the similarity relation}
+\label{sec:minim-clos-conv-2}
+
+Below is the Agda proof that the graph relation of the minimising
+closure conversion function is contained in the similarity relation.
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-sim}
 
 \end{document}
