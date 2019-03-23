@@ -135,108 +135,78 @@ _† : ∀ {Γ A} → S.Lam A Γ → T.Lam A Γ
 _† M with cc M
 _† M | ∃[ Δ ] Δ⊆Γ ∧ N = T.rename (⊆→ρ Δ⊆Γ) N
 
-foo : ∀ {Γ A} (x : Var A Γ)
+helper-2 : ∀ {Γ A} (x : Var A Γ)
   → lookup (⊆→ρ (Var→⊆ x)) z ≡ x
-foo z = refl
-foo (s x) = cong s (foo x)
+helper-2 z = refl
+helper-2 (s x) = cong s (helper-2 x)
 
-bar : ∀ {Δ₁ Γ₁ Γ} (Δ₁⊆Γ₁ : Δ₁ ⊆ Γ₁) (Γ₁⊆Γ : Γ₁ ⊆ Γ)
+helper-3 : ∀ {Δ₁ Γ₁ Γ} (Δ₁⊆Γ₁ : Δ₁ ⊆ Γ₁) (Γ₁⊆Γ : Γ₁ ⊆ Γ)
   → select (⊆→ρ Δ₁⊆Γ₁) (⊆→ρ Γ₁⊆Γ) ≡ᴱ ⊆→ρ (⊆-trans Δ₁⊆Γ₁ Γ₁⊆Γ)
-eq (bar base base) ()
-eq (bar Δ₁⊆Γ₁ (skip Γ₁⊆Γ)) x = cong s (eq (bar Δ₁⊆Γ₁ Γ₁⊆Γ) x)
-eq (bar (skip Δ₁⊆Γ₁) (keep Γ₁⊆Γ)) x = cong s (eq (bar Δ₁⊆Γ₁ Γ₁⊆Γ) x)
-eq (bar (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ)) z = refl
-eq (bar (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ)) (s x) = cong s (eq (bar Δ₁⊆Γ₁ Γ₁⊆Γ) x)
+eq (helper-3 base base) ()
+eq (helper-3 Δ₁⊆Γ₁ (skip Γ₁⊆Γ)) x = cong s (eq (helper-3 Δ₁⊆Γ₁ Γ₁⊆Γ) x)
+eq (helper-3 (skip Δ₁⊆Γ₁) (keep Γ₁⊆Γ)) x = cong s (eq (helper-3 Δ₁⊆Γ₁ Γ₁⊆Γ) x)
+eq (helper-3 (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ)) z = refl
+eq (helper-3 (keep Δ₁⊆Γ₁) (keep Γ₁⊆Γ)) (s x) = cong s (eq (helper-3 Δ₁⊆Γ₁ Γ₁⊆Γ) x)
 
-baz : ∀ {Δ₁ Γ₁ Γ τ} (Δ₁⊆Γ₁ : Δ₁ ⊆ Γ₁) (Γ₁⊆Γ : Γ₁ ⊆ Γ) (Δ₁⊆Γ : Δ₁ ⊆ Γ) (M† : T.Lam τ Δ₁)
+helper-4 : ∀ {Δ₁ Γ₁ Γ τ} (Δ₁⊆Γ₁ : Δ₁ ⊆ Γ₁) (Γ₁⊆Γ : Γ₁ ⊆ Γ) (Δ₁⊆Γ : Δ₁ ⊆ Γ) (M† : T.Lam τ Δ₁)
   → ⊆-trans Δ₁⊆Γ₁ Γ₁⊆Γ ≡ Δ₁⊆Γ
   → T.rename (⊆→ρ Γ₁⊆Γ) (T.rename (⊆→ρ Δ₁⊆Γ₁) M†) ≡ T.rename (⊆→ρ Δ₁⊆Γ) M†
-baz Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† well =
+helper-4 Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† well =
   begin
     T.rename (⊆→ρ Γ₁⊆Γ) (T.rename (⊆→ρ Δ₁⊆Γ₁) M†)
   ≡⟨ rename∘rename (⊆→ρ Δ₁⊆Γ₁) (⊆→ρ Γ₁⊆Γ) M† ⟩
     T.rename (select (⊆→ρ Δ₁⊆Γ₁) (⊆→ρ Γ₁⊆Γ)) M†
-  ≡⟨ cong (λ e → T.rename e M†) (env-extensionality (bar Δ₁⊆Γ₁ Γ₁⊆Γ)) ⟩
+  ≡⟨ cong (λ e → T.rename e M†) (env-extensionality (helper-3 Δ₁⊆Γ₁ Γ₁⊆Γ)) ⟩
     T.rename (⊆→ρ (⊆-trans Δ₁⊆Γ₁ Γ₁⊆Γ)) M†
   ≡⟨ cong (λ e → T.rename (⊆→ρ e) M†) well ⟩
     T.rename (⊆→ρ Δ₁⊆Γ) M†
   ∎
 
--- cc (S.L N) with cc N
--- cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† with adjust-context Δ⊆Γ
--- cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁
---   = ∃[ Δ₁ ] Δ₁⊆Γ ∧ (T.L (T.rename (⊆→ρ Δ⊆AΔ₁) N†) T.id-subst)
-
-postulate
-  extensionality : ∀ {A B : Set} {f g : A → B}
-    → (∀ (x : A) → f x ≡ g x)
-      -----------------------
-    → f ≡ g
-
 {-# TERMINATING #-}
-helper-2 : ∀ {Γ Δ σ} (ρ : Thinning Γ Δ) (N : T.Lam σ Γ)
-  → T.subst (T.rename ρ <$> T.id-subst) N ≡ T.rename ρ N
-helper-2 ρ (T.V x) = refl
-helper-2 ρ (T.A M N) = cong₂ T.A (helper-2 ρ M) (helper-2 ρ N)
-helper-2 {Γ = Γ} {σ = σ} ρ (T.L N E) = cong (λ e → T.L N e) h
-  where
-  h : _<$>_ {𝓦 = T.Lam} (T.subst (_<$>_ {𝓦 = T.Lam} (T.rename ρ) T.id-subst)) E ≡ _<$>_ {𝓦 = T.Lam} (T.rename ρ) E
-  h =
-    begin
-      _<$>_ {𝓦 = T.Lam} (T.subst (_<$>_ {𝓦 = T.Lam} (T.rename ρ) T.id-subst)) E
-    ≡⟨ env-extensionality (<$>-fun (helper-2 ρ) E) ⟩
-      _<$>_ {𝓦 = T.Lam} (T.rename ρ) E
-    ∎
-
-ρ→σ : ∀ {Γ Δ} → Thinning Γ Δ → T.Subst Γ Δ
-lookup (ρ→σ ρ) x = T.V (lookup ρ x)
-
-helper-3 : ∀ {Γ Δ σ} (Δ⊆Γ : Δ ⊆ Γ) → T.exts {σ = σ} (ρ→σ (⊆→ρ Δ⊆Γ)) ≡ᴱ ρ→σ (⊆→ρ (keep Δ⊆Γ))
-eq (helper-3 Δ⊆Γ) z = refl
-eq (helper-3 Δ⊆Γ) (s x) = refl 
-
-{-# TERMINATING #-}
-helper-4 : ∀ {Γ Δ σ τ} (Δ⊆Γ : Δ ⊆ Γ) (N : T.Lam σ (τ ∷ Δ))
+helper-5 : ∀ {Γ Δ σ τ} (Δ⊆Γ : Δ ⊆ Γ) (N : T.Lam σ (τ ∷ Δ))
   → T.subst (T.exts (T.rename (⊆→ρ Δ⊆Γ) <$> T.id-subst)) N ≡ T.rename (⊆→ρ (keep Δ⊆Γ)) N
-helper-4 Δ⊆Γ (T.V x) with x
-helper-4 Δ⊆Γ (T.V x) | z = refl
-helper-4 Δ⊆Γ (T.V x) | s x' = refl
-helper-4 Δ⊆Γ (T.A M N) = cong₂ T.A (helper-4 Δ⊆Γ M) (helper-4 Δ⊆Γ N)
-helper-4 Δ⊆Γ (T.L N E) = cong (T.L N) h
+helper-5 Δ⊆Γ (T.V x) with x
+helper-5 Δ⊆Γ (T.V x) | z = refl
+helper-5 Δ⊆Γ (T.V x) | s x' = refl
+helper-5 Δ⊆Γ (T.A M N) = cong₂ T.A (helper-5 Δ⊆Γ M) (helper-5 Δ⊆Γ N)
+helper-5 Δ⊆Γ (T.L N E) = cong (T.L N) h
   where
   h : T.subst (T.exts (T.rename (⊆→ρ Δ⊆Γ) <$> T.id-subst)) <$> E ≡ _<$>_ {𝓦 = T.Lam} (T.rename (⊆→ρ (keep Δ⊆Γ))) E
   h =
     begin
       T.subst (T.exts (T.rename (⊆→ρ Δ⊆Γ) <$> T.id-subst)) <$> E
-    ≡⟨ env-extensionality (<$>-fun (helper-4 Δ⊆Γ) E) ⟩
+    ≡⟨ env-extensionality (<$>-fun (helper-5 Δ⊆Γ) E) ⟩
       _<$>_ {𝓦 = T.Lam} (T.rename (⊆→ρ (keep Δ⊆Γ))) E
     ∎
 
 N~N† : ∀ {Γ A} (N : S.Lam A Γ)
   → N ~ N †
 N~N† (S.V x) with cc (S.V x)
-N~N† (S.V x) | ∃[ Δ ] Δ⊆Γ ∧ N rewrite foo x = ~V
+N~N† (S.V x) | ∃[ Δ ] Δ⊆Γ ∧ N rewrite helper-2 x = ~V
 N~N† (S.A M N) with cc M | cc N | inspect _† M | inspect _† N
 N~N† (S.A M N) | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | [ p ] | [ q ] with merge Δ₁⊆Γ Δ₂⊆Γ
 N~N† (S.A M N) | ∃[ Δ₁ ] Δ₁⊆Γ ∧ M† | ∃[ Δ₂ ] Δ₂⊆Γ ∧ N† | [ p ] | [ q ] | subListSum Γ₁ Γ₁⊆Γ Δ₁⊆Γ₁ Δ₂⊆Γ₁ well well₁
-  rewrite baz Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† well | baz Δ₂⊆Γ₁ Γ₁⊆Γ Δ₂⊆Γ N† well₁ | sym p | sym q
+  rewrite helper-4 Δ₁⊆Γ₁ Γ₁⊆Γ Δ₁⊆Γ M† well | helper-4 Δ₂⊆Γ₁ Γ₁⊆Γ Δ₂⊆Γ N† well₁ | sym p | sym q
   = ~A (N~N† M) (N~N† N)
-N~N† (S.L N) with cc N
-N~N† (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N' with adjust-context Δ⊆Γ
-N~N† (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N' | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁ well = ~L {!!}
+N~N† (S.L N) with cc N | inspect _† N
+N~N† (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N' | [ p ] with adjust-context Δ⊆Γ
+N~N† (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N' | [ p ] | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁ well = ~L g
   where
   h : T.subst (T.exts (T.rename (⊆→ρ Δ₁⊆Γ) <$> T.id-subst)) (T.rename (⊆→ρ Δ⊆AΔ₁) N') ≡ T.rename (⊆→ρ Δ⊆Γ) N'
   h =
     begin
       T.subst (T.exts (T.rename (⊆→ρ Δ₁⊆Γ) <$> T.id-subst)) (T.rename (⊆→ρ Δ⊆AΔ₁) N')
-    ≡⟨ {!!} ⟩
+    ≡⟨ helper-5 Δ₁⊆Γ (T.rename (⊆→ρ Δ⊆AΔ₁) N') ⟩
       T.rename (⊆→ρ (keep Δ₁⊆Γ)) (T.rename (⊆→ρ Δ⊆AΔ₁) N')
     ≡⟨ rename∘rename (⊆→ρ Δ⊆AΔ₁) (⊆→ρ (keep Δ₁⊆Γ)) N' ⟩
       T.rename (select (⊆→ρ Δ⊆AΔ₁) (⊆→ρ (keep Δ₁⊆Γ))) N'
-    ≡⟨ cong (λ e → T.rename e N') (env-extensionality (bar Δ⊆AΔ₁ (keep Δ₁⊆Γ))) ⟩
+    ≡⟨ cong (λ e → T.rename e N') (env-extensionality (helper-3 Δ⊆AΔ₁ (keep Δ₁⊆Γ))) ⟩
       T.rename (⊆→ρ (⊆-trans Δ⊆AΔ₁ (keep Δ₁⊆Γ))) N'
     ≡⟨ cong (λ e → T.rename (⊆→ρ e) N') (sym well) ⟩
       T.rename (⊆→ρ Δ⊆Γ) N'
     ∎
+  g : N ~ T.subst (T.exts (T.rename (⊆→ρ Δ₁⊆Γ) <$> T.id-subst)) (T.rename (⊆→ρ Δ⊆AΔ₁) N')
+  g rewrite h | sym p = N~N† N
+
 
 \end{code}
