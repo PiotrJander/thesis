@@ -63,10 +63,12 @@ rename ρ (L N E)  =  L N (rename ρ <$> E)
 \end{code}
 %</rename>
 
+%<*exts>
 \begin{code}
 exts : ∀ {Γ Δ σ} → Subst Γ Δ → Subst (σ ∷ Γ) (σ ∷ Δ)
 exts ρ = rename (pack s) <$> ρ ∙ V z
 \end{code}
+%</exts>
 
 \begin{code}
 {-# TERMINATING #-}
@@ -120,7 +122,7 @@ data _—→_ : ∀ {Γ σ} → (Lam σ Γ) → (Lam σ Γ) → Set where
       --------------------
     → A (L N E) V —→ subst (E ∙ V) N
 \end{code}
-$</beta>
+%</beta>
 
 \begin{code}
   ξ-A₁ : ∀ {Γ σ τ} {M M′ : Lam (σ ⇒ τ) Γ} {N : Lam σ Γ}

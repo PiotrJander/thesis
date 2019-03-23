@@ -118,6 +118,9 @@ lookup (ρ ∙ v) (S x) = lookup ρ x
 _<$>_ : ∀ {Γ Δ Θ 𝓥₁ 𝓥₂}
       → (∀ {σ} → 𝓥₁ σ Δ → 𝓥₂ σ Θ) → (Γ ─Env) 𝓥₁ Δ → (Γ ─Env) 𝓥₂ Θ
 lookup (f <$> ρ) x = f (lookup ρ x)
+
+select : ∀ {Γ Δ Θ 𝓥} → Thinning Γ Δ → (Δ ─Env) 𝓥 Θ → (Γ ─Env) 𝓥 Θ
+lookup (select ren ρ) k = lookup ρ (lookup ren k)
 \end{code}
 %</envops>
 

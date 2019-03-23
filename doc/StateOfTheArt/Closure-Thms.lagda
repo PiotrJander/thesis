@@ -22,9 +22,7 @@ open import Function
 
 %<*rename-subst>
 \begin{code}
-rename∘subst : ∀ {Γ Δ Θ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ)
-  → (N : Lam τ Δ)
-    ----------------------------------------------------
+rename∘subst : ∀ {Γ Δ Θ τ} (ρρ : Thinning Γ Θ) (ρσ : Subst Δ Γ) (N : Lam τ Δ)
   → rename ρρ (subst ρσ N) ≡ subst (rename ρρ <$> ρσ) N
 \end{code}
 %</rename-subst>
@@ -50,9 +48,7 @@ rename∘subst ρρ ρσ (L N E)  =  cong₂ L refl (env-extensionality h)
 
 %<*subst-subst>
 \begin{code}
-subst∘subst : ∀ {Γ Δ Θ τ} (ρ₁ : Subst Γ Θ) (ρ₂ : Subst Δ Γ)
-  → (N : Lam τ Δ)
-    ----------------------------------------------------
+subst∘subst : ∀ {Γ Δ Θ τ} (ρ₁ : Subst Γ Θ) (ρ₂ : Subst Δ Γ) (N : Lam τ Δ)
   → subst ρ₁ (subst ρ₂ N) ≡ subst (subst ρ₁ <$> ρ₂) N
 \end{code}
 %</subst-subst>
@@ -77,9 +73,7 @@ subst∘subst ρ₁ ρ₂ (L N E)  =  cong₂ L refl (env-extensionality h)
 
 %<*subst-rename>
 \begin{code}
-subst∘rename : ∀ {Γ Δ Θ τ} (ρσ : Subst Γ Θ) (ρρ : Thinning Δ Γ)
-  → (N : Lam τ Δ)
-    ----------------------------------------------------
+subst∘rename : ∀ {Γ Δ Θ τ} (ρσ : Subst Γ Θ) (ρρ : Thinning Δ Γ) (N : Lam τ Δ)
   → subst ρσ (rename ρρ N) ≡ subst (select ρρ ρσ) N
 \end{code}
 %</subst-rename>
@@ -87,7 +81,8 @@ subst∘rename : ∀ {Γ Δ Θ τ} (ρσ : Subst Γ Θ) (ρρ : Thinning Δ Γ)
 %<*subst-rename-proof>
 \begin{code}
 subst∘rename ρσ ρρ (V x)    =  refl
-subst∘rename ρσ ρρ (A M N)  =  cong₂ A (subst∘rename ρσ ρρ M) (subst∘rename ρσ ρρ N)
+subst∘rename ρσ ρρ (A M N)  =  cong₂ A (subst∘rename ρσ ρρ M)
+                                       (subst∘rename ρσ ρρ N)
 subst∘rename ρσ ρρ (L N E)  =  cong₂ L refl (env-extensionality h)
   where h : (_<$>_ {𝓦 = Lam} (subst ρσ) (_<$>_ {𝓦 = Lam} (rename ρρ) E))
             ≡ᴱ (subst (select ρρ ρσ) <$> E)
@@ -107,9 +102,7 @@ subst∘rename ρσ ρρ (L N E)  =  cong₂ L refl (env-extensionality h)
 
 %<*rename-rename>
 \begin{code}
-rename∘rename : ∀ {Γ Δ Θ τ} (ρ₁ : Thinning Γ Δ) (ρ₂ : Thinning Δ Θ)
-  → (N : Lam τ Γ)
-    ----------------------------------------------------
+rename∘rename : ∀ {Γ Δ Θ τ} (ρ₁ : Thinning Γ Δ) (ρ₂ : Thinning Δ Θ) (N : Lam τ Γ)
   → rename ρ₂ (rename ρ₁ N) ≡ rename (select ρ₁ ρ₂) N
 \end{code}
 %</rename-rename>

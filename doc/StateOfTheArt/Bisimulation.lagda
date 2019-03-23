@@ -42,32 +42,32 @@ data _~_ : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set where
 
 %<*convert>
 \begin{code}
-convert : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ
-convert (S.V x) = T.V x
-convert (S.A M N) = T.A (convert M) (convert N)
-convert (S.L N) = T.L (convert N) T.id-subst
+simple-cc : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ
+simple-cc (S.V x) = T.V x
+simple-cc (S.A M N) = T.A (simple-cc M) (simple-cc N)
+simple-cc (S.L N) = T.L (simple-cc N) T.id-subst
 \end{code}
 %</convert>
 
 %<*graph>
 \begin{code}
-graph→relation : ∀ {Γ σ} (N : S.Lam σ Γ)
-  → N ~ convert N
-graph→relation (S.V x) = ~V
-graph→relation (S.A f e) = ~A (graph→relation f) (graph→relation e)
-graph→relation (S.L b) = ~L g
+simple-cc→sim : ∀ {Γ σ} (N : S.Lam σ Γ)
+  → N ~ simple-cc N
+simple-cc→sim (S.V x) = ~V
+simple-cc→sim (S.A f e) = ~A (simple-cc→sim f) (simple-cc→sim e)
+simple-cc→sim (S.L b) = ~L g
   where
-  h : T.subst (T.exts T.id-subst) (convert b) ≡ convert b
-  h =
+  h : ∀ {Γ σ τ} (M : T.Lam σ (τ ∷ Γ)) → T.subst (T.exts T.id-subst) M ≡ M
+  h M =
     begin
-      T.subst (T.exts T.id-subst) (convert b)
-    ≡⟨ cong (λ e → T.subst e (convert b)) (sym (env-extensionality TT.exts-id-subst)) ⟩
-      T.subst T.id-subst (convert b)
-    ≡⟨ TT.subst-id-id (convert b) ⟩
-      convert b
+      T.subst (T.exts T.id-subst) M
+    ≡⟨ cong (λ e → T.subst e M) (sym (env-extensionality TT.exts-id-subst)) ⟩
+      T.subst T.id-subst M
+    ≡⟨ TT.subst-id-id M ⟩
+      M
     ∎
-  g : b ~ T.subst (T.exts T.id-subst) (convert b)
-  g rewrite h = graph→relation b
+  g : b ~ T.subst (T.exts T.id-subst) (simple-cc b)
+  g rewrite h (simple-cc b) = simple-cc→sim b
 \end{code}
 %</graph>
 

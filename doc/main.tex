@@ -1,4 +1,4 @@
-\documentclass[bsc,frontabs,twoside,singlespacing,parskip,deptreport]{infthesis}
+\documentclass[bsc,frontabs,oneside,singlespacing,parskip,deptreport]{infthesis}
 
 \batchmode
 \usepackage{agda}
@@ -8,46 +8,9 @@
 \usepackage{amsmath}
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
 
 \input{commands}
-
-%\usepackage{agda}
-
-% The following packages are needed because unicode
-% is translated (using the next set of packages) to
-% latex commands. You may need more packages if you
-% use more unicode characters:
-
-% \usepackage{textgreek}
-% \usepackage{amssymb}
-% \usepackage{bbm}
-% \usepackage[greek,english]{babel}
-% \usepackage{amsthm}
-% \usepackage{catchfilebetweentags}
-% \usepackage{mathrsfs}
-
-% This handles the translation of unicode to latex:
-
-% \usepackage{ucs}
-% \usepackage[utf8x]{inputenc}
-% \usepackage{autofe}
-
-% Some characters that are not automatically defined
-% (you figure out by the latex compilation errors you get),
-% and you need to define:
-
-% \DeclareUnicodeCharacter{8988}{\ensuremath{\ulcorner}}
-% \DeclareUnicodeCharacter{8989}{\ensuremath{\urcorner}}
-% \DeclareUnicodeCharacter{8803}{\ensuremath{\overline{\equiv}}}
-% \DeclareUnicodeCharacter{0411}{\ensuremath{\lambda}}
-% \DeclareUnicodeCharacter{8718}{\ensuremath{\square}}
-% \DeclareUnicodeCharacter{8759}{::}
-% \DeclareUnicodeCharacter{10218}{\ensuremath{\langle\langle}}
-% \DeclareUnicodeCharacter{10219}{\ensuremath{\rangle\rangle}}
-% \DeclareUnicodeCharacter{120038}{\ensuremath{\mathcal{W}}}
-% \DeclareUnicodeCharacter{7473}{\textsuperscript{E}}
-
-% Add more as you need them (shouldn't happen often). 
 
 \theoremstyle{definition}
 \newtheorem*{definition}{Definition}
@@ -375,7 +338,9 @@ well-typed in the context \AS{Γ} extended with the type \AS{σ} of the
 variable bound by the abstraction. The application constructor
 \AS{A} follows the typing rule for application.
 
+
 \section{Type- and scope-safe programs}
+\label{sec:typ-scop-saf-prog}
 
 Many useful traversals of the abstract syntax tree involve maintaining
 a mapping from free variables to appropriate values. Two such
@@ -411,11 +376,12 @@ There is a notion of an empty environment \AS{ε}, of extending an
 environment \AS{ρ} with a value \AS{v}: \AS{ρ ∙ v}, and of mapping a
 function \AS{f} over an environment \AS{ρ}: \AS{f <\$> ρ},
 corresponding to the analogous operations on contexts (which are just
-lists).
+lists). Finally, \AS{select ren ρ} renames a variable with \AS{ren}
+before looking it up in \AS{ρ}.
 
 \ExecuteMetaData[STLC.tex]{envops}
 
-Notice that those three operations on environments are defined using
+Notice that those four operations on environments are defined using
 copatterns \cite{DBLP:conf/popl/AbelPTS13} by `observing` the
 behaviour of \AS{lookup}.
 
@@ -599,7 +565,7 @@ Operational semantics are similar to the semantics for λst, except for
 adjustments for closures. Values in λcl are closures, and the rule for
 beta reduction is different:
 
-\ExecuteMetaData[StateOfTheArt/Closure.tex]{subst}
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{beta}
 
 Recall that a closure is a function without free variables,
 partially applied to an environment. When the closure argument reduces
@@ -838,118 +804,201 @@ The specification is: given \AS{Δ ⊆ A ∷ Γ}, there exists a context
 proof \AS{Δ ⊆ A ∷ Γ} obtained by transitivity is the same as the input
 proof.
 
-The proof that \AS{Δ ⊆ A ∷ Δ₁} is used to rename \AS{N†} so that the
-final inherently-typed term is well-typed.
+The evidence that \AS{Δ ⊆ A ∷ Δ₁} is used to rename \AS{N†} so that
+the final inherently-typed term is well-typed.
 
-\chapter{Bisimulation}
+\subsection{Fusion lemmas for the closure language λcl}
 
-In the previous chapters, we defined the source and target languages
-of the closure conversion, together with reduction rules for each, and
-a translation function from source to target.
+When studying the meta-theory of a calculus, one systematically needs
+to prove fusion lemmas for various traversals. A fusion lemma relates
+three traversals: the pair we sequence and their sequential
+composition. The two traversals which have to be fused in later proofs
+are renaming and substitution. There are four ways we can sequence
+renaming and substitution, and each of those four sequencing can be
+expressed as a single renaming or substitution:
 
-Our implementation of closure conversion is type and scope-preserving
-by construction. The property of type preservation would be considered
-a strong indication of correctness in a real-world compiler, but in
-this theoretical development which deals with a small, toy language,
-we prove stronger correctness properties which speak about operation
+\begin{enumerate}[nolistsep]
+  \item A renaming followed by a renaming,
+  \item A renaming followed by a substitution,
+  \item A substitution followed by a renaming,
+  \item A substitution followed by a substitution.
+\end{enumerate}
+
+We state the results as signatures of Agda functions, using the
+environment combinators \AS{\_<\$>\_} and \AS{select} which are described
+in Section~\ref{sec:typ-scop-saf-prog}.
+
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-rename}
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-rename}  
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-subst} 
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-subst}
+
+Rather than include Agda proofs of all four lemmas, here we outline
+the proof structure, analyse just one of the four proofs, and compare
+fusion lemmas for λcl with the corresponding lemmas for λst.
+
+A generic technique to prove fusion lemmas for STLC, including the
+ones about renaming and substitution, is one of the main contributions
+of ACMM \cite{DBLP:conf/cpp/Allais0MM17}. Their proof uses Kripke
+logical relations and it relies on the invariant that corresponding
+environment values are in appropriate relations, including when
+environments are extended when going under a binder. Maintaining this
+invariant is possible thanks to the generic framework for writing
+traversals introduced by ACMM.
+
+As it turns out, fusion lemmas for the closure language are simpler,
+as they do not require the logical relation machinery of ACMM. This is
+because renaming and substitution in λcl `do not go under binders`, as
+can be seen from their definitions in
+Section~\ref{sec:renam-subst}. For both renaming and substitution, in
+the closure case (\AS{L}), the closure body is left untouched; only
+the closure environment is modified.
+
+We are now ready to take a closer look at the proof of the fusion
+lemma stating that a renaming followed by a subsitution is a
+substitution:
+
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-rename} 
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-rename-proof} 
+
+The proof is by induction on the typing derivation of the term:
+
+\begin{itemize}
+\item In the variable case, the LHS and the RHS normalise to the same
+  term, so \AS{refl} suffices.
+\item In the application case, the proof is by induction and
+  congruence.
+\item In the closure case, the proof is also by congruence, but an
+  equational proof is required to show that the LHS and RHS act in the
+  same way on the environment \AS{E}.
+\end{itemize}
+
+The equational proof proceeds as follows:
+
+\begin{enumerate}[nolistsep]
+\item It uses the fact that function composition \AS{\_∘\_}
+  distributes through mapping over environments \AS{\_<\$>\_}: we have
+  \AS{f <\$> g <\$> E ≡ f ∘ g <\$> E} which is capture by the lemma
+  \AS{< \$>-distr},
+\item It uses the fact that when \AS{f} and \AS{g} are extensionally
+  equal (\AS{∀ \{x\} → f x ≡ g x}), then \AS{f <\$> E ≡ g <\$> E} which
+  is captured by the lemma \AS{<\$>-fun},
+\item \AS{<\$>-fun} is instantiated with the inductive hypothesis.
+\end{enumerate}
+
+Unfortunately, Agda does not recognise this project's fusion lemmas as
+terminating, and we were unable to provide a termination proof. Still,
+we believe that the function does in fact terminate.
+
+\section{Bisimulation}
+\label{sec:bisimulation}
+
+Preceding sections defined the source and target languages of the
+closure conversion, λst and λcl, together with reduction rules for
+each, and a closure conversion function \AS{min-cc} from λst to λcl.
+
+This project's implementation of closure conversion is type- and
+scope-preserving by construction. The property of type preservation
+provides confidence in the compilation process, but in this
+theoretical development which deals with a small, toy language, it is
+within the reach of this project to prove properties about operational
 correctness.
 
-One such property of operational correctness of a pair of languages is
-bisimulation. Intuition about bisimulation is captured by a slogan:
-pairwise similar terms reduce to pairwise similar terms. 
+One such operational correctness property of a pair of languages is
+\textbf{bisimulation}. Intuition about bisimulation is captured by a
+slogan: similar terms reduce to similar terms.
 
-\section{Similarity relation}
+[TODO outline]
 
-Before we can precisely define
-bisimulation, we need a definition of similarity between source
-and target terms of closure conversion.
+\subsection{Similarity relation}
+\label{sec:similarity-relation}
 
-\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{tilde}
+Before we can give an exact statement of bisimulation, we need a
+definition which captures the notion of similarity between the source
+terms of λst and target terms of λcl.
 
 \begin{definition}
-  Given a source language term \AS{M} and a target language term \AS{M†},
+  Given a term \AS{M} in λst and a term \AS{M†} in λcl,
   the similarity relation \AS{M \ti M†} is defined inductively as
   follows:
 
   \begin{itemize}
-  \item
-    (Variable) For any given variable (proof of context membership) \AS{x}, we have
-    \AS{S.` x \ti T.` x}.
+  \item (\textit{Variable}) For any given variable (proof of context
+    membership) \AS{x}, we have \AS{S.` x \ti T.` x}.
 
-  \item
-    (Application) If \AS{M \ti M†} and \AS{N \ti N†},
-    then \AS{M S.· N \ti M† T.· N†}.
+  \item (\textit{Application}) If \AS{M \ti M†} and \AS{N \ti N†},
+    then \AS{M · N \ti M† · N†}.
 
-  \item
-    (Abstraction) If \AS{N \ti T.subst (T.exts E) N†},
-    then \AS{λ N \ti ⟪ N† , E ⟫}.
+  \item (\textit{Abstraction}) If \AS{N \ti subst (exts E) N†},
+    then \AS{S.L N \ti T.L N† E}.
+    
   \end{itemize}
 \end{definition}
 
-We unpack the definition here. Recall that in our definition of
-closure conversion, source and target languages share the same (meta)
-type of (object) types, contexts, and variables (proofs of context
-membership). In fact, similarity is only defined for source and target
-terms of the same type in the same context (this is explicit in the Agda
-definition). 
+Recall that λst and λcl share types, contexts, and variables (proofs
+of context membership). In fact, similarity is only defined for source
+and target terms of the same type in the same context (this is
+explicit in the Agda definition).
 
 Therefore, similarity of (syntactic) variables can be defined in terms
 of identity of proofs of membership.
 
-Similarity of applications is defined by congruence.
+Similarity of applications is defined by `compatibility`: given
+similar functions and similar arguments, the applications are similar.
 
-Finally, the non-trivial case of abstractions. What are the necessary
-conditions for \AS{λ N \ti ⟪ N† , E ⟫}, where \AS{λ N} and 
-\AS{⟪ N† , E ⟫} are defined in context \AS{Γ}? Clearly, we cannot require
-that \AS{N \ti N†}, as the context \AS{Δ} in which the closure body is
-defined is existentially quantified. However, recall that the closure environment
-\AS{E} is defined as a substitution from \AS{Δ} to \AS{Γ}. Applying
-this substitution to the closure body (\AS{T.subst (T.exts E) N†})
+Finally, the non-trivial case of abstractions. It uses a function
+\AS{exts}, which extends a substitution environment with a newly
+bound variable.
+
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{exts}
+
+What are the necessary conditions for \AS{S.L N \ti T.L N† E}, where
+\AS{S.L N} and \AS{T.L N† E} are defined in a context \AS{Γ}? Clearly,
+we cannot require that \AS{N \ti N†}, as the context \AS{Δ} in which
+the closure body is defined is different from \AS{Γ}. However, recall
+that the closure environment \AS{E} is defined as a substitution from
+\AS{Δ} to \AS{Γ}. Applying this substitution, extended with a newly
+bound variable, to the closure body (\AS{subst (exts E) N†})
 results in a term in \AS{Γ} which can be in a similarity relation with
-\AS{N}, and this is precisely what we require in the definition.
+\AS{N}, and this is precisely what is required in the definition.
 
-(Note: the \AS{exts} accounts for the fact that the closure body is
-defined in the context \AS{Δ} extended by the variable bound by the
-abstraction, similarly to the lambda body.)
+The application of \AS{exts} accounts for the fact that the closure
+body is defined in the context \AS{σ ∷ Δ} (or \AS{Δ, x : σ}, using a
+notation with names).
 
-It is natural to ask what the relationship between a closure
-conversion function and the similarity relation. Is the similarity
-relation as graph relation of a closure conversion function? It is
-not. Recall that closure conversion can be implemented by any function
-which takes source terms to target terms and preserves the type and
-context. But an implementation has freedom in how it deals with
-closure environments; the meta language type of closures only requires
-that the environment is \textit{some} substitution from the closure
-body context \AS{Δ} to the outer context \AS{Γ}.
+The definition of similarity is reminiscent of `compatibity lemmas`,
+which is a usual name for a kind of result which states that similar
+terms can be composed to form similar terms. Except here, similarity
+is an inductive definition, not a lemma.
 
-For example, the closure conversion transformation we described in
-Chapter ??? had the property that closure environments were minimal:
-they only contained parts of context actually used by the closure
-body. In contrast, the simplest possible closure conversion could use
-identity environments:
+Similarity is defined in Agda as follows:
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{tilde}
+
+The definition of similarity might seem arbitrary, but we argue that
+the graph relation of any well-behaved closure conversion function is
+contained within the similarity relation.
+
+For example, consider the trivial closure conversion algorithm
+\AS{simple-cc}, which uses full contexts as environments (through
+idenitity substitutions \AS{id-subst}):
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{convert}
 
-We require that for every well-behaved closure conversion function \AS{c}, any
-source term \AS{N} is similar to the result of its translation with
-\AS{c}: \AS{N \ti c N}. This is indeed the case for the \AS{convert}
-function. The proof is by straightforward induction; in the
-abstraction case, we need to argue that applying an identity substitution
-leaves the term unchanged.
+Indeed, the graph relation of \AS{simple-cc} is contained in the
+similarity relation. The proof is by straightforward induction; in the
+abstraction case, we need to argue that applying an identity
+substitution leaves the argument term unchanged.
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{graph}
 
-A similar result could be obtained for the closure conversion
-algorithm which minimises environments from Chapter ???, but the proof
-would be longer.
+\subsubsection{Minimising closure conversion is contained in the
+  similarity relation}
+\label{sec:minim-clos-conv-1}
 
-However, given \AS{M \ti M†}, it is not
-necessarily the case that \AS{M† ≡ c M} for any \textit{fixed}
-function \AS{c}; instead, \AS{M† ≡ c M} holds for \textit{some}
-function \AS{c}. Therefore, the similarity relation is not the graph
-relation of any \textit{specific} conversion \AS{c}.
+TODO
 
-Having defined the notion of similarity, we are in a position to
+With the notion of similarity formalised, we are in a position to
 define bisimulation.
 
 \section{Bisimulation}
@@ -1022,98 +1071,6 @@ where we discuss so-called fusion lemmas for the closure language λT.
 
 TODO acknowledge PLFA here
 
-
-\section{Fusion lemmas for the closure language λT}
-
-When studying the meta-theory of a calculus, one systematically needs
-to prove fusion lemmas for various semantics (TODO wording) (recall
-that a semantic is a traversal of a term). A fusion
-lemma relates three semantics: the pair we sequence and their
-sequential composition (TODO wording). In our proof of bimisulation
-for closure conversion, we have interactions of two semantics:
-renaming and substitution. In fact, we need fusion lemmas for all four
-combinations of them:
-
-\begin{enumerate}
-  \item A renaming followed by a renaming,
-  \item A renaming followed by a substitution,
-  \item A substitution followed by a renaming,
-  \item A substitution followed by a substitution.
-  \end{enumerate}
-
-As it turns out, the first composition (a renaming followed by a
-renaming) is equivalent to a renaming, and the other three compositions
-are equivalent to substitutions. 
-
-We state the results as signatures of Agda functions, using the
-environment combinators \AS{\_<\$>\_} and \AS{select} we described in Section~??.
-
-\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-rename}
-\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-rename}  
-\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{rename-subst} 
-\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-subst}
-
-The Agda proofs of those four lemmas can be found in the appendix
-(TODO ref); here we outline the proof structure, analyse one of the
-four lemmas, and compare
-fusion lemmas for \lcl with the corresponding lemmas for STLC.
-
-A generic technique to prove fusion lemmas for STLC,
-including the ones about renaming and substitution, is one of the main
-contributions of ACMM \cite{DBLP:conf/cpp/Allais0MM17}. Their proof
-uses logical relations (TODO explain) and it relies on the invariant
-that corresponding environment values are in appropriate relations,
-including when environments are extended when going under a
-binder. Maintaining this invariant is possible thanks to the generic
-framework for writing traversals (semantics) introduced by ACMM.
-
-As it turns out, fusion lemmas for the closure language are simpler,
-as they do not require the logical relation machinery of ACMM. This is
-because renaming and substitution in \lcl `do not go under binders`,
-as can be seen from their definitions:
-
-\ExecuteMetaData[StateOfTheArt/Closure.tex]{syntactic}
-\ExecuteMetaData[StateOfTheArt/Closure.tex]{rename}
-\ExecuteMetaData[StateOfTheArt/Closure.tex]{subst}
-
-For both renaming and substitution, in the closure case (\AS{L}), the
-closure body is left untouched; only the closure environment is
-modified.
-
-We are now ready to take a closer look at the proof of the fusion
-lemma for a renaming followed by a subsitution:
-
-\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-rename} 
-\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{subst-rename-proof} 
-
-The proof is by induction on the typing derivation of the term:
-
-\begin{itemize}
-\item In the variable case, the LHS and the RHS normalise to the same
-  term, so \AS{refl} suffices.
-\item In the application case, the proof is by congruence (TODO
-  wording).
-\item In the closure case, the proof is also by congruence, but
-  an equational proof is required to show that the LHS and RHS act the
-  same of the environment \AS{E}.
-\end{itemize}
-
-The equational proof for \AS{E} proceeds as follows:
-
-\begin{enumerate}
-\item It uses the fact that function composition \AS{\_∘\_}
-  distributes through mapping over environments \AS{\_<\$>\_}: we have
-  \AS{f <\$> g <\$> E ≡ f ∘ g <\$> E} which is capture by the lemma
-  \AS{< \$>-distr},
-\item It uses the fact that when \AS{f} and \AS{g} are extensionally
-  equal (\AS{∀ \{x\} → f x ≡ g x}), then \AS{f <\$> E ≡ g <\$> E} which
-  is captured by the lemma \AS{<\$>-fun},
-\item \AS{<\$>-fun} is instantiated with the inductive hypothesis.
-\end{enumerate}
-
-Unfortunately, Agda does not recognise our fusion lemmas as
-terminating, and we were unable to provide a termination proof. Still,
-we believe that the proof function is in fact terminating.
 
 \section{Back to \ti rename and \ti subst}
 
