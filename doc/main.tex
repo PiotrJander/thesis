@@ -700,7 +700,7 @@ converted to the term \AS{e'} in \AS{Δ}`:
 \]
 
 \textbf{min-V}: Any variables can be typed in a singleton context
-containing just itself.
+containing just the type of the variable.
 
 \textbf{min-A}: If the conversion \AS{e₁'} of \AS{e₁} can be typed in
 $\Delta_1$, and the conversion \AS{e₂'} of \AS{e₂} can be typed in \AS{Δ₂},
@@ -763,13 +763,83 @@ algorithm. A further example: the fact that \AS{⊆-trans Δ⊆Γ₁ Γ₁⊆Γ 
   Δ⊆Γ} is used in proofs of certain equivalences involving subcontexts
 and renaming.
 
+\subsection{Agda implementation of minimising closure conversion}
+\label{sec:agda-impl-minim}
 
+Recall that terms of our intermediate languages are explicitly typed
+in a given context. For that reason, the result type of minimising
+closure conversion must be existentially quatified over a
+context. In fact, the context should be a subcontext of the input
+context \AS{Γ}. This is captured with the dependent record
+\AS{\_⊩\_}:
 
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{ex-subctx-trm}
 
+For example, a term \AS{N} in a context \AS{Δ} which is a subcontext
+of \AS{Γ} by \AS{Δ⊆Γ}, would be constructed as \AS{∃[ Δ ] Δ⊆Γ ∧ N}.
+
+With this data type, the type of the minimising closure conversion
+function is:
 
 \ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc}
 
-\chapter{TODO Minimising closure conversion}
+The function definition is by cases:
+
+\textbf{Variable case}
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-v}
+
+Following \textit{min-V}, a variable is typed in a singleton
+context. The proof of the subcontext relation is computed from the
+proof of the context membership by a function \AS{Var→⊆}.
+
+\textbf{Application case}
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-a}
+
+Given an application \AS{e₁ e₂}, \AS{e₁} and \AS{e₂} are closure
+converted recursively, resulting in terms \AS{e₁'} and \AS{e₂'}, which
+are typed in \AS{Δ₁} and \AS{Δ₂}, respectively. Following
+\textit{app-V}, the result of closure-converting the application is
+typed in the context \AS{Δ}, which is the result of merging \AS{Δ₁}
+and \AS{Δ₂}. As terms are explicitly typed in a context, \AS{e₁'} and
+\AS{e₂'} have to be renamed from \AS{Δ₁} to \AS{Δ}, and from \AS{Δ₂}
+to \AS{Δ}, respectively. A renaming environment is computed from a
+subcontext relation proof by the function \AS{⊆→ρ} which is given by:
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{subctx-to-ren}
+
+\textbf{Abstraction case}
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-l}
+
+Following \textit{min-A}, the result of closure-converting an
+abstraction depends on the result \AS{N†} of closure-clonverting its
+body. A recursive call on the body of the abstraction yields a term
+typed in some context \AS{Δ}. But looking at the typing rule for
+closures (\textit{T-clos}), the closure body is typed in a context
+\AS{σ ∷ Δ₁} (or \AS{Δ₁, x : σ} using named variables), where \AS{σ} is
+the type of the last bound variable and \AS{Δ₁} is the context
+corresponding to the closure environment. Thus, we need a way of
+decomposing \AS{Δ} into \AS{σ} and \AS{Δ₁}, together with an
+appropriate proof of membership in the input context \AS{Γ}.
+
+This task is achieved by the function \AS{adjust-context}:
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{adjust-context-f}
+
+whose specification is captured by its return type which uses the
+dependent record \AS{AdjustContext}:
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{adjust-context-t}
+
+The specification is: given \AS{Δ ⊆ A ∷ Γ}, there exists a context
+\AS{Δ₁} such that \AS{Δ₁ ⊆ Γ} and \AS{Δ ⊆ A ∷ Δ₁}, such that the
+proof \AS{Δ ⊆ A ∷ Γ} obtained by transitivity is the same as the input
+proof.
+
+The proof that \AS{Δ ⊆ A ∷ Δ₁} is used to rename \AS{N†} so that the
+final inherently-typed term is well-typed.
 
 \chapter{Bisimulation}
 

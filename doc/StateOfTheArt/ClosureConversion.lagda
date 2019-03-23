@@ -33,6 +33,7 @@ It is a well-known property of typed closure conversion that environments have e
 This implementation has the prperty that as it transforms the source term bottom-up, it maintains a minimal context,
 which is the Δ field on the dependent record.
 
+%<*ex-subctx-trm>
 \begin{code}
 record _⊩_ (Γ : Context) (A : Type) : Set where
   constructor ∃[_]_∧_
@@ -40,10 +41,8 @@ record _⊩_ (Γ : Context) (A : Type) : Set where
     Δ : Context
     Δ⊆Γ : Δ ⊆ Γ
     N : T.Lam A Δ
-
-Closure : Type → Context → Set
-Closure A Γ = Γ ⊩ A
 \end{code}
+%</ex-subctx-trm>
 
 \section{Helper functions for closure conversion}
 
@@ -51,7 +50,10 @@ Closure A Γ = Γ ⊩ A
 Var→⊆ : ∀ {Γ} {A : Type} → Var A Γ → A ∷ [] ⊆ Γ
 Var→⊆ {_ ∷ Γ} z = keep ([]⊆ Γ)
 Var→⊆ (s x) = skip (Var→⊆ x)
+\end{code}
 
+%<*adjust-context-t>
+\begin{code}
 record AdjustContext {A Γ Δ} (Δ⊆A∷Γ : Δ ⊆ A ∷ Γ) : Set where
   constructor adjust
   field
@@ -59,13 +61,23 @@ record AdjustContext {A Γ Δ} (Δ⊆A∷Γ : Δ ⊆ A ∷ Γ) : Set where
     Δ₁⊆Γ   : Δ₁ ⊆ Γ
     Δ⊆AΔ₁  : Δ ⊆ A ∷ Δ₁
     well   : Δ⊆A∷Γ ≡ ⊆-trans Δ⊆AΔ₁ (keep Δ₁⊆Γ)
+\end{code}
+%</adjust-context-t>
 
+\begin{code}
 helper-1 : {Γ Δ : Context} (Δ⊆Γ : Δ ⊆ Γ) → ⊆-trans ⊆-refl Δ⊆Γ ≡ Δ⊆Γ
 helper-1 base = refl
 helper-1 (skip Δ⊆Γ) = cong skip (helper-1 Δ⊆Γ)
 helper-1 (keep Δ⊆Γ) = cong keep (helper-1 Δ⊆Γ)
+\end{code}
 
+%<*adjust-context-f>
+\begin{code}
 adjust-context : ∀ {Γ Δ A} → (Δ⊆A∷Γ : Δ ⊆ A ∷ Γ) → AdjustContext Δ⊆A∷Γ
+\end{code}
+%</adjust-context-f>
+
+\begin{code}
 adjust-context (skip {xs = Δ₁} Δ⊆Γ) = adjust Δ₁ Δ⊆Γ (skip ⊆-refl) (cong skip (sym (helper-1 Δ⊆Γ)))
 adjust-context (keep {xs = Δ₁} Δ⊆Γ) = adjust Δ₁ Δ⊆Γ (keep ⊆-refl) (cong keep (sym (helper-1 Δ⊆Γ)))
 \end{code}
@@ -77,29 +89,45 @@ The main source of compilcation is the need to merge minimal contexts.
 
 The case of the lambda abstraction is most interesting. A recursive call on the body produces a minimal context which describes the minimal environment.
 
+%<*subctx-to-ren>
 \begin{code}
-
 ⊆→ρ : {Γ Δ : Context} → Γ ⊆ Δ → Thinning Γ Δ
 lookup (⊆→ρ base) ()
 lookup (⊆→ρ (skip Γ⊆Δ)) x = s (lookup (⊆→ρ Γ⊆Δ) x)
 lookup (⊆→ρ (keep Γ⊆Δ)) z = z
 lookup (⊆→ρ (keep Γ⊆Δ)) (s x) = s (lookup (⊆→ρ Γ⊆Δ) x)
 \end{code}
+%</subctx-to-ren>
 
 %<*min-cc>
 \begin{code}
-cc : ∀ {Γ A} → S.Lam A Γ → Closure A Γ
+cc : ∀ {Γ A} → S.Lam A Γ → Γ ⊩ A
+\end{code}
+%</min-cc>
+
+%<*min-cc-v>
+\begin{code}
 cc {A = A} (S.V x) = ∃[ A ∷ [] ] Var→⊆ x ∧ T.V z
+\end{code}
+%</min-cc-v>
+
+%<*min-cc-a>
+\begin{code}
 cc (S.A M N) with cc M | cc N
 cc (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ M† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ N† with merge Δ⊆Γ Δ₁⊆Γ
-cc (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ M† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ N† | subContextSum Γ₁ Γ₁⊆Γ Δ⊆Γ₁ Δ₁⊆Γ₁ _ _
+cc (S.A M N) | ∃[ Δ ] Δ⊆Γ ∧ M† | ∃[ Δ₁ ] Δ₁⊆Γ ∧ N† | subListSum Γ₁ Γ₁⊆Γ Δ⊆Γ₁ Δ₁⊆Γ₁ _ _
   = ∃[ Γ₁ ] Γ₁⊆Γ ∧ (T.A (T.rename (⊆→ρ Δ⊆Γ₁) M†) (T.rename (⊆→ρ Δ₁⊆Γ₁) N†))
+\end{code}
+%</min-cc-a>
+
+%<*min-cc-l>
+\begin{code}
 cc (S.L N) with cc N
 cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† with adjust-context Δ⊆Γ
 cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁ _
   = ∃[ Δ₁ ] Δ₁⊆Γ ∧ (T.L (T.rename (⊆→ρ Δ⊆AΔ₁) N†) T.id-subst)
 \end{code}
-%</min-cc>
+%</min-cc-l>
 
 \begin{code}
 _† : ∀ {Γ A} → S.Lam A Γ → T.Lam A Γ
