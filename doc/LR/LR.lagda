@@ -61,3 +61,46 @@ _∙^R_ : ∀ {Γ τ}
       → ρ^s ∙ N₁ ∙≈ ρ^t ∙ N₂
 lookup^R (ρ^R ∙^R ≈N) z      = ≈N
 lookup^R (ρ^R ∙^R ≈N) (s x)  = lookup^R ρ^R x
+
+infix  4 _~~_
+data _~~_ : ∀ {Γ σ k} → S.Exp k σ Γ → T.Exp k σ Γ → Set where
+
+  -- values
+
+  ~var : ∀ {Γ σ} {x : Var σ Γ}
+     ---------------
+   → S.`var x ~~ T.`var x
+
+  ~λ : ∀ {Γ Δ σ τ} {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Δ)} {E : T.Subst Δ Γ}
+    → N₁ ~~ T.subst (T.exts E) N₂
+      -----------------
+    → S.`λ N₁ ~~ T.`λ N₂ E
+
+  -- terms
+
+  _~$_ : ∀ {Γ σ τ} {L : S.Val (σ ⇒ τ) Γ} {L† : T.Val (σ ⇒ τ) Γ}
+           {M : S.Val σ Γ} {M† : T.Val σ Γ}
+    → L ~~ L†
+    → M ~~ M†
+      --------------------
+    → L S.`$ M ~~ L† T.`$ M†
+
+  ~let : ∀ {Γ σ τ} {M₁ : S.Trm σ Γ} {M₂ : T.Trm σ Γ}
+           {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Γ)}
+    → M₁ ~~ M₂
+    → N₁ ~~ N₂
+      ----------------------------
+    → S.`let M₁ N₁ ~~ T.`let M₂ N₂
+
+  ~val : ∀ {Γ σ} {M₁ : S.Val σ Γ} {M₂ : T.Val σ Γ}
+    → M₁ ~~ M₂
+      ----------------------
+    → S.`val M₁ ~~ T.`val M₂
+
+lr : ∀ {Γ σ} {M₁ : S.Trm σ Γ} {M₂ : T.Trm σ Γ}
+       {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
+   → ρ^s ∙≈ ρ^t
+   → M₁ ~~ M₂
+     -------------------------------
+   → S.subst ρ^s M₁ ~ T.subst ρ^t M₂
+lr ρ^s∙≈ρ^t M₁~~M₂ = {!!}

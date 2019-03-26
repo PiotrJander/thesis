@@ -53,7 +53,10 @@ Val₀ : Type → Set
 Val₀ = Exp₀ `val
 
 id-subst : ∀ {Γ} → (Γ ─Env) Val Γ
-lookup id-subst x = `var x 
+lookup id-subst x = `var x
+
+exts : ∀ {Γ Δ σ} → Subst Γ Δ → Subst (σ ∷ Γ) (σ ∷ Δ)
+exts ρ = rename (pack s) <$> ρ ∙ `var z
 
 infix 3 _[_]
 _[_] : ∀ {Γ σ τ} → Trm τ (σ ∷ Γ) → Val σ Γ → Trm τ Γ
