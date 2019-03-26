@@ -31,7 +31,10 @@ rename ρ (`λ N)      = `λ (rename (s <$> ρ ∙ z) N)
 rename ρ (`let M N)  = `let (rename ρ M) (rename (s <$> ρ ∙ z) N)
 rename ρ (`val N)    = `val (rename ρ N)
 
-subst : ∀ {Γ Δ σ k} → (Γ ─Env) Val Δ → Exp k σ Γ → Exp k σ Δ
+Subst : Context → Context → Set
+Subst Γ Δ = (Γ ─Env) Val Δ
+
+subst : ∀ {Γ Δ σ k} → Subst Γ Δ → Exp k σ Γ → Exp k σ Δ
 subst ρ (`var x)    = lookup ρ x
 subst ρ (M `$ N)    = subst ρ M `$ subst ρ N
 subst ρ (`λ N)      = `λ (subst (rename (pack s) <$> ρ ∙ `var z) N)
