@@ -1,5 +1,9 @@
 \begin{code}
 open import Data.List using (List; []; _∷_)
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl; trans; cong; sym; cong₂)
+open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
+open import Function using (_∘_)
 
 open import LR.Base
 import LR.STLC as S
@@ -96,15 +100,70 @@ data _~~_ : ∀ {Γ σ k} → S.Exp k σ Γ → T.Exp k σ Γ → Set where
       ----------------------
     → S.`val M₁ ~~ T.`val M₂
 
+
+postulate
+  helper-1 : ∀ {Γ σ τ} (ρ^s : S.Subst Γ []) (N₁ : S.Trm τ (σ ∷ Γ)) (V₁ : S.Val₀ σ)
+    → S.subst (S.id-subst ∙ V₁) (S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁) ≡ S.subst (ρ^s ∙ V₁) N₁
+
+postulate
+  helper-2 : ∀ {Γ Δ σ τ} (ρ^t : T.Subst Γ []) (E : T.Subst Δ Γ) (N₂ : T.Trm τ (σ ∷ Δ)) (V₂ : T.Val₀ σ)
+    → T.subst (ρ^t ∙ V₂) (T.subst (T.rename (pack s) <$> E ∙ T.`var z) N₂) ≡ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂
+
 lr : ∀ {Γ σ k} {M₁ : S.Exp k σ Γ} {M₂ : T.Exp k σ Γ}
        {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
    → ρ^s ∙≈ ρ^t
    → M₁ ~~ M₂
      -------------------------------
    → sim {k} (S.subst ρ^s M₁) (T.subst ρ^t M₂)
+lr-lam : ∀ {Γ Δ σ τ} {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Δ)} {E : T.Subst Δ Γ} {V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
+       {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
+   → ρ^s ∙≈ ρ^t
+   → N₁ ~~ T.subst (T.exts E) N₂
+   → V₁ ≈ V₂
+     -----------------
+   → S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁ [ V₁ ] ~ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂
+
 lr ∙≈ρ (~var {x = x}) = lookup^R ∙≈ρ x
-lr ∙≈ρ (~λ ~N) = {!!}
-lr ∙≈ρ (~M ~$ ~N) with lr ∙≈ρ ~M | lr ∙≈ρ ~M
-... | p | q = {!!}
+lr ∙≈ρ (~λ ~N) = ≈λ (λ V₁≈V₂ → {!lr-lam ∙≈ρ ~N V₁≈V₂!})
+lr {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N) with S.subst ρ^s L | T.subst ρ^t L† | lr ∙≈ρ ~M | lr ∙≈ρ ~N
+... | S.`var () | _ | _ | _
+... | S.`λ _ | T.`var () | _ | _
+lr {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N) | S.`λ N | T.`λ N† E | ≈λ p | ~V with p ~V
+... | ~Trm N₁⇓U₁ N₂⇓U₂ U₁≈U₂ = ~Trm (S.⇓step S.→₁app N₁⇓U₁) (T.⇓step T.→₁app N₂⇓U₂) U₁≈U₂
 lr ∙≈ρ (~let ~M ~N) = {!!}
-lr ∙≈ρ (~val ~M) = {!!}
+lr ∙≈ρ (~val ~M) with lr ∙≈ρ ~M
+... | ~V = ~Trm S.⇓val T.⇓val ~V
+lr-lam {N₁ = N₁} {N₂} {E} {V₁} {V₂} {ρ^s} {ρ^t} ∙≈ρ ~N V₁≈V₂ with lr (∙≈ρ ∙^R V₁≈V₂) ~N
+... | p rewrite helper-1 ρ^s N₁ V₁ | sym (helper-2 ρ^t E N₂ V₂) = p
+
+
+
+
+
+
+postulate
+  subst∘subst : ∀ {Γ Δ Θ τ} (ρ₁ : S.Subst Γ Θ) (ρ₂ : S.Subst Δ Γ) (N : S.Trm τ Δ)
+    → S.subst ρ₁ (S.subst ρ₂ N) ≡ S.subst (S.subst ρ₁ <$> ρ₂) N
+    
+-- helper-1 ρ^s N₁ V₁ =
+--   begin
+--     S.subst (S.id-subst ∙ V₁) (S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁)
+--   ≡⟨ subst∘subst (S.id-subst ∙ V₁) (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁ ⟩  -- 
+--     S.subst (S.subst (S.id-subst ∙ V₁) <$> (S.rename (pack s) <$> ρ^s ∙ S.`var z)) N₁
+--   ≡⟨⟩
+--     S.subst (S.subst (S.id-subst ∙ V₁) <$> S.rename (pack s) <$> ρ^s ∙ V₁) N₁
+--   ≡⟨ {!!} ⟩
+--     S.subst (S.subst (S.id-subst ∙ V₁) <$> S.rename (pack s) <$> ρ^s ∙ V₁) N₁
+--   ≡⟨ ⟩
+--     S.subst (ρ^s ∙ V₁) N₁
+--   ∎
+  
+-- S.subst (S.id-subst ∙ V₁) (S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁)
+-- S.subst (S.subst (S.id-subst ∙ V₁) <$> (S.rename (pack s) <$> ρ^s ∙ S.`var z)) N₁
+-- S.subst (S.subst (S.id-subst ∙ V₁) ∘ S.rename (pack s) <$> ρ^s ∙ V₁) N₁
+-- S.subst (ρ^s ∙ V₁) N₁
+
+-- T.subst (ρ^t ∙ V₂) (T.subst (T.rename (pack s) <$> E ∙ T.`var z) N₂)
+-- T.subst (T.subst (ρ^t ∙ V₂) <$> (T.rename (pack s) <$> E ∙ T.`var z)) N₂
+-- T.subst (T.subst (ρ^t ∙ V₂) <$> T.rename (pack s) <$> E ∙ V₂) N₂
+-- T.subst (T.subst ρ^t <$> E ∙ V₂) N₂
