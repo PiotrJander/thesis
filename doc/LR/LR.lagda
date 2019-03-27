@@ -9,6 +9,7 @@ open T using ()
 
 module LR.LR where
 
+{-# NO_POSITIVITY_CHECK #-}
 data sim : {k : Kind} {τ : Type} → S.Exp₀ k τ → T.Exp₀ k τ → Set
 
 infix 2 _~_
@@ -26,15 +27,13 @@ data sim where
 
   ≈λ : ∀ {Δ σ τ} {M₁ : S.Trm τ (σ ∷ [])}
          {M₂ : T.Trm τ (σ ∷ Δ)} {E : T.Subst Δ []}
-         {V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
-       → V₁ ≈ V₂
-       → M₁ [ V₁ ] ~ T.subst (E ∙ V₂) M₂
+       → ({V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ} → V₁ ≈ V₂ → M₁ [ V₁ ] ~ T.subst (E ∙ V₂) M₂)
          -------------------------------
        → S.`λ M₁ ≈ T.`λ M₂ E
 
   -- terms
 
-  ~N : ∀ {σ} {N₁ : S.Trm₀ σ} {N₂ : T.Trm₀ σ}
+  ~Trm : ∀ {σ} {N₁ : S.Trm₀ σ} {N₂ : T.Trm₀ σ}
              {V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
      → N₁ S.⇓ V₁
      → N₂ T.⇓ V₂
@@ -103,4 +102,9 @@ lr : ∀ {Γ σ k} {M₁ : S.Exp k σ Γ} {M₂ : T.Exp k σ Γ}
    → M₁ ~~ M₂
      -------------------------------
    → sim {k} (S.subst ρ^s M₁) (T.subst ρ^t M₂)
-lr ρ^s∙≈ρ^t M₁~~M₂ = ?
+lr ∙≈ρ (~var {x = x}) = lookup^R ∙≈ρ x
+lr ∙≈ρ (~λ ~N) = {!!}
+lr ∙≈ρ (~M ~$ ~N) with lr ∙≈ρ ~M | lr ∙≈ρ ~M
+... | p | q = {!!}
+lr ∙≈ρ (~let ~M ~N) = {!!}
+lr ∙≈ρ (~val ~M) = {!!}
