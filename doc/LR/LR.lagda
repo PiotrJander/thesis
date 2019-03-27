@@ -97,10 +97,10 @@ data _~~_ : ∀ {Γ σ k} → S.Exp k σ Γ → T.Exp k σ Γ → Set where
       ----------------------
     → S.`val M₁ ~~ T.`val M₂
 
-lr : ∀ {Γ σ} {M₁ : S.Trm σ Γ} {M₂ : T.Trm σ Γ}
+lr : ∀ {Γ σ k} {M₁ : S.Exp k σ Γ} {M₂ : T.Exp k σ Γ}
        {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
    → ρ^s ∙≈ ρ^t
    → M₁ ~~ M₂
      -------------------------------
-   → S.subst ρ^s M₁ ~ T.subst ρ^t M₂
-lr ρ^s∙≈ρ^t M₁~~M₂ = {!!}
+   → sim {k} (S.subst ρ^s M₁) (T.subst ρ^t M₂)
+lr ρ^s∙≈ρ^t M₁~~M₂ = ?
