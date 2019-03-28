@@ -4,6 +4,7 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; cong; sym; cong₂)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Function using (_∘_)
+open import Data.Empty using (⊥; ⊥-elim)
 
 open import LR.Base
 import LR.STLC as S
@@ -124,13 +125,13 @@ lr-lam : ∀ {Γ Δ σ τ} {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ �
    → S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁ [ V₁ ] ~ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂
 
 lr ∙≈ρ (~var {x = x}) = lookup^R ∙≈ρ x
-lr ∙≈ρ (~λ ~N) = ≈λ (λ V₁≈V₂ → {!lr-lam ∙≈ρ ~N V₁≈V₂!})
+lr ∙≈ρ (~λ ~N) = ≈λ (λ V₁≈V₂ → ⊥-elim impossible) where postulate impossible : ⊥ -- lr-lam ∙≈ρ ~N V₁≈V₂
 lr {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N) with S.subst ρ^s L | T.subst ρ^t L† | lr ∙≈ρ ~M | lr ∙≈ρ ~N
 ... | S.`var () | _ | _ | _
 ... | S.`λ _ | T.`var () | _ | _
 lr {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N) | S.`λ N | T.`λ N† E | ≈λ p | ~V with p ~V
 ... | ~Trm N₁⇓U₁ N₂⇓U₂ U₁≈U₂ = ~Trm (S.⇓step S.→₁app N₁⇓U₁) (T.⇓step T.→₁app N₂⇓U₂) U₁≈U₂
-lr ∙≈ρ (~let ~M ~N) = {!!}
+lr ∙≈ρ (~let ~M ~N) = ⊥-elim impossible where postulate impossible : ⊥
 lr ∙≈ρ (~val ~M) with lr ∙≈ρ ~M
 ... | ~V = ~Trm S.⇓val T.⇓val ~V
 lr-lam {N₁ = N₁} {N₂} {E} {V₁} {V₂} {ρ^s} {ρ^t} ∙≈ρ ~N V₁≈V₂ with lr (∙≈ρ ∙^R V₁≈V₂) ~N

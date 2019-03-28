@@ -447,6 +447,7 @@ of STLC, cf. \cite{DBLP:conf/sbmf/Wadler18}.
 Operational semantics are needed for the treatment of bisimulation.
 
 \chapter{The Agda development}
+\label{cha:agda-development}
 
 This chapter presents the parts of the Agda development which are
 original to this project. It starts by discussing the closure language
@@ -1189,6 +1190,90 @@ substitution commutes with similarity:
 
 TODO finish
 
+\chapter{Proof by logical relations}
+
+As we mentioned in \ref{TODO}, there are two standard methods for
+proving operational correctness of a translation: bisimulations and
+logical relations [TODO wording from Dreyer's
+paper]. Chapter~\ref{cha:agda-development} discussed an Agda
+mechanisation of a proof of bisimulation for [TODO wording] closure
+conversion. This chapter presents a mechanisation of the other proof
+method, [by/with?] logical relations?
+
+The chapter starts with a presentation of an modified formalisation
+of the source and target languages of closure conversion. Then, a
+pen-and-paper proof by logical relations is given, and finally, its
+Agda formalisation.
+
+\section{Alternative formalisation of the intermediate languages}
+\label{sec:altern-form-interm}
+
+This section presents an alternative formalisation of the source and
+target languages of closure conversion. We call the new formalisation
+of the source language λst', and the new formalisation of the target
+language - λcl'. Compared with λst and λcl in
+Chapter~\ref{cha:agda-development}, λst' and λcl' are different in two
+ways.. Firstly, the distinction between values and non-values is
+made explicit in the definition of terms in λst' and λcl', replacing a predicate on
+terms in λst and λcl. Secondly, we give big-step semantics for λst'
+and λcl', in contrast to small-step semantics for λst and λcl. These
+two differences simplify mechanisation of a proof by logica relation.
+
+These improvements in formalisation are inspired by an Agda
+formalisation accompanying \cite{DBLP:conf/cpp/McLaughlinMS18}.
+
+[TODO maybe only discuss STLC?]
+
+The definitions of types, contexts, variables as proofs of context
+membership, and environments, are the same as for λst and λcl in the
+previous chapter. The definition of language expressions is different,
+however, in that it makes an explicit distinction between values \AS{Val} and
+non-values \AS{Trm}. This is achieved by indexing the \AS{Exp} data
+type by a \AS{Kind}:
+
+\ExecuteMetaData[LR/Base.tex]{kind}
+
+\ExecuteMetaData[LR/STLC.tex]{exp}
+
+Notice that there are two new constructors for language
+expressions. The first one is \AS{`val}, which takes a value \AS{Val}
+to a term \AS{Trm} and thus makes it possible to use values in
+positions where terms are expected. The second is \AS{`let}, which is
+a standard let construct. The let is necessary to make the evaluation
+order explicit: function application applies a value to a value, so
+nested computations need to be factored out and bound as values by a
+let expression. This representation is known as A-normal form
+\cite{DBLP:conf/lfp/SabryF92}, and it is used for λst' and λcl' as it
+simplifies the definition as big-step semantics.
+
+Definition of renaming and substitution are similarly to those for
+λst, so we do not include the updated version here. Instead, we define
+aliases for closed values \AS{Val₀} and closed terms \AS{Trm₀} (typed
+in an empty context):
+
+\ExecuteMetaData[LR/STLC.tex]{ground}
+
+Like it was mentioned, the semantics of λst are defined as big-step
+semantics. Given a term \AS{M} and a value \AS{V}, the inductive
+definition \AS{M ⇓ V} states the conditions for \AS{M} to reduce to a
+value \AS{V}:
+
+\ExecuteMetaData[LR/STLC.tex]{big-step}
+
+It is worth explaining the \AS{⇓step} constructor and the \AS{M →₁ M'}
+data type. The \AS{M →₁ M'} data type describes the small-step
+reducton relation and has a single constructor which captures beta
+reduction for functions. The \AS{⇓step} constructor is similar to the
+transitive closure of the small-step reduction relation: if \AS{M}
+reduces to \AS{M'} in a single step, and \AS{M'} reduces to \AS{V} in
+multiple steps, then \AS{M} reduces to \AS{V} in multiple steps.
+
+Finally, ... [TODO what to make of a non-terminating proof of
+termination?]
+
+\ExecuteMetaData[LR/STLC.tex]{sn}
+
+\chapter{Reflections and evaluation}
 \chapter{Relationship to the UG4 project}
 
 This work is a natural continuation of the UG4 project, but it

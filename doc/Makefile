@@ -15,7 +15,11 @@ AGDA_FILES:=\
   StateOfTheArt/Closure.lagda \
   StateOfTheArt/ClosureConversion.lagda \
   StateOfTheArt/Sublist.lagda \
-  StateOfTheArt/SubContext.lagda 
+  StateOfTheArt/SubContext.lagda \
+  LR/Base.lagda \
+  LR/STLC.lagda \
+  LR/Closure.lagda \
+  LR/LR.lagda 
 
 AGDA_OUTPUT:=$(patsubst %.lagda,latex-agda-output/%.tex,$(AGDA_FILES))
 AGDA_OUTPUT_PROCESSED:=$(patsubst %.lagda,latex/%.tex,$(AGDA_FILES))

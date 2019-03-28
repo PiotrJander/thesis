@@ -14,10 +14,16 @@ Context = List Type
 data Var : Type → Context → Set where
   z  : ∀ {Γ σ} → Var σ (σ ∷ Γ)
   s  : ∀ {Γ σ τ} → Var σ Γ → Var σ (τ ∷ Γ)
+\end{code}
 
+%<*kind>
+\begin{code}
 data Kind : Set where
   `val `trm : Kind
+\end{code}
+%</kind>
 
+\begin{code}
 infix 3 _─Env
 
 record _─Env (Γ : Context) (𝓥 : Type → Context → Set) (Δ : Context) : Set where
@@ -42,4 +48,4 @@ lookup (f <$> ρ) x = f (lookup ρ x)
 
 Thinning : Context → Context → Set
 Thinning Γ Δ = (Γ ─Env) Var Δ
-
+\end{code}
