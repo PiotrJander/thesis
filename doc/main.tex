@@ -1306,7 +1306,21 @@ The compatibility relation provides handy inductive hypotheses in the
 proof by logical relations.
 
 While the compatibility relation captures syntactic correspondence, we
-need another relation which captures operational correspondence. TODO
+need another relation on (closed) language expressions which captures
+operational correspondence. In fact, this relation \AS{sim} is
+comprised of (1) a relation \AS{\ti} between closed source terms and
+closed target terms, and (2) a relation \AS{≈} between closed source
+values and closed target values. Those two relations are defined by
+mutual induction and induction on types [TODO both at the same time?]
+as follows:
+
+\AS{τ ∋ M₁ \tis M₂} iff \AS{M₁ ⇓ V₁}, \AS{M₂ ⇓ V₂}, and \AS{τ ∋ V₁ ≈ V₂}
+\AS{σ ⇒ τ ∋ U₁ ≈ U₂} iff for all \AS{σ ∋ V₁ ≈ V₂}, we have \AS{τ ∋ U₁
+  `\$ V₂ \tis U₂ `\$ V₂ }
+
+There is no case for \AS{≈} at the ground type \AS{α} as only
+variables can have the ground type, and the values in \AS{≈} are
+closed.
 
 \ExecuteMetaData[LR/LR.tex]{related}
 

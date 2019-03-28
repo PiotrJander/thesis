@@ -35,8 +35,9 @@ data sim where
 
   ≈λ : ∀ {Δ σ τ} {M₁ : S.Trm τ (σ ∷ [])}
          {M₂ : T.Trm τ (σ ∷ Δ)} {E : T.Subst Δ []}
-       → ({V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ} → V₁ ≈ V₂ → M₁ [ V₁ ] ~ T.subst (E ∙ V₂) M₂)
-         -------------------------------
+       → ({V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
+              → V₁ ≈ V₂ → M₁ [ V₁ ] ~ T.subst (E ∙ V₂) M₂)
+         -------------------------------------------------
        → S.`λ M₁ ≈ T.`λ M₂ E
 
   -- terms
@@ -53,15 +54,27 @@ data sim where
 
 \begin{code}
 infix 2 _∙≈_
+\end{code}
+
+%<*pointwise-related>
+\begin{code}
 record _∙≈_ {Γ : List Type}
   (ρ^s : S.Subst Γ []) (ρ^t : T.Subst Γ []) : Set where
   constructor pack^R
-  field lookup^R : {σ : Type} (v : Var σ Γ) → lookup ρ^s v ≈ lookup ρ^t v
+  field lookup^R : {σ : Type} (v : Var σ Γ)
+                 → lookup ρ^s v ≈ lookup ρ^t v
+\end{code}
+%</pointwise-related>
+
+\begin{code}
 open _∙≈_ public
 
 ε^R : ε ∙≈ ε
 lookup^R ε^R ()
+\end{code}
 
+%<*pointwise-ext>
+\begin{code}
 _∙^R_ : ∀ {Γ τ}
         {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
         {N₁ : S.Val₀ τ} {N₂ : T.Val₀ τ}
@@ -72,6 +85,7 @@ _∙^R_ : ∀ {Γ τ}
 lookup^R (ρ^R ∙^R ≈N) z      = ≈N
 lookup^R (ρ^R ∙^R ≈N) (s x)  = lookup^R ρ^R x
 \end{code}
+%</pointwise-ext>
 
 %<*compat>
 \begin{code}
