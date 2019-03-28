@@ -14,11 +14,14 @@ open T using ()
 
 module LR.LR where
 
-{-# NO_POSITIVITY_CHECK #-}
-data sim : {k : Kind} {τ : Type} → S.Exp₀ k τ → T.Exp₀ k τ → Set
-
 infix 2 _~_
 infix 2 _≈_
+\end{code}
+
+%<*related>
+\begin{code}
+{-# NO_POSITIVITY_CHECK #-}
+data sim : {k : Kind} {τ : Type} → S.Exp₀ k τ → T.Exp₀ k τ → Set
 
 _~_ : ∀ {τ} → S.Trm₀ τ → T.Trm₀ τ → Set
 N ~ N' = sim N N'
@@ -45,7 +48,10 @@ data sim where
      → V₁ ≈ V₂
        -------
      → N₁ ~ N₂
+\end{code}
+%</related>
 
+\begin{code}
 infix 2 _∙≈_
 record _∙≈_ {Γ : List Type}
   (ρ^s : S.Subst Γ []) (ρ^t : T.Subst Γ []) : Set where
@@ -65,43 +71,48 @@ _∙^R_ : ∀ {Γ τ}
       → ρ^s ∙ N₁ ∙≈ ρ^t ∙ N₂
 lookup^R (ρ^R ∙^R ≈N) z      = ≈N
 lookup^R (ρ^R ∙^R ≈N) (s x)  = lookup^R ρ^R x
+\end{code}
 
-infix  4 _~~_
-data _~~_ : ∀ {Γ σ k} → S.Exp k σ Γ → T.Exp k σ Γ → Set where
+%<*compat>
+\begin{code}
+infix  4 _≅_
+data _≅_ : ∀ {Γ σ k} → S.Exp k σ Γ → T.Exp k σ Γ → Set where
 
   -- values
 
   ~var : ∀ {Γ σ} {x : Var σ Γ}
      ---------------
-   → S.`var x ~~ T.`var x
+   → S.`var x ≅ T.`var x
 
   ~λ : ∀ {Γ Δ σ τ} {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Δ)} {E : T.Subst Δ Γ}
-    → N₁ ~~ T.subst (T.exts E) N₂
+    → N₁ ≅ T.subst (T.exts E) N₂
       -----------------
-    → S.`λ N₁ ~~ T.`λ N₂ E
+    → S.`λ N₁ ≅ T.`λ N₂ E
 
   -- terms
 
   _~$_ : ∀ {Γ σ τ} {L : S.Val (σ ⇒ τ) Γ} {L† : T.Val (σ ⇒ τ) Γ}
            {M : S.Val σ Γ} {M† : T.Val σ Γ}
-    → L ~~ L†
-    → M ~~ M†
+    → L ≅ L†
+    → M ≅ M†
       --------------------
-    → L S.`$ M ~~ L† T.`$ M†
+    → L S.`$ M ≅ L† T.`$ M†
 
   ~let : ∀ {Γ σ τ} {M₁ : S.Trm σ Γ} {M₂ : T.Trm σ Γ}
            {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Γ)}
-    → M₁ ~~ M₂
-    → N₁ ~~ N₂
+    → M₁ ≅ M₂
+    → N₁ ≅ N₂
       ----------------------------
-    → S.`let M₁ N₁ ~~ T.`let M₂ N₂
+    → S.`let M₁ N₁ ≅ T.`let M₂ N₂
 
   ~val : ∀ {Γ σ} {M₁ : S.Val σ Γ} {M₂ : T.Val σ Γ}
-    → M₁ ~~ M₂
+    → M₁ ≅ M₂
       ----------------------
-    → S.`val M₁ ~~ T.`val M₂
+    → S.`val M₁ ≅ T.`val M₂
+\end{code}
+%</compat>
 
-
+\begin{code}
 postulate
   helper-1 : ∀ {Γ σ τ} (ρ^s : S.Subst Γ []) (N₁ : S.Trm τ (σ ∷ Γ)) (V₁ : S.Val₀ σ)
     → S.subst (S.id-subst ∙ V₁) (S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁) ≡ S.subst (ρ^s ∙ V₁) N₁
@@ -113,13 +124,13 @@ postulate
 lr : ∀ {Γ σ k} {M₁ : S.Exp k σ Γ} {M₂ : T.Exp k σ Γ}
        {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
    → ρ^s ∙≈ ρ^t
-   → M₁ ~~ M₂
+   → M₁ ≅ M₂
      -------------------------------
    → sim {k} (S.subst ρ^s M₁) (T.subst ρ^t M₂)
 lr-lam : ∀ {Γ Δ σ τ} {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Δ)} {E : T.Subst Δ Γ} {V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
        {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
    → ρ^s ∙≈ ρ^t
-   → N₁ ~~ T.subst (T.exts E) N₂
+   → N₁ ≅ T.subst (T.exts E) N₂
    → V₁ ≈ V₂
      -----------------
    → S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁ [ V₁ ] ~ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂

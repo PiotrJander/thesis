@@ -1246,8 +1246,8 @@ let expression. This representation is known as A-normal form
 \cite{DBLP:conf/lfp/SabryF92}, and it is used for λst' and λcl' as it
 simplifies the definition as big-step semantics.
 
-Definition of renaming and substitution are similarly to those for
-λst, so we do not include the updated version here. Instead, we define
+Definition of renaming and substitution are similar to those for
+λst, so we do not include the updated versions here. Instead, we define
 aliases for closed values \AS{Val₀} and closed terms \AS{Trm₀} (typed
 in an empty context):
 
@@ -1266,12 +1266,54 @@ reducton relation and has a single constructor which captures beta
 reduction for functions. The \AS{⇓step} constructor is similar to the
 transitive closure of the small-step reduction relation: if \AS{M}
 reduces to \AS{M'} in a single step, and \AS{M'} reduces to \AS{V} in
-multiple steps, then \AS{M} reduces to \AS{V} in multiple steps.
+multiple steps, then \AS{M} reduces to \AS{V} in multiple steps. [TODO
+maybe complete the explanation].
 
 Finally, ... [TODO what to make of a non-terminating proof of
 termination?]
 
 \ExecuteMetaData[LR/STLC.tex]{sn}
+
+Differences between λcl and λcl' are analogous.
+
+\section{Proving correctness of a translation with logical relations}
+\label{sec:logical-relations}
+
+This section defines two relations between terms of λst' and λcl', one
+syntactic, and one operational. The syntactic relation, which we call
+a \textit{compatibility relation}, subsumes the graph relation of any
+closure conversion, and the operational relation captures the
+intuition that similar terms reduce to similar values. We prove that
+the syntactic relation entails the operational relation, and thus,
+that any well-behaved closure conversion function preserves
+operational correctness. The proof uses type-indexed logical relations
+and is inspired by a sketch of a similar proof from
+\cite{DBLP:conf/popl/MinamideMH96}.
+
+For brevity, we do not duplicate translation functions from λst to
+λst, but just like we did in Section~\ref{sec:similarity-relation}, we
+expect that every the graph relation of every well-behaved translation
+from λst' to λcl' will be contained in the compatibility relation
+\AS{≅}. In general, given a term \AS{M₁} in λst' and a term \AS{M₂} in
+λcl', \AS{M₁} and \AS{M₂} are in the compatibility relation (M₁ ≅ M₂)
+when their subterms are in the compatibility relation. In the special
+case of abstractions/closures, the closure body is renamed with the
+environment in the premise.
+
+\ExecuteMetaData[LR/LR.tex]{compat}
+
+The compatibility relation provides handy inductive hypotheses in the
+proof by logical relations.
+
+While the compatibility relation captures syntactic correspondence, we
+need another relation which captures operational correspondence. TODO
+
+\ExecuteMetaData[LR/LR.tex]{related}
+
+
+
+
+
 
 \chapter{Reflections and evaluation}
 \chapter{Relationship to the UG4 project}
