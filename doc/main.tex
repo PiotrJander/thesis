@@ -60,6 +60,47 @@ Acknowledgements go here.
 TODO
 
 \chapter{Related literature}
+
+\section{Verified compilation}
+
+Closure conversion is just one possible verification phase, and its
+verification constitutes part of a wider effort to verify compilation
+end-to-end, which usually entails verifying operational correctness of
+all compilation phases.
+
+As far as type safety is concerned, the reference is a paper by
+Morrisett et al., "From System F to Typed Assembly Language"
+\cite{TODO}. It builds upon previous results in type safety of
+compilation phases (like the aforementioned \cite{TCC}) and describes
+a typed RISC-like assembly (named TAL), which is the target of the
+final phases of compilation. As a whole, the paper proves type safety
+for a compilation pipeline from System F to TAL. It does not, however,
+prove end-to-end operational correctness.
+
+An compiler which was verified for end-to-end operational
+correctness was described by Adam Chlipala in his paper "A Certified
+Type-Preserving Compiler from Lambda Calculus to Assembly
+Language". The source is a variant of the simply-typed lambda calculus
+(STLC). Compilation proceeds through six phases, eventually yielding
+idealised assembly code. The compiler is implemented in Coq, where
+terms and functions on terms are dependently typed, guaranteeing type
+preservation. This is also the approach taken in this project, except
+that we use Agda instead of Coq \cite{TODO}. Operational
+correctness is proved by adopting denotational semantics, unlike in
+this project, which uses operational semantics. Due to unfamiliarity
+with operational semantics, we cannot comment on which approach is
+better (TODO or can we?).
+
+Another example of a certified compiler is CompCert
+\cite{TODOcompcert}, which is the result of the first successful
+attempt to implement a certified compiler of a real-world (TODO
+wording) language. Even compared with the simply-typed lambda calculus
+(STLC), which was the source language in Chlipala's work \cite{TODO},
+the C language is in some ways simpler, especially since it does not
+have first-class functions with free variables (TODO wording:
+scoping?). But, being a fully-fledged language, C presents enough
+challenges as the source language of a verified compiler.
+
 \section{Closure conversion}
 
 Closure conversion is a compilation phase where functions or lambda
@@ -114,45 +155,6 @@ using an existential type. //
 TODO I have quite a bit about the paper and we don't want to duplicate
 the paper's introduction: how do I make it shorter?
 
-\section{Verified compilation}
-
-Closure conversion is just one possible verification phase, and its
-verification constitutes part of a wider effort to verify compilation
-end-to-end, which usually entails verifying type preservation or
-operational correctness of all compilation phases.
-
-As far as type safety is concerned, the reference is a paper by
-Morrisett et al., "From System F to Typed Assembly Language"
-\cite{TODO}. It builds upon previous results in type safety of
-compilation phases (like the aforementioned \cite{TCC}) and describes
-a typed RISC-like assembly (named TAL), which is the target of the
-final phases of compilation. As a whole, the paper proves type safety
-for a compilation pipeline from System F to TAL. It does not, however,
-prove end-to-end operational correctness.
-
-The first compiler which was verified for end-to-end operational
-correctness was described by Adam Chlipala in his paper "A Certified
-Type-Preserving Compiler from Lambda Calculus to Assembly
-Language". The source is a variant of the simply-typed lambda calculus
-(STLC). Compilation proceeds through six phases, eventually yielding
-idealised assembly code. The compiler is implemented in Coq, where
-terms and functions on terms are dependently typed, guaranteeing type
-preservation. This is also the approach taken in this project, except
-that we use Agda instead of Coq \cite{TODO}. Operational
-correctness is proved by adopting denotational semantics, unlike in
-this project, which uses operational semantics. Due to unfamiliarity
-with operational semantics, we cannot comment on which approach is
-better (TODO or can we?).
-
-A final example of a certified compiler is CompCert \cite{TODOcompcert}, which is the result of the first successful attempt to
-implement a certified compiler of a real-world (TODO wording)
-language. Even compared with the simply-typed lambda calculus (STLC),
-which was the source language in Chlipala's work \cite{TODO}, the C
-language is in some ways simpler, especially since it does not have
-first-class functions with free variables (TODO wording:
-scoping?). But, being a fully-fledged language, C presents enough
-challenges as the source language of a verified compiler.
-
 \chapter{Background}
 
 This chapter will introduce the relevant concepts. It will start with
@@ -196,18 +198,18 @@ language. Using a typed IR requires that at each point along the
 compilation pipeline, intermediate representantions are well-typed.
 
 Suppose that closure conversion is performed on simply typed lambda
-calculus (STLC) (without existential types). Then the target representation
-cannot be the same (STLC), as STLC does not have existential types,
-and closure environments must be existentially typed in order for
-programs to be well-typed in general, as discussed in [section]. This
-is why an intermediate language with existential types is necessary.
+calculus (STLC). One of the two in necessary for the target language
+of closure conversion: either it should have first-class closures, or
+existential types. Neither is true of STLC, so another intermediate
+language is needed.
 
-On the other hand, if the source and target representations are
-untyped, then the compiler architect might get away with using the
-same intermediate language as both source and target (for example
-Scheme, which is sometimes used as a compilation target). But even
-in this case, compilation process might benefit if the abstract syntax
-has explicit closures.
+[TODO unintellegible comment about this paragraph] On the other hand,
+if the source and target representations are untyped, then the
+compiler architect might get away with using the same intermediate
+language as both source and target (for example Scheme, which is
+sometimes used as a compilation target). But even in this case,
+compilation process might benefit if the abstract syntax has explicit
+closures.
 
 \paragraph{IRs in this project} This project uses a dependently typed
 meta language (Agda) to implement compilation phases (specifically,
@@ -215,7 +217,7 @@ closure conversion), so typed intermediate representations are a
 natural choice. Therefore, in the following sections, we will describe
 two intermediate representations, which are both variants of lambda
 calculus. The source representation will be simply typed lambda
-calculus, which we will refer to as STLC or λst. The target
+calculus, which we will refer to as λst. The target
 representation will be simply typed lambda calculus with closures,
 denoted with λcl.
 
@@ -349,15 +351,13 @@ common structure was a basis was the unpublished manuscript by McBride
 abstracts this common structure of renaming and substitution into a
 notion of a semantics.
 
-To see the usefulness of simultaneous renaming and substitution,
-consider that once an identity substitution is defined (one which
-leaves its argument unchanged):
+An example instantation of simultaneous substitution is single
+substitution. Single substitution replaces occurrences of the
+last-bound variable in the context, and it is useful for defining the
+beta reduction for abstractions. Single substitution environment is an
+identity substitution environment extended with a single value:
 
 \ExecuteMetaData[StateOfTheArt/STLC.tex]{id-subst}
-
-Then defining a single substitution is simple. (A single substitution
-replaces occurrences of the last-bound variable in the context, and it
-is useful for defining the beta reduction for abstractions).
 
 \ExecuteMetaData[StateOfTheArt/STLC.tex]{single-subst}
 
