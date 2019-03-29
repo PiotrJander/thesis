@@ -15,6 +15,8 @@
 \theoremstyle{definition}
 \newtheorem*{definition}{Definition}
 
+\setcounter{secnumdepth}{3}
+
 \begin{document}
 
 \title{Type-preserving closure conversion of PCF in Agda (more to come)}
@@ -1356,10 +1358,11 @@ instead, we present several cases on paper: TODO
 
 \chapter{Reflections and evaluation}
 
-This project investigated verification of transformations of
+This project is a case study on verification of transformations of
 functional programs using two different techniques: bisimulations and
-logical relations. The transformation which is studied is closure
-conversion.
+logical relations. The implemented transformation is closure
+conversion. Both proofs of operational correctness are mechanised with
+state-of-the-art techniques.
 
 The \textbf{original objectives} of the project were:
 
@@ -1378,33 +1381,58 @@ The \textbf{contributions} of this project are as follows:
 
 \begin{enumerate}
 \item All the original objectives were achieved.
-\item TODO ren/sub under binders in closures
+\item It is demonstrated that languagues with closures and closure
+  conversion are problematic for current state-of-the-art techniques
+  for mechanising language meta-theory.
 \end{enumerate}
 
 \paragraph{(Objective 1) Capturing the essence of closure conversion}
-The implemented tranformation - closure conversion - requires a
+The implemented tranformation --- closure conversion --- requires a
 different source and target language. While the formalisation of the
 source language is largely borrowed from ACMM, and the formalisation
 of the target language is similar except for the difference between
 abstractions and closures, this project's contribution was to capture
 the essence of closure conversion in what we believe is the simplest
-way possible.
+and most elegant way possible.
 
 \paragraph{Inherently typed closures}
-A traditional representation of closure conversion
-replaces variables in the source program with accesses in the
-environment record in the target program. This project's use of
-scope-safe and well-typed terms enabled a more elegant solution where
-the closure body is typed in a context corresponding to the closure's
+A traditional representation of closure conversion replaces variables
+in the source program with references to a record containing the
+environment in the target program. This project's use of scope-safe
+and well-typed terms allowed for a more elegant solution where the
+closure body is typed in a context corresponding to the closure's
 environment, and variables remain variables.
 
 \paragraph{Closure environments as substitution environments}
 Furthermore, while a closure environment is traditionally represented
 as a record which stores environment values, this project captures the
 essence of an environment by representing it as a substitution
-environment, i.e. a mapping from variables to values. 
+environment, i.e. a mapping from variables to values.
 
-\paragraph{Scope-safe and well-typed representation}
+\paragraph{Existential types for closure environments}
+As this report points out, closure environment must have existential
+types in order for a program with closures to be well-typed. This
+observation was made by \cite{DBLP:conf/popl/MinamideMH96}, which
+deals with this fact by equipping the closure language with
+existential types. This project uses a different, arguably simpler
+approach, whereby closure environment are existentially typed
+\textit{in the meta language (Agda)}, which allows us to keep object
+langauge types simple.
+
+\paragraph{Comparison with traditional closure conversion}
+In comparison with traditional closure conversion which represents
+environments as records, this formulation, which represents closure
+environments as substitution environments, i.e. meta-language
+functions, is further removed from the eventual target, which is
+machine code. But one can imagine a subsequent compilation phase which
+replaces substitution environments with records, and variables with
+record lookups (the object language would need existential types
+then). In general, splitting the compilation process into many
+specialised passes facilitates verification, as each compilation phase
+is easier to verify, and composing correctness results about phases
+gives rise to a end-to-end correctness result.
+
+\paragraph{(Objetive 2) Scope-safe and well-typed representation}
 Both the source and target language have scope-safe and well-typed
 representation, which were possible thanks to using dependently-typed
 Agda as the meta language. Using inherently scoped and typed terms has
@@ -1415,13 +1443,14 @@ techniques for reasoning about operational correctness are type
 directed, e.g. the type-indexed logical relations which we used, and
 inherently typed representations are well-matched to such techniques.
 
-\paragraph{The closure conversion preserves operational correctness}
-Two standard techniques were used for showing that the closure
-conversion is correct: bisimulation and logical relations. In an
-informal setting of pen-and-paper proofs, both of those techniques
-have rather straighforward proofs. However, mechanisation of those proofs
-involves proving several lemmas about the interactions between
-renaming, substitution, closure conversion, and the compatibility relation.
+\paragraph{(Objetive 3) The closure conversion preserves operational correctness}
+This project uses two standard techniques to show that the implemented
+closure conversion is correct: bisimulation and logical relations. In
+an informal setting of pen-and-paper proofs, both of those techniques
+have rather straighforward proofs. However, mechanisation of those
+proofs involves proving several lemmas about the interactions between
+renaming, substitution, closure conversion, and the compatibility
+relation.
 
 \paragraph{Mechanising the meta-theory of a language}
 As observed in ACMM, mechanising the meta-theory of a language most
@@ -1431,17 +1460,67 @@ singles out synchronisation lemmas, which relate two semantics
 (e.g. for every renaming there exists a substitution which behaves the
 same), and fusion lemmas (e.g. for every composition of two
 substitutions, there exists a substitution which behaves the
-same). Proving those lemmas for each new intermediate language puts a
-big burden on the implementor. For example, the proofs of operational
-correctness with bisimulations and logical relations both required
-showing four fusion lemmas for the target language.
+same). 
+
+\paragraph{(Objetive 4) ACMM}
+ACMM exploit similarity between various traversals (semantics) on
+simply typed lambda calculus (STLC) to come up with a generic way to
+prove synchronisation and fusion lemmas for STLC. Indeed, this project
+uses fusion lemmas about STLC from ACMM in the proof with logical
+relations.
+
+Intermediate languages other than STLC require their own definitions
+of renaming and substitution, and proofs of correctness lemmas. For
+example, the proofs of operational correctness with bisimulations and
+logical relations depend on four fusion lemmas relating renaming and
+substitution for the language with closures. In fact, proving those
+correctness lemmas was the biggest effort in the whole proof.
+
+\paragraph{Possible remedy: AACMM and generic programming}
+The problem of having to define renaming and substitution for each new
+language, and proving correctness lemmas about the interactions
+between renaming, substitution, and transformations, is address by a
+follow-up paper, which we will refer to as AACMM
+\cite{DBLP:journals/pacmpl/AllaisA0MM18}. AACMM provides a way to
+supply a definition of a syntax with bindings, and then derives
+meta-theoretical correctness lemmas from that definition. The paper
+repository contains an example of an elaboration whose source is a
+language with a let construct, and whose target is simply-typed lambda
+calculus with let-expressions inlined. The example demonstrates how a
+proof of simulation is drastically simplified thanks to the use of the
+AACMM library and its generic programing capabilities.
+
+\paragraph{Feasibility of closure conversion in AACMM}
+AACMM demonstrates that transformations like let-inlining and CPS
+conversion can be expresses in their generic framework. They pose an
+open question about which compilation passes can be implemented
+generically. Unfortunately, this work suggests that closure conversion
+might not fit well into the AACMM framework. Specifically, the
+closure language in this project --- with aforementioned features like
+syntax being mutually dependent on substitution environments, or
+environments being existentially quatified in the meta language (Agda)
+--- is not expressible as an AACMM generic syntax. The traditional
+representation of a languages with closures --- with environments as
+records and existential types in the object language --- would not fit
+either as syntaxes in AACMM cannot contain existential types.
 
 \paragraph{Bisimulation vs logical relations}
 [TODO what could I say about the pros and cons of both?]
 
+\paragraph{Summary}
+This work and ACMM/AACMM are both concerned with mechanising the
+meta-theory of languages, and applying this metatheory to reason about
+the language. While AACMM shows that a certain class of languages /
+syntaxes can be treated generically, this work contains a negative
+result which indicates that a language with closures might not benefit
+from current techniques for relieving the burden of mechanising
+meta-theory. This is an open question, however, whether there exist
+feasible generic syntaxes which would encompass a language with
+closures, or whether an alternative formalisation of a language with
+closures exists which is compatible with AACMM.
 
-
-
+[TODO the conclusions of this chapter depend on my understanding of
+AACMM --- is it correct?]
 
 \chapter{Relationship to the UG4 project}
 
