@@ -1307,14 +1307,16 @@ proof by logical relations.
 
 While the compatibility relation captures syntactic correspondence, we
 need another relation on (closed) language expressions which captures
-operational correspondence. In fact, this relation \AS{sim} is
+operational correspondence. In fact, this relation \AS{⇔} is
 comprised of (1) a relation \AS{\ti} between closed source terms and
 closed target terms, and (2) a relation \AS{≈} between closed source
 values and closed target values. Those two relations are defined by
 mutual induction and induction on types [TODO both at the same time?]
 as follows:
 
-\AS{τ ∋ M₁ \tis M₂} iff \AS{M₁ ⇓ V₁}, \AS{M₂ ⇓ V₂}, and \AS{τ ∋ V₁ ≈ V₂}
+\AS{τ ∋ M₁ \tis M₂} iff \AS{M₁ ⇓ V₁}, \AS{M₂ ⇓ V₂}, and \AS{τ ∋ V₁ ≈
+  V₂}
+
 \AS{σ ⇒ τ ∋ U₁ ≈ U₂} iff for all \AS{σ ∋ V₁ ≈ V₂}, we have \AS{τ ∋ U₁
   `\$ V₂ \tis U₂ `\$ V₂ }
 
@@ -1322,14 +1324,125 @@ There is no case for \AS{≈} at the ground type \AS{α} as only
 variables can have the ground type, and the values in \AS{≈} are
 closed.
 
+In Agda, \AS{\ti} and \AS{≈} are defined as specialisations of a
+relation \AS{⇔} on expressions of λst and λcl. 
+
 \ExecuteMetaData[LR/LR.tex]{related}
 
+Finally, we extend the \AS{≈} relation to source and target
+substitution environments, similar to what we did in
+Section~\ref{TODO-bisim-pointwise-sim}:
 
+\ExecuteMetaData[LR/LR.tex]{pointwise-related}
 
+We also provide a function \AS{∙R} which extends two related
+substitution environments with a related pair of values:
 
+\ExecuteMetaData[LR/LR.tex]{pointwise-ext}
 
+With those definitions at hands, we can state the Fundamental Theorem
+of Logical Relations. Recall that we are trying to show that, given a
+closed term \AS{M₁} in λst' and a closed term \AS{M₂} in λcl, if
+\AS{M₁ ≅ M₂}, then \AS{M₁ \tis M₂} (*). The Fundamental Theorem is:
+
+\ExecuteMetaData[LR/LR.tex]{fund-t}
+
+Thus, the Fundamental Theorem is a stronger statement than (*), and
+one which instatiated with closed terms and and empty substitution
+environments yields precisely (*).
+
+We do not include the Agda proof here as it is not very readable;
+instead, we present several cases on paper: TODO
 
 \chapter{Reflections and evaluation}
+
+This project investigated verification of transformations of
+functional programs using two different techniques: bisimulations and
+logical relations. The transformation which is studied is closure
+conversion.
+
+The \textbf{original objectives} of the project were:
+
+\begin{enumerate}
+\item To implement a compiler transformation for a variant of
+  simply-typed lambda calculus in Agda.
+\item To use scope-safe and well-typed representation for the object
+  languages.
+\item To prove that the transformation is correct: that the output
+  program of the transformation behaves `the same` as the input
+  program.
+\item To use generic programming techniques from ACMM.
+\end{enumerate}
+
+The \textbf{contributions} of this project are as follows:
+
+\begin{enumerate}
+\item All the original objectives were achieved.
+\item TODO ren/sub under binders in closures
+\end{enumerate}
+
+\paragraph{(Objective 1) Capturing the essence of closure conversion}
+The implemented tranformation - closure conversion - requires a
+different source and target language. While the formalisation of the
+source language is largely borrowed from ACMM, and the formalisation
+of the target language is similar except for the difference between
+abstractions and closures, this project's contribution was to capture
+the essence of closure conversion in what we believe is the simplest
+way possible.
+
+\paragraph{Inherently typed closures}
+A traditional representation of closure conversion
+replaces variables in the source program with accesses in the
+environment record in the target program. This project's use of
+scope-safe and well-typed terms enabled a more elegant solution where
+the closure body is typed in a context corresponding to the closure's
+environment, and variables remain variables.
+
+\paragraph{Closure environments as substitution environments}
+Furthermore, while a closure environment is traditionally represented
+as a record which stores environment values, this project captures the
+essence of an environment by representing it as a substitution
+environment, i.e. a mapping from variables to values. 
+
+\paragraph{Scope-safe and well-typed representation}
+Both the source and target language have scope-safe and well-typed
+representation, which were possible thanks to using dependently-typed
+Agda as the meta language. Using inherently scoped and typed terms has
+many benefits, which include the fact that when programs are synonymous
+with their typing derivations, transformations on programs are
+synonymous with proofs of type preservation. Additionally, many
+techniques for reasoning about operational correctness are type
+directed, e.g. the type-indexed logical relations which we used, and
+inherently typed representations are well-matched to such techniques.
+
+\paragraph{The closure conversion preserves operational correctness}
+Two standard techniques were used for showing that the closure
+conversion is correct: bisimulation and logical relations. In an
+informal setting of pen-and-paper proofs, both of those techniques
+have rather straighforward proofs. However, mechanisation of those proofs
+involves proving several lemmas about the interactions between
+renaming, substitution, closure conversion, and the compatibility relation.
+
+\paragraph{Mechanising the meta-theory of a language}
+As observed in ACMM, mechanising the meta-theory of a language most
+often requires proving lemmas about the interactions between different
+transformations, or semantics, like renaming and substitutions. ACMM
+singles out synchronisation lemmas, which relate two semantics
+(e.g. for every renaming there exists a substitution which behaves the
+same), and fusion lemmas (e.g. for every composition of two
+substitutions, there exists a substitution which behaves the
+same). Proving those lemmas for each new intermediate language puts a
+big burden on the implementor. For example, the proofs of operational
+correctness with bisimulations and logical relations both required
+showing four fusion lemmas for the target language.
+
+\paragraph{Bisimulation vs logical relations}
+[TODO what could I say about the pros and cons of both?]
+
+
+
+
+
 \chapter{Relationship to the UG4 project}
 
 This work is a natural continuation of the UG4 project, but it

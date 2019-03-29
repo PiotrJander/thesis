@@ -21,15 +21,15 @@ infix 2 _≈_
 %<*related>
 \begin{code}
 {-# NO_POSITIVITY_CHECK #-}
-data sim : {k : Kind} {τ : Type} → S.Exp₀ k τ → T.Exp₀ k τ → Set
+data _⇔_ : {k : Kind} {τ : Type} → S.Exp₀ k τ → T.Exp₀ k τ → Set
 
 _~_ : ∀ {τ} → S.Trm₀ τ → T.Trm₀ τ → Set
-N ~ N' = sim N N'
+_~_ = _⇔_
 
 _≈_ : ∀ {τ} → S.Val₀ τ → T.Val₀ τ → Set
-N ≈ N' = sim N N'
+_≈_ = _⇔_
 
-data sim where
+data _⇔_ where
 
   -- values
 
@@ -134,32 +134,39 @@ postulate
 postulate
   helper-2 : ∀ {Γ Δ σ τ} (ρ^t : T.Subst Γ []) (E : T.Subst Δ Γ) (N₂ : T.Trm τ (σ ∷ Δ)) (V₂ : T.Val₀ σ)
     → T.subst (ρ^t ∙ V₂) (T.subst (T.rename (pack s) <$> E ∙ T.`var z) N₂) ≡ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂
+\end{code}
 
-lr : ∀ {Γ σ k} {M₁ : S.Exp k σ Γ} {M₂ : T.Exp k σ Γ}
+%<*fund-t>
+\begin{code}
+fund : ∀ {Γ σ k} {M₁ : S.Exp k σ Γ} {M₂ : T.Exp k σ Γ}
        {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
    → ρ^s ∙≈ ρ^t
    → M₁ ≅ M₂
      -------------------------------
-   → sim {k} (S.subst ρ^s M₁) (T.subst ρ^t M₂)
-lr-lam : ∀ {Γ Δ σ τ} {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Δ)} {E : T.Subst Δ Γ} {V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
+   → S.subst ρ^s M₁ ⇔ T.subst ρ^t M₂
+\end{code}
+%</fund-t>
+
+\begin{code}
+fund-lam : ∀ {Γ Δ σ τ} {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Δ)} {E : T.Subst Δ Γ} {V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
        {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
    → ρ^s ∙≈ ρ^t
    → N₁ ≅ T.subst (T.exts E) N₂
    → V₁ ≈ V₂
      -----------------
-   → S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁ [ V₁ ] ~ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂
+   → S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁ [ V₁ ] ~ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂  
 
-lr ∙≈ρ (~var {x = x}) = lookup^R ∙≈ρ x
-lr ∙≈ρ (~λ ~N) = ≈λ (λ V₁≈V₂ → ⊥-elim impossible) where postulate impossible : ⊥ -- lr-lam ∙≈ρ ~N V₁≈V₂
-lr {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N) with S.subst ρ^s L | T.subst ρ^t L† | lr ∙≈ρ ~M | lr ∙≈ρ ~N
+fund ∙≈ρ (~var {x = x}) = lookup^R ∙≈ρ x
+fund ∙≈ρ (~λ ~N) = ≈λ (λ V₁≈V₂ → ⊥-elim impossible) where postulate impossible : ⊥ -- fund-lam ∙≈ρ ~N V₁≈V₂
+fund {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N) with S.subst ρ^s L | T.subst ρ^t L† | fund ∙≈ρ ~M | fund ∙≈ρ ~N
 ... | S.`var () | _ | _ | _
 ... | S.`λ _ | T.`var () | _ | _
-lr {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N) | S.`λ N | T.`λ N† E | ≈λ p | ~V with p ~V
+fund {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N) | S.`λ N | T.`λ N† E | ≈λ p | ~V with p ~V
 ... | ~Trm N₁⇓U₁ N₂⇓U₂ U₁≈U₂ = ~Trm (S.⇓step S.→₁app N₁⇓U₁) (T.⇓step T.→₁app N₂⇓U₂) U₁≈U₂
-lr ∙≈ρ (~let ~M ~N) = ⊥-elim impossible where postulate impossible : ⊥
-lr ∙≈ρ (~val ~M) with lr ∙≈ρ ~M
+fund ∙≈ρ (~let ~M ~N) = ⊥-elim impossible where postulate impossible : ⊥
+fund ∙≈ρ (~val ~M) with fund ∙≈ρ ~M
 ... | ~V = ~Trm S.⇓val T.⇓val ~V
-lr-lam {N₁ = N₁} {N₂} {E} {V₁} {V₂} {ρ^s} {ρ^t} ∙≈ρ ~N V₁≈V₂ with lr (∙≈ρ ∙^R V₁≈V₂) ~N
+fund-lam {N₁ = N₁} {N₂} {E} {V₁} {V₂} {ρ^s} {ρ^t} ∙≈ρ ~N V₁≈V₂ with fund (∙≈ρ ∙^R V₁≈V₂) ~N
 ... | p rewrite helper-1 ρ^s N₁ V₁ | sym (helper-2 ρ^t E N₂ V₂) = p
 
 
