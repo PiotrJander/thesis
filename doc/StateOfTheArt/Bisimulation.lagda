@@ -172,37 +172,27 @@ _~∙_ : ∀ {Γ Δ σ}
   rewrite cong (λ e → (N / VV) ~ e) (sym (TT.subst-E∙V N† E V†))
   = ~subst (~id-subst ~∙ ~VV) ~N
 
-Rst : Set₁
-Rst = ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set
-
-data Leg {Γ σ} (M† : T.Lam σ Γ) (N : S.Lam σ Γ) (_≈_ : Rst) : Set where
+data Leg {Γ σ} (M† : T.Lam σ Γ) (N : S.Lam σ Γ) : Set where
 
   leg : ∀ {N† : T.Lam σ Γ}
-    → N ≈ N†
+    → N ~ N†
     → M† T.—→ N†
       --------
-    → Leg M† N _≈_
+    → Leg M† N
 
-record Simulation {Γ σ} {M : S.Lam σ Γ} {M† : T.Lam σ Γ} {_≈_ : Rst} (M≈M† : M ≈ M†) : Set where
-  constructor simulation
-  field
-    simul : ∀ {N : S.Lam σ Γ}
-      → M S.—→ N
-        ------------
-      → Leg M† N _≈_
-open Simulation
-
-sim : ∀ {Γ σ} {M : S.Lam σ Γ} {M† : T.Lam σ Γ}
-  → (~M : M ~ M†)
-    ------------
-  → Simulation {_≈_ = _~_} ~M
-simul (sim ~V) ()
-simul (sim (~L ~M)) ()
-simul (sim (~A ~M ~N)) (S.ξ-A₁ M—→) with simul (sim ~M) M—→
+sim : ∀ {Γ σ} {M N : S.Lam σ Γ} {M† : T.Lam σ Γ}
+  → M ~ M†
+  → M S.—→ N
+    ---------
+  → Leg M† N
+sim ~V ()
+sim (~L ~N) ()
+sim (~A ~M ~N) (S.ξ-A₁ M—→)
+  with sim ~M M—→
 ... | leg ~M' M†—→ = leg (~A ~M' ~N) (T.ξ-A₁ M†—→)
-simul (sim (~A ~M ~N)) (S.ξ-A₂ VV N—→) with simul (sim ~N) N—→
+sim (~A ~M ~N) (S.ξ-A₂ VV N—→)
+  with sim ~N N—→
 ... | leg ~N′ N†—→ = leg (~A ~M ~N′) (T.ξ-A₂ (~val ~M VV) N†—→)
-simul (sim (~A (~L {N = N} {N†} ~N) ~VV)) (S.β-L VV)
+sim (~A (~L {N = N} {N†} ~N) ~VV) (S.β-L VV)
   = leg (/V≡E∙V† {N = N} {N†} ~N ~VV) (T.β-L (~val ~VV VV))
-
 \end{code}
