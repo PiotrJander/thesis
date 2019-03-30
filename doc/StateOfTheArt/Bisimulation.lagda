@@ -16,28 +16,25 @@ import StateOfTheArt.STLC as S
 open S using (_/_)
 import StateOfTheArt.Closure as T
 import StateOfTheArt.Closure-Thms as TT
+
+infix  4 _~_
 \end{code}}
 
 %<*tilde>
 \begin{code}
-infix  4 _~_
 data _~_ : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set where
 
   ~V : ∀ {Γ σ} {x : Var σ Γ}
-     ---------------
-   → S.V x ~ T.V x
+    → S.V x ~ T.V x
 
   ~A : ∀ {Γ σ τ} {L : S.Lam (σ ⇒ τ) Γ} {L† : T.Lam (σ ⇒ τ) Γ}
-           {M : S.Lam σ Γ} {M† : T.Lam σ Γ}
-    → L ~ L†
-    → M ~ M†
-      --------------------
+         {M : S.Lam σ Γ} {M† : T.Lam σ Γ}
+    → L ~ L† → M ~ M†
     → S.A L M ~ T.A L† M†
 
   ~L : ∀ {Γ Δ σ τ} {N : S.Lam τ (σ ∷ Γ)}
          {N† : T.Lam τ (σ ∷ Δ)} {E : T.Subst Δ Γ}
     → N ~ T.subst (T.exts E) N†
-      ------------------------------------------------
     → S.L N ~ T.L N† E
 \end{code}
 %</tilde>
@@ -76,9 +73,7 @@ simple-cc→sim (S.L b) = ~L g
 %<*val-comm>
 \begin{code}
 ~val : ∀ {Γ σ} {M : S.Lam σ Γ} {M† : T.Lam σ Γ}
-  → M ~ M†
-  → S.Value M
-    ---------
+  → M ~ M† → S.Value M
   → T.Value M†
 ~val ~V         ()
 ~val (~L ~N)    S.V-L  =  T.V-L
@@ -88,9 +83,7 @@ simple-cc→sim (S.L b) = ~L g
 
 \begin{code}
 ~ts-val : ∀ {Γ σ} {M : S.Lam σ Γ} {M† : T.Lam σ Γ}
-  → M ~ M†
-  → T.Value M†
-    ---------
+  → M ~ M† → T.Value M†
   → S.Value M
 ~ts-val ~V          ()
 ~ts-val (~L ~N)     T.V-L  = S.V-L
@@ -100,9 +93,7 @@ simple-cc→sim (S.L b) = ~L g
 %<*rename-comm>
 \begin{code}
 ~rename : ∀ {Γ Δ σ} {M : S.Lam σ Γ} {M† : T.Lam σ Γ}
-  → (ρ : Thinning Γ Δ)
-  → M ~ M†
-    ----------------------------
+  → (ρ : Thinning Γ Δ) → M ~ M†
   → S.rename ρ M ~ T.rename ρ M†
 ~rename ρ ~V                              = ~V
 ~rename ρ (~A ~M ~N)                      = ~A (~rename ρ ~M) (~rename ρ ~N)
@@ -171,28 +162,29 @@ _~∙_ : ∀ {Γ Δ σ} {ρ  : S.Subst Γ Δ} {ρ† : T.Subst Γ Δ}
 /V≡E∙V† : ∀ {Γ Δ σ τ}
     {N : S.Lam τ (σ ∷ Γ)} {N† : T.Lam τ (σ ∷ Δ)} {E : T.Subst Δ Γ}
     {V : S.Lam σ Γ} {V† : T.Lam σ Γ}
-  → N ~ T.subst (T.exts E) N†
-  → V ~ V†
-    --------------------------
+  → N ~ T.subst (T.exts E) N† → V ~ V†
   → N / V ~ T.subst (E ∙ V†) N†
+\end{code}
+
+\begin{code}
 /V≡E∙V† {N = N} {N†} {E} {VV} {V†} ~N ~VV
   rewrite cong (λ e → (N / VV) ~ e) (sym (TT.subst-E∙V N† E V†))
   = ~subst (~id-subst ~∙ ~VV) ~N
 
-Rel : Set₁
+ST-Rel : Set₁
 \end{code}
 
 %<*simulation>
 \begin{code}
-Rel = ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set
+ST-Rel = ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set
 
-ST-Simulation : Rel → Set
+ST-Simulation : ST-Rel → Set
 ST-Simulation _≈_ = ∀ {Γ σ} {M N : S.Lam σ Γ} {M† : T.Lam σ Γ}
   → M ≈ M† → M S.—→ N
     ---------
   → ∃[ N† ] ((N ≈ N†) × (M† T.—→ N†))
 
-TS-Simulation : Rel → Set
+TS-Simulation : ST-Rel → Set
 TS-Simulation _≈_ = ∀ {Γ σ} {M : S.Lam σ Γ} {M† N† : T.Lam σ Γ}
   → M ≈ M† → M† T.—→ N†
     ------------------------------
@@ -202,11 +194,12 @@ TS-Simulation _≈_ = ∀ {Γ σ} {M : S.Lam σ Γ} {M† N† : T.Lam σ Γ}
 
 %<*bisimulation>
 \begin{code}
-Bisimulation : (∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set) → Set
+Bisimulation : ST-Rel → Set
 Bisimulation _≈_ = ST-Simulation _≈_ × TS-Simulation _≈_
 \end{code}
 %</bisimulation>
 
+%<*st-sim>
 \begin{code}
 st-sim : ST-Simulation _~_
 st-sim ~V ()
@@ -219,7 +212,10 @@ st-sim (~A ~M ~N) (S.ξ-A₂ VV N—→)
 ... | _ , ~N′ , N†—→ = _ , ~A ~M ~N′ , T.ξ-A₂ (~val ~M VV) N†—→
 st-sim (~A (~L {N = N} {N†} ~N) ~VV) (S.β-L VV)
   = _ , /V≡E∙V† {N = N} {N†} ~N ~VV , T.β-L (~val ~VV VV)
-  
+\end{code}
+%</st-sim>
+
+\begin{code}
 ts-sim : TS-Simulation _~_
 ts-sim ~V ()
 ts-sim (~L ~N) ()
@@ -229,8 +225,11 @@ ts-sim (~A ~M ~N) (T.ξ-A₂ VV† N†—→) with ts-sim ~N N†—→
 ... | _ , ~N' , N—→ = _ , ~A ~M ~N' , S.ξ-A₂ (~ts-val ~M VV†) N—→
 ts-sim (~A (~L {N = N} {N†} ~N) ~VV) (T.β-L VV†)
   = _ , /V≡E∙V† {N = N} {N†} ~N ~VV , S.β-L (~ts-val ~VV VV†)
+\end{code}
 
+%<*bisim>
+\begin{code}
 bisim : Bisimulation _~_
 bisim = st-sim , ts-sim
-
 \end{code}
+%</bisim>

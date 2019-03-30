@@ -1095,16 +1095,43 @@ only non-trivial case is the one about abstractions/closures, which
 requires rewriting by an instatiation of the fusion lemma
 \AS{subst∘subst}.
 
-TBC
+\ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{lemma-subst-comm}
+
+With those three lemmas, showing that the compatibility relation is a
+bisimulation becomes straightforward.
+
+\section{Compatibility relation is a bisimulation}
+\label{sec:comp-relat-bisim}
+
+The proof that the compatibility relation \AS{\ti} is a bisimulation
+consists of two proofs of simulations: \AS{st-sim : ST-Simulation
+  \_\ti\_} and \AS{ts-sim : TS-Simulation \_\ti\_}. Taken together,
+they prove that \AS{\ti} is a bisimulation:
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{bisim}
+
+[TODO analyse the proof in detail or refer the reader to the technical
+appendix and to PLFA?]
 
 \section{Compatibility relation and closure conversion}
 \label{sec:comp-relat-clos}
 
-The definition of similarity might seem arbitrary, but we argue that
-the graph relation of any well-behaved closure conversion function is
-contained within the similarity relation.
+We have showed that the compability relation is a bisimulation. But to
+link it to closure conversion and show that our implementation
+\AS{\_†} is correct, we need to show that the graph relation of
+\AS{\_†} is contained in the compatibility relation. In other words,
+if \AS{M} is a source term, then we have \AS{M \tis M †}, where \AS{M
+  †} is the translation of \AS{M} with \AS{\_†}. Thus, we need to show:
 
-For example, consider the trivial closure conversion algorithm
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-sim-t}
+
+The proof of this is too long to discuss here, but the reader can find
+it in the technical appendix of this report.
+
+However, as we argued, the graph relation of any well-behaved closure
+conversion function is contained within the compatibility relation. It
+is instructive to see that this is the case for a simpler version of
+closure convertion, namely, a trivial closure conversion algorithm
 \AS{simple-cc}, which uses full contexts as environments (through
 identity substitutions \AS{id-subst}):
 
@@ -1117,23 +1144,9 @@ substitution leaves the argument term unchanged.
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{graph}
 
-\subsubsection{The minimising closure conversion and the
-  similarity relation}
-\label{sec:minim-clos-conv-1}
-
-Similarly, the graph relation of the minimising closure conversion
-function is also contained in the similarity relation.
-
-The claim is that 
-
-\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-sim-t}
-
-The proof of the claim is too long to discuss here, but the reader can
-find it in the technical appendix of this report.
-
 ***
 
-With the notion of similarity formalised, bisimulation can be defined.
+TBC
 
 \chapter{Proof by logical relations}
 
@@ -1669,5 +1682,10 @@ Below is the Agda proof that the graph relation of the minimising
 closure conversion function is contained in the similarity relation.
 
 \ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-sim}
+
+\section{Compatibility relation is a bisimulation}
+\label{sec:comp-relat-bisim-1}
+
+
 
 \end{document}

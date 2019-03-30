@@ -9,12 +9,17 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; cong; cong₂; sym; trans; inspect; [_])
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Nat -- using (ℕ; zero; suc; _+_)
 open import Relation.Nullary using (¬_)
 open import Data.List using (List ; _∷_ ; [])
 open import Data.List.Relation.Sublist.Propositional using (_⊆_ ; []⊆_ ; base ; keep ; skip)
 open import Data.List.Relation.Sublist.Propositional.Properties using (⊆-refl ; ⊆-trans)
 open import Function using (_∘_)
+open import Induction.WellFounded
+open import Induction.Nat
+open import Data.Product using (_×_; _,_; ∃-syntax; Σ-syntax; proj₁; proj₂)
+open import Relation.Binary hiding (_⇒_)
+open import Level renaming (zero to lzero)
 
 open import var hiding (_<$>_)
 open import environment
@@ -138,6 +143,32 @@ _† M with cc M
 _† M | ∃[ Δ ] Δ⊆Γ ∧ N = T.rename (⊆→ρ Δ⊆Γ) N
 \end{code}
 %</dag>
+
+\begin{code}
+-- size : ∀ {Γ A} → T.Lam A Γ → ℕ
+-- size (T.V x)    = 1
+-- size (T.A M N)  = size M + size N
+-- size (T.L M E)  = 1 + size M
+
+-- size' : ∃[ σ ] ∃[ Γ ] T.Lam σ Γ → ℕ
+-- size' (_ , _ , N) = size N
+
+-- _≲_ : Rel (∃[ σ ] ∃[ Γ ] T.Lam σ Γ) lzero
+-- ∃M ≲ ∃N = size' ∃M < size' ∃N
+
+-- ≲-Wf : WellFounded _≲_
+-- ≲-Wf M = Inverse-image.wellFounded size' <-wellFounded M
+
+-- foo : ∀ {Γ σ τ} (M : T.Lam (σ ⇒ τ) Γ) (N : T.Lam σ Γ)
+--   → (_ , _ , M) ≲ (_ , _ , T.A M N)
+-- foo M N with size M | size N | size (T.A M N)
+-- ... | p | q | r = {!!}
+
+-- undo : ∀ {Γ A} (M : T.Lam A Γ) → Acc _≲_ (_ , _ , M) → S.Lam A Γ
+-- undo (T.V x) _ = S.V x
+-- undo (T.A M N) (acc rs) = S.A (undo M (rs (_ , _ , M) {!!})) {!!}
+-- undo (T.L M N) ⇓M = {!!}
+\end{code}
 
 \begin{code}
 helper-2 : ∀ {Γ A} (x : Var A Γ)
