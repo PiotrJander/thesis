@@ -34,9 +34,12 @@ data Lam : Type → Context → Set where
 
 %<*rename>
 \begin{code}
+ext : ∀ {Γ Δ} {σ : Type} → Thinning Γ Δ → Thinning (σ ∷ Γ) (σ ∷ Δ) 
+ext ρ = s <$> ρ ∙ z
+
 rename : ∀ {Γ Δ σ} → Thinning Γ Δ → Lam σ Γ → Lam σ Δ
 rename ρ (V x)          =  V (lookup ρ x)
-rename ρ (L N)          =  L (rename (s <$> ρ ∙ z) N)
+rename ρ (L N)          =  L (rename (ext ρ) N)
 rename ρ (A M N)        =  A (rename ρ M) (rename ρ N)
 \end{code}
 %</rename>
@@ -45,9 +48,12 @@ rename ρ (A M N)        =  A (rename ρ M) (rename ρ N)
 
 %<*subst>
 \begin{code}
+exts : ∀ {Γ Δ} {τ : Type} → (Γ ─Env) Lam Δ → (τ ∷ Γ ─Env) Lam (τ ∷ Δ) 
+exts σ = rename (pack s) <$> σ ∙ V z
+
 subst : ∀ {Γ Δ σ} → (Γ ─Env) Lam Δ → Lam σ Γ → Lam σ Δ
 subst σ (V x)          =  lookup σ x
-subst σ (L N)          =  L (subst (rename (pack s) <$> σ ∙ V z) N)
+subst σ (L N)          =  L (subst (exts σ) N)
 subst σ (A M N)        =  A (subst σ M) (subst σ N)
 \end{code}
 %</subst>
@@ -99,11 +105,11 @@ Subst Γ Δ = (Γ ─Env) Lam Δ
 subst' : ∀ {Γ Δ σ} → (Γ ─Env) Lam Δ → Lam σ Γ → Lam σ Δ
 subst' = Sem.sem Substitution
 
-exts : ∀ {Γ Δ σ}
-     → Subst Γ Δ
-       ----------------------------
-     → Subst (σ ∷ Γ) (σ ∷ Δ)
-exts ρ  =  rename E.extend <$> ρ ∙ V z
+-- exts : ∀ {Γ Δ σ}
+--      → Subst Γ Δ
+--        ----------------------------
+--      → Subst (σ ∷ Γ) (σ ∷ Δ)
+-- exts ρ  =  rename E.extend <$> ρ ∙ V z
 \end{code}
 
 --------------------

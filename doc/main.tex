@@ -16,6 +16,10 @@
 \theoremstyle{definition}
 \newtheorem*{definition}{Definition}
 
+\theoremstyle{lemma}
+\newtheorem*{lemma}{Lemma}
+
+
 \setcounter{secnumdepth}{3}
 
 \begin{document}
@@ -352,6 +356,9 @@ common structure was a basis was the unpublished manuscript by McBride
 abstracts this common structure of renaming and substitution into a
 notion of a semantics.
 
+Also notice how the functions \AS{ext} and \AS{exts} extend the
+environment when the traversal goes under a binder.
+
 An example instantation of simultaneous substitution is single
 substitution. Single substitution replaces occurrences of the
 last-bound variable in the context, and it is useful for defining the
@@ -507,6 +514,13 @@ The fact that in λcl, renaming and substitution do not go under
 binders will allow us to prove `fusion lemmas` in [section] without
 using the machinery of ACMM, which will significantly simplify the
 proofs.
+
+Just like in λst, we also define functions \AS{ext} and \AS{exts}
+which extend the environment when renaming or substitution goes under
+a binder:
+
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{ext}
+\ExecuteMetaData[StateOfTheArt/Closure.tex]{exts}
 
 \subsection{Operational semantics}
 \label{sec:oper-semant}
@@ -894,6 +908,10 @@ conversion are related by a syntactic relation, and second, by showing
 that this syntactic relation is also a semantic relation. Thus,
 soundness of our closure conversion is established.
 
+The part which shows that the compatibility relation is a bisimulation
+is inspired by the `Bisimulation' chapter from
+\cite{DBLP:conf/sbmf/Wadler18}. 
+
 \subsection{Compatibility relation}
 \label{sec:comp-rel}
 
@@ -911,8 +929,8 @@ The compatibility relation is defined as follows:
   \item (\textit{Application}) If \AS{M \tis M†} and \AS{N \tis N†},
     then \AS{M · N \tis M† · N†}.
 
-  \item (\textit{Abstraction}) If \AS{N \tis T.subst (T.rename (pack
-      s) <\$> E ∙ T.V z) N†}, then \AS{S.L N \tis T.L N† E}.
+  \item (\textit{Abstraction}) If \AS{N ~ T.subst (T.exts E) N†}, then
+    \AS{S.L N \tis T.L N† E}.
     
   \end{itemize}
 \end{definition}
@@ -953,11 +971,12 @@ more general simulations.
 
 \begin{definition}
   Given a relation \AS{≈} between terms of \AS{A} and terms of \AS{B},
-  we say that \AS{≈} is a \textbf{simulation} if and only if for all
-  terms \AS{M} and \AS{N} in \AS{A}, and \AS{M†} in \AS{B}, if \AS{M}
-  reduces in a single step to \AS{N}, then there exists a term \AS{N†}
-  in \AS{B} such that \AS{M†} reduces to \AS{N†} in a single step, and
-  \AS{N} is in the \AS{≈} relation with \AS{N†}: \AS{N ≈ N†}.
+  we say that \AS{≈} is a \textbf{simulation} from \AS{A} to \AS{B} if
+  and only if for all terms \AS{M} and \AS{N} in \AS{A}, and \AS{M†}
+  in \AS{B}, if \AS{M} reduces in a single step to \AS{N}, then there
+  exists a term \AS{N†} in \AS{B} such that \AS{M†} reduces to \AS{N†}
+  in a single step, and \AS{N} is in the \AS{≈} relation with \AS{N†}:
+  \AS{N ≈ N†}.
 \end{definition}
 
 The essence of simulation can be captured in a diagram.
@@ -986,98 +1005,65 @@ Then we can provide an Agda definition of a bisimulation:
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{bisimulation}
 
+To show that the compatibility relation is a bisimulation, we need to
+obtain lemmas about the interactions between the compatibility
+relation, values, renaming, and substitution.
 
+\section{Compatibility, values, renaming, and substitution}
+\label{sec:comp-valu-renam}
 
-***
+As discussed in [TODO], mechanising the meta-theory of a language
+involves proving lemmas about the interactions between various
+traversals and transformations, including renaming, substitution, and
+compilation phases. This is also the case for proving correctness with
+bisimulation, which requires establishing lemmas about the interplay
+between the compatibility relation, values, renaming, and
+substitution. In fact, proving those lemmas often constitutes the
+biggest effort in the entire proof. In Chapter~\ref{cha:refl-eval}, we
+reflect on the possibiity of automating this effort with generic
+proving.
 
+For each relevant property, we state it as an informal lemma, give its
+Agda statement, and its Agda proof.
 
-Before we can prove that λ and λT are in simulation, we need three
-lemmas:
+\begin{lemma}{Values commute with compatibility.}
+  If \AS{M \tis M†} and \AS{M} is a value, then \AS{M†} is also a
+  value.
+\end{lemma}
 
-\begin{enumerate}
-\item
-  Values commute with similarity. If \AS{M \ti M†} and \AS{M} is a
-  value, then \AS{M†} is also a value.
+The proof is by cases of term constructors.
 
-\item
-  Renaming commutes with similarity. If \AS{ρ} is a renaming from
-  \AS{Γ} to \AS{Δ}, and \AS{M \ti M†} are similar terms in the context
-  \AS{Γ}, then the results of renaming \AS{M} and \AS{M†} with \AS{ρ}
-  are also similar: \AS{S.rename ρ M \ti T.rename ρ M†}.
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{val-comm}
 
-\item
-  Substitution commutes with similarity. Suppose \AS{ρ} and \AS{ρ†} are two
-  substitutions which take variables \AS{x} in \AS{Γ} to terms in \AS{Δ},
-  such that for all \AS{x} we have that \AS{lookup ρ x \ti lookup ρ†
-    x}. Then given similar terms \AS{M \ti M†} in \AS{Γ}, the results
-  of applying \AS{ρ} to \AS{M} and \AS{ρ†} to \AS{M†} are also
-  similar: \AS{S.subst ρ M \ti T.subst ρ† M†}.
-\end{enumerate}
+\begin{lemma}{Renaming commutes with compatibility.}
+  If \AS{ρ} is a renaming from \AS{Γ} to \AS{Δ}, and \AS{M \tis M†} are
+  compatible terms in the context \AS{Γ}, then the results of renaming
+  \AS{M} and \AS{M†} with \AS{ρ} are also compatible: \AS{S.rename ρ M
+    \tis T.rename ρ M†}.
+\end{lemma}
 
-The proof that values commute with similarity is straightforward.
-
-\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{val-comm} 
-
-Before we will be able to prove the lemmas about renaming and substitution, we need an interlude
-where we discuss so-called fusion lemmas for the closure language λT.
-
-TODO acknowledge PLFA here
-
-
-\section{Back to \ti rename and \ti subst}
-
-Recall the two result which we said would be needed for showing
-bisimulation. We start with:
-
-\textit{Renaming commutes with similarity.} If \AS{ρ} is a renaming from
-\AS{Γ} to \AS{Δ}, and \AS{M \ti M†} are similar terms in the context
-\AS{Γ}, then the results of renaming \AS{M} and \AS{M†} with \AS{ρ}
-are also similar: \AS{S.rename ρ M \ti T.rename ρ M†}.
+The proof is by induction on the similarity relation.
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{rename-comm} 
 
-The proof is by induction on the similarity relation. The variable and
-application cases are easy, but as ever, the abstraction case is worth
-looking at. Recall that a source abstraction is similar to the target
-closure \AS{S.L N \ti T.L N† E} when \AS{N \ti T.subst (T.exts E) N†}
-by the inductive constructor \AS{\ti L}.
-
-In the abstraction case, we have that
-
-\AS{S.L N \ti T.L N† E} (1)
-
-We need to show that
-
-\AS{S.rename ρ (S.L N) \ti T.rename ρ (T.L N† E)} (2)
-
-but (2) simplifies to
-
-\AS{S.L (S.rename (S.exts ρ) N) \ti T.L N† (T.rename ρ <\$> E)} (3)
-
-which holds by \AS{\ti L} when the following holds
-
-\AS{S.rename (S.exts ρ) N \ti T.subst (T.exts (T.rename ρ <\$> E)) N†} (4)
-
-On the other hand, from (1) by \AS{\ti L} we have that
-
-\AS{N \ti T.subst (T.exts E) N†} (5)
-
-Applying the induction hypotesis to (5), we get
-
-\AS{S.rename (S.exts ρ) N \ti T.rename (S.exts ρ) (T.subst (T.exts E) N†)} (6)
-
-Thus we require (4) and have (6), so to complete the proof, we need to
-show that 
-
-\AS{T.subst (T.exts (T.rename ρ <\$> E)) N† ≡ T.rename (S.exts ρ) (T.subst
-  (T.exts E) N†)}
-
-or, in Agda
+The variable and application cases are straightforward, but as ever, the
+abstraction case is more involved: it requires rewriting with an
+instantiation of the fusion lemma about a composition of renaming and
+substitution. 
 
 \ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{lemma-ren-comm}
 
-This indeed holds, and the proof uses the fusion lemma lemmas for
-renaming and substitution in several places.
+\begin{lemma}
+  \textit{Substitution commutes with compatibility}. Suppose \AS{ρ}
+  and \AS{ρ†} are two substitutions which take variables \AS{x} in
+  \AS{Γ} to terms in \AS{Δ}, such that for all \AS{x} we have that
+  \AS{lookup ρ x \ti lookup ρ† x}. Then given compatible terms \AS{M
+    \ti M†} in \AS{Γ}, the results of applying \AS{ρ} to \AS{M} and
+  \AS{ρ†} to \AS{M†} are also compatible: \AS{S.subst ρ M \ti T.subst
+    ρ† M†}.
+\end{lemma}
+
+TBC
 
 The remaining result to prove is quite similar, but the concept of a
 pointwise similar substitution makes it worth analysing.
@@ -1325,6 +1311,7 @@ We do not include the Agda proof here as it is not very readable;
 instead, we present several cases on paper: TODO
 
 \chapter{Reflections and evaluation}
+\label{cha:refl-eval}
 
 This project is a case study on verification of transformations of
 functional programs using two different techniques: bisimulations and

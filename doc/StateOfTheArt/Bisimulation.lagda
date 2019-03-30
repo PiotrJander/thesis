@@ -36,7 +36,7 @@ data _~_ : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set where
 
   ~L : ∀ {Γ Δ σ τ} {N : S.Lam τ (σ ∷ Γ)}
          {N† : T.Lam τ (σ ∷ Δ)} {E : T.Subst Δ Γ}
-    → N ~ T.subst (T.rename (pack s) <$> E ∙ T.V z) N†
+    → N ~ T.subst (T.exts E) N†
       ------------------------------------------------
     → S.L N ~ T.L N† E
 \end{code}
@@ -129,10 +129,10 @@ open _~σ_ public
 
 %<*pointwise-sim-exts>
 \begin{code}
-~exts : ∀ {Γ Δ σ} {ρ  : S.Subst Γ Δ} {ρ† : T.Subst Γ Δ}
+~exts : ∀ {Γ Δ} {σ : Type} {ρ  : S.Subst Γ Δ} {ρ† : T.Subst Γ Δ}
   → ρ ~σ ρ†
     ------------------------------
-  → S.exts {σ = σ} ρ ~σ T.exts ρ†
+  → S.exts {τ = σ} ρ ~σ T.exts ρ†
 ρ~ρ† (~exts ~ρ) z  = ~V
 ρ~ρ† (~exts {σ = σ} {ρ = ρ} {ρ†} ~ρ) (s x)
   = ~rename E.extend (ρ~ρ† ~ρ x)

@@ -148,27 +148,35 @@ fund : ∀ {Γ σ k} {M₁ : S.Exp k σ Γ} {M₂ : T.Exp k σ Γ}
 %</fund-t>
 
 \begin{code}
-fund-lam : ∀ {Γ Δ σ τ} {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Δ)} {E : T.Subst Δ Γ} {V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
-       {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
+fund-lam : ∀ {Γ Δ σ τ} {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Δ)}
+             {E : T.Subst Δ Γ} {V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
+             {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
    → ρ^s ∙≈ ρ^t
    → N₁ ≅ T.subst (T.exts E) N₂
    → V₁ ≈ V₂
      -----------------
-   → S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁ [ V₁ ] ~ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂  
+   → S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁ [ V₁ ]
+             ~ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂  
 
 fund ∙≈ρ (~var {x = x}) = lookup^R ∙≈ρ x
-fund ∙≈ρ (~λ ~N) = ≈λ (λ V₁≈V₂ → ⊥-elim impossible) where postulate impossible : ⊥ -- fund-lam ∙≈ρ ~N V₁≈V₂
-fund {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N) with S.subst ρ^s L | T.subst ρ^t L† | fund ∙≈ρ ~M | fund ∙≈ρ ~N
+fund ∙≈ρ (~λ ~N) = ≈λ (λ V₁≈V₂ → ⊥-elim impossible)
+  where postulate impossible : ⊥ -- fund-lam ∙≈ρ ~N V₁≈V₂
+fund {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N)
+  with S.subst ρ^s L | T.subst ρ^t L† | fund ∙≈ρ ~M | fund ∙≈ρ ~N
 ... | S.`var () | _ | _ | _
 ... | S.`λ _ | T.`var () | _ | _
-fund {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N) | S.`λ N | T.`λ N† E | ≈λ p | ~V with p ~V
-... | ~Trm N₁⇓U₁ N₂⇓U₂ U₁≈U₂ = ~Trm (S.⇓step S.→₁app N₁⇓U₁) (T.⇓step T.→₁app N₂⇓U₂) U₁≈U₂
-fund ∙≈ρ (~let ~M ~N) = ⊥-elim impossible where postulate impossible : ⊥
+fund {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N)
+  | S.`λ N | T.`λ N† E | ≈λ p | ~V with p ~V
+... | ~Trm N₁⇓U₁ N₂⇓U₂ U₁≈U₂
+  = ~Trm (S.⇓step S.→₁app N₁⇓U₁) (T.⇓step T.→₁app N₂⇓U₂) U₁≈U₂
+fund ∙≈ρ (~let ~M ~N) = ⊥-elim impossible
+  where postulate impossible : ⊥
 fund ∙≈ρ (~val ~M) with fund ∙≈ρ ~M
 ... | ~V = ~Trm S.⇓val T.⇓val ~V
-fund-lam {N₁ = N₁} {N₂} {E} {V₁} {V₂} {ρ^s} {ρ^t} ∙≈ρ ~N V₁≈V₂ with fund (∙≈ρ ∙^R V₁≈V₂) ~N
+fund-lam {N₁ = N₁} {N₂} {E} {V₁} {V₂} {ρ^s} {ρ^t} ∙≈ρ ~N V₁≈V₂
+  with fund (∙≈ρ ∙^R V₁≈V₂) ~N
 ... | p rewrite helper-1 ρ^s N₁ V₁ | sym (helper-2 ρ^t E N₂ V₂) = p
-
+\end{code}
 
 
 

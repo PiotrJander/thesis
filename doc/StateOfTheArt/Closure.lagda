@@ -45,10 +45,12 @@ Syntactic Γ Δ = ∀ {σ} → Lam σ Γ → Lam σ Δ
 \end{code}
 %</syntactic>
 
+%<*ext>
 \begin{code}
 ext : ∀ {Γ Δ} {σ : Type} → Thinning Γ Δ  → Thinning (σ ∷ Γ) (σ ∷ Δ)
 ext ρ = s <$> ρ ∙ z
 \end{code}
+%</ext>
 
 \begin{code}
 {-# TERMINATING #-}
