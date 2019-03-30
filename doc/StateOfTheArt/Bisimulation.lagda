@@ -185,23 +185,35 @@ _~∙_ : ∀ {Γ Δ σ}
   rewrite cong (λ e → (N / VV) ~ e) (sym (TT.subst-E∙V N† E V†))
   = ~subst (~id-subst ~∙ ~VV) ~N
 
-ST-Simulation : (∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set) → Set
+Rel : Set₁
+\end{code}
+
+%<*simulation>
+\begin{code}
+Rel = ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set
+
+ST-Simulation : Rel → Set
 ST-Simulation _≈_ = ∀ {Γ σ} {M N : S.Lam σ Γ} {M† : T.Lam σ Γ}
-  → M ≈ M†
-  → M S.—→ N
+  → M ≈ M† → M S.—→ N
     ---------
   → ∃[ N† ] ((N ≈ N†) × (M† T.—→ N†))
 
-TS-Simulation : (∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set) → Set
+TS-Simulation : Rel → Set
 TS-Simulation _≈_ = ∀ {Γ σ} {M : S.Lam σ Γ} {M† N† : T.Lam σ Γ}
-  → M ≈ M†
-  → M† T.—→ N†
-    ---------
+  → M ≈ M† → M† T.—→ N†
+    ------------------------------
   → ∃[ N ] ((N ≈ N†) × (M S.—→ N))
+\end{code}
+%</simulation>
 
+%<*bisimulation>
+\begin{code}
 Bisimulation : (∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set) → Set
 Bisimulation _≈_ = ST-Simulation _≈_ × TS-Simulation _≈_
+\end{code}
+%</bisimulation>
 
+\begin{code}
 st-sim : ST-Simulation _~_
 st-sim ~V ()
 st-sim (~L ~N) ()

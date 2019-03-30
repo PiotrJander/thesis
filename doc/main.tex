@@ -9,6 +9,7 @@
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
 \usepackage{enumitem}
+\usepackage{tikz-cd}
 
 \input{commands}
 
@@ -941,41 +942,54 @@ section defines what it means for a relation to be a bisimulation.
 
 \section{Bisimulation}
 
-Bisimulation is a two-way property which is defined in terms of a
-simpler one-way property of simulation.
+Bisimulation, as the name implies, is defined in terms on two
+simulations: one from source to target terms, and the other one from
+target to source terms.
 
-\begin{definition}{}
-Given two languages \AS{S} and \AS{T} and a similarity relation
-\AS{\_\textasciitilde\_}
-between them, \AS{S} and \AS{T} are in \textbf{simulation} if and only
-if the following holds:
-Given source language terms \AS{M} and \AS{N}, and a target language
-term \AS{M†} such that \AS{M} reduces to \AS{N} in a single step (\AS{M —→ N}) and
-\AS{M} is similar to \AS{M†} (\AS{M \~ M†}), there exists a target
-language term \AS{N†} such that \AS{M†} reduces to \AS{N†} in some
-number of steps (\AS{M† —→* N†}) and \AS{N} is similar to \AS{N†} (\AS{N \~ N†}).
-\end{definition}
+In the following definitions speak about a two languages, \AS{A} and
+\AS{B}. Also, whenever simulations or bisimulations are mentioned,
+they are implicitly \textit{lock-step}. The literature has example of
+more general simulations.
 
 \begin{definition}
-Given two languages \AS{S} and \AS{T},  \AS{S} and \AS{T} are in a
-\textbf{bisimulation} if and only if \AS{S} is in a simulation with \AS{T} and
-\AS{T} is in a simulation with \AS{S}.
+  Given a relation \AS{≈} between terms of \AS{A} and terms of \AS{B},
+  we say that \AS{≈} is a \textbf{simulation} if and only if for all
+  terms \AS{M} and \AS{N} in \AS{A}, and \AS{M†} in \AS{B}, if \AS{M}
+  reduces in a single step to \AS{N}, then there exists a term \AS{N†}
+  in \AS{B} such that \AS{M†} reduces to \AS{N†} in a single step, and
+  \AS{N} is in the \AS{≈} relation with \AS{N†}: \AS{N ≈ N†}.
 \end{definition}
 
 The essence of simulation can be captured in a diagram.
 
-TODO diagram here
+\[ \begin{tikzcd}
+M \arrow{r}{\longrightarrow} \arrow[swap]{d}{\approx} & N \arrow{d}{\approx} \\%
+M \dagger \arrow{r}{\longrightarrow}& N \dagger
+\end{tikzcd}
+\]
 
-TODO give names to the source and target langs
+Recall that the \textit{converse} of the relation \AS{≈} is a relation
+\AS{≈'} defined by \AS{y ≈' x} whenever \AS{x ≈ y}.
 
-In fact, our source and target languages of closure conversion have a
-stronger property: \textit{lock-step} bisimulation, which is defined
-in terms of \textit{lock-step} simulations. A lock-step simulation is
-one where for each reduction step of the source term, there is exactly
-one corresponding reduction step in the target language. We illustrate
-this at another diagram:
+\begin{definition}
+  A relation \AS{≈} is a \textbf{bisimulation} if and only if it is a
+  simulation and its converse is also a simulation.
+\end{definition}
 
-TODO another diagram
+In Agda, we instantiate the definition of simulation twice: once for a
+simulation from λst to λcl, and again for a simulation from λcl to
+λst:
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{simulation}
+
+Then we can provide an Agda definition of a bisimulation:
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{bisimulation}
+
+
+
+***
+
 
 Before we can prove that λ and λT are in simulation, we need three
 lemmas:
