@@ -1048,55 +1048,39 @@ The proof is by induction on the similarity relation.
 
 The variable and application cases are straightforward, but as ever, the
 abstraction case is more involved: it requires rewriting with an
-instantiation of the fusion lemma about a composition of renaming and
-substitution. 
+instantiation of the fusion lemma \AS{rename∘subst}.
 
 \ExecuteMetaData[StateOfTheArt/Closure-Thms.tex]{lemma-ren-comm}
 
+The final lemma is about the interplay between compatibility and
+substitution. 
+
+\begin{definition}
+  Suppose \AS{ρ} and \AS{ρ†} are two substitutions which take
+  variables \AS{x} in \AS{Γ} to terms in \AS{Δ}, such that for all
+  \AS{x} we have that \AS{lookup ρ x \tis lookup ρ† x}. Then we say
+  that \AS{ρ} and \AS{ρ†} are \textit{pointwise compatible}.
+\end{definition}
+
 \begin{lemma}
   \textit{Substitution commutes with compatibility}. Suppose \AS{ρ}
-  and \AS{ρ†} are two substitutions which take variables \AS{x} in
-  \AS{Γ} to terms in \AS{Δ}, such that for all \AS{x} we have that
-  \AS{lookup ρ x \ti lookup ρ† x}. Then given compatible terms \AS{M
-    \ti M†} in \AS{Γ}, the results of applying \AS{ρ} to \AS{M} and
-  \AS{ρ†} to \AS{M†} are also compatible: \AS{S.subst ρ M \ti T.subst
-    ρ† M†}.
+  and \AS{ρ†} are two pointwise compatible substitutions. Then given
+  compatible terms \AS{M \ti M†} in \AS{Γ}, the results of applying
+  \AS{ρ} to \AS{M} and \AS{ρ†} to \AS{M†} are also compatible:
+  \AS{S.subst ρ M \ti T.subst ρ† M†}.
 \end{lemma}
 
-TBC
-
-The remaining result to prove is quite similar, but the concept of a
-pointwise similar substitution makes it worth analysing.
-
-\textit{Substitution commutes with similarity.} Suppose \AS{ρ} and \AS{ρ†}
-are two 
-substitutions which take variables \AS{x} in \AS{Γ} to terms in \AS{Δ},
-such that for all \AS{x} we have that \AS{lookup ρ x \ti lookup ρ†
-  x}. Then given similar terms \AS{M \ti M†} in \AS{Γ}, the results
-of applying \AS{ρ} to \AS{M} and \AS{ρ†} to \AS{M†} are also
-similar: \AS{S.subst ρ M \ti T.subst ρ† M†}.
-
-The notion of pointwise-similar substitutions \AS{ρ} and \AS{ρ†} from
-\AS{Γ} to \AS{Δ}
-can be captured by a function which, for each variables \AS{x} in
-\AS{Γ}, produces a proof that that the corresponsing terms are
-similar: \AS{lookup ρ x \ti lookup ρ† x}. We encapsulate this function
-in an Agda record:
+Pointwise similarity relation between substitutions \AS{ρ} and \AS{ρ†}
+is defined in Agda with \AS{\ti σ}:
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{pointwise-sim}
 
-The notion of a pointwise relation between environments (like
-substitutions) is used by ACMM to prove synchronisation and fusion
-lemmas for STLC. Unlike for STLC, the closure language \lcl does not
-require us to prove that pointwise similarity is preserved as a
-traversal goes under a binder.
-
-We can, however, show that pointwise similarity is preserved by
+We can show that pointwise similarity is preserved by
 applying \AS{exts} to both substitutions:
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{pointwise-sim-exts}
 
-In fact, exteding pointwise-similar substitutions with similar terms
+In fact, exteding pointwise-similar substitutions with similar terms 
 preserves pointwise similarity:
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{pointwise-sim-extend}
@@ -1106,7 +1090,12 @@ substitution commutes with similarity:
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{subst-comm}
 
-TODO finish
+Just like in the lemma that renaming commutes with compatibility, the
+only non-trivial case is the one about abstractions/closures, which
+requires rewriting by an instatiation of the fusion lemma
+\AS{subst∘subst}.
+
+TBC
 
 \section{Compatibility relation and closure conversion}
 \label{sec:comp-relat-clos}

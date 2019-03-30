@@ -188,10 +188,12 @@ eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) (s x) = h
         h = trans g (sym f)
 \end{code}
 
+%<*lemma-subst-comm>
 \begin{code}
 lemma-~subst-L : ∀ {Γ Δ Θ σ τ} (ρ₁ : Subst Γ Θ) (ρ₂ : Subst Δ Γ) (N : Lam τ (σ ∷ Δ))
   → subst (exts ρ₁) (subst (exts ρ₂) N) ≡ subst (exts (subst ρ₁ <$> ρ₂)) N
 \end{code}
+%</lemma-subst-comm>
 
 \begin{code}
 lemma-~subst-L ρ₁ ρ₂ N =

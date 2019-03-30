@@ -127,11 +127,21 @@ record _~σ_ {Γ Δ : Context} (ρ : S.Subst Γ Δ) (ρ† : T.Subst Γ Δ) : Se
 open _~σ_ public
 \end{code}
 
+%<*pointwise-sim-extend>
+\begin{code}
+_~∙_ : ∀ {Γ Δ σ} {ρ  : S.Subst Γ Δ} {ρ† : T.Subst Γ Δ}
+         {M : S.Lam σ Δ} {M† : T.Lam σ Δ}
+  → ρ ~σ ρ† → M ~ M†
+  → ρ ∙ M ~σ ρ† ∙ M†
+ρ~ρ† (ρ~σρ† ~∙ M~M†) z = M~M†
+ρ~ρ† (ρ~σρ† ~∙ M~M†) (s x) = ρ~ρ† ρ~σρ† x
+\end{code}
+%</pointwise-sim-extend>
+
 %<*pointwise-sim-exts>
 \begin{code}
 ~exts : ∀ {Γ Δ} {σ : Type} {ρ  : S.Subst Γ Δ} {ρ† : T.Subst Γ Δ}
   → ρ ~σ ρ†
-    ------------------------------
   → S.exts {τ = σ} ρ ~σ T.exts ρ†
 ρ~ρ† (~exts ~ρ) z  = ~V
 ρ~ρ† (~exts {σ = σ} {ρ = ρ} {ρ†} ~ρ) (s x)
@@ -144,28 +154,12 @@ open _~σ_ public
 ρ~ρ† ~id-subst x = ~V
 \end{code}
 
-%<*pointwise-sim-extend>
-\begin{code}
-_~∙_ : ∀ {Γ Δ σ}
-    {ρ  : S.Subst Γ Δ} {ρ† : T.Subst Γ Δ}
-    {M : S.Lam σ Δ} {M† : T.Lam σ Δ}
-  → ρ ~σ ρ†
-  → M ~ M†
-    --------------------------------------------------
-  → ρ ∙ M ~σ ρ† ∙ M†
-ρ~ρ† (ρ~σρ† ~∙ M~M†) z = M~M†
-ρ~ρ† (ρ~σρ† ~∙ M~M†) (s x) = ρ~ρ† ρ~σρ† x
-\end{code}
-%</pointwise-sim-extend>
-
 %<*subst-comm>
 \begin{code}
-~subst : ∀ {Γ Δ}
-  → {ρ  : S.Subst Γ Δ}
-  → {ρ† : T.Subst Γ Δ}
-  → ρ ~σ ρ†
-    ---------------------------------------------------------
-  → (∀ {τ} {M : S.Lam τ Γ} {M† : T.Lam τ Γ} → M ~ M† → S.subst ρ M ~ T.subst ρ† M†)
+~subst : ∀ {Γ Δ τ} {ρ  : S.Subst Γ Δ} {ρ† : T.Subst Γ Δ}
+           {M : S.Lam τ Γ} {M† : T.Lam τ Γ}
+  → ρ ~σ ρ† → M ~ M†
+  → S.subst ρ M ~ T.subst ρ† M†
 ~subst ~ρ (~V {x = x}) = ρ~ρ† ~ρ x
 ~subst ~ρ (~A ~M ~N) = ~A (~subst ~ρ ~M) (~subst ~ρ ~N) 
 ~subst {ρ† = ρ†} ~ρ (~L {N = N} {N†} {E} ~N) with ~subst (~exts ~ρ) ~N
