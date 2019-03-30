@@ -2,7 +2,7 @@
 module StateOfTheArt.Bisimulation where
 
 open import Data.List using (List; []; _∷_)
-open import Data.Product using (_×_; _,_)
+open import Data.Product using (_×_; _,_; ∃-syntax)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; cong; sym; cong₂)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
@@ -185,36 +185,19 @@ _~∙_ : ∀ {Γ Δ σ}
   rewrite cong (λ e → (N / VV) ~ e) (sym (TT.subst-E∙V N† E V†))
   = ~subst (~id-subst ~∙ ~VV) ~N
 
-Rst : Set₁
-Rst = ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set
-
-record ST-Leg {Γ σ} (M† : T.Lam σ Γ) (N : S.Lam σ Γ) (_≈_ : Rst) : Set where
-  constructor leg
-  field 
-    N†   : T.Lam σ Γ
-    ~N   : N ≈ N†
-    M—→  : M† T.—→ N†
-
-record TS-Leg {Γ σ} (M : S.Lam σ Γ) (N† : T.Lam σ Γ) (_≈_ : Rst) : Set where
-  constructor leg
-  field 
-    N    : S.Lam σ Γ
-    ~N   : N ≈ N†
-    M—→  : M S.—→ N
-
 ST-Simulation : (∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set) → Set
 ST-Simulation _≈_ = ∀ {Γ σ} {M N : S.Lam σ Γ} {M† : T.Lam σ Γ}
   → M ≈ M†
   → M S.—→ N
     ---------
-  → ST-Leg M† N _≈_
+  → ∃[ N† ] ((N ≈ N†) × (M† T.—→ N†))
 
 TS-Simulation : (∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set) → Set
 TS-Simulation _≈_ = ∀ {Γ σ} {M : S.Lam σ Γ} {M† N† : T.Lam σ Γ}
   → M ≈ M†
   → M† T.—→ N†
     ---------
-  → TS-Leg M N† _≈_
+  → ∃[ N ] ((N ≈ N†) × (M S.—→ N))
 
 Bisimulation : (∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set) → Set
 Bisimulation _≈_ = ST-Simulation _≈_ × TS-Simulation _≈_
@@ -224,22 +207,22 @@ st-sim ~V ()
 st-sim (~L ~N) ()
 st-sim (~A ~M ~N) (S.ξ-A₁ M—→)
   with st-sim ~M M—→
-... | leg _ ~M' M†—→ = leg _ (~A ~M' ~N) (T.ξ-A₁ M†—→)
+... | _ , ~M' , M†—→ = _ , ~A ~M' ~N , T.ξ-A₁ M†—→
 st-sim (~A ~M ~N) (S.ξ-A₂ VV N—→)
   with st-sim ~N N—→
-... | leg _ ~N′ N†—→ = leg _ (~A ~M ~N′) (T.ξ-A₂ (~val ~M VV) N†—→)
+... | _ , ~N′ , N†—→ = _ , ~A ~M ~N′ , T.ξ-A₂ (~val ~M VV) N†—→
 st-sim (~A (~L {N = N} {N†} ~N) ~VV) (S.β-L VV)
-  = leg _ (/V≡E∙V† {N = N} {N†} ~N ~VV) (T.β-L (~val ~VV VV))
+  = _ , /V≡E∙V† {N = N} {N†} ~N ~VV , T.β-L (~val ~VV VV)
   
 ts-sim : TS-Simulation _~_
 ts-sim ~V ()
 ts-sim (~L ~N) ()
 ts-sim (~A ~M ~N) (T.ξ-A₁ M†—→) with ts-sim ~M M†—→
-... | leg _ ~M' M—→ = leg _ (~A ~M' ~N) (S.ξ-A₁ M—→)
+... | _ , ~M' , M—→ = _ , ~A ~M' ~N , S.ξ-A₁ M—→
 ts-sim (~A ~M ~N) (T.ξ-A₂ VV† N†—→) with ts-sim ~N N†—→
-... | leg _ ~N' N—→ = leg _ (~A ~M ~N') (S.ξ-A₂ (~ts-val ~M VV†) N—→)
+... | _ , ~N' , N—→ = _ , ~A ~M ~N' , S.ξ-A₂ (~ts-val ~M VV†) N—→
 ts-sim (~A (~L {N = N} {N†} ~N) ~VV) (T.β-L VV†)
-  = leg _ (/V≡E∙V† {N = N} {N†} ~N ~VV) (S.β-L (~ts-val ~VV VV†))
+  = _ , /V≡E∙V† {N = N} {N†} ~N ~VV , S.β-L (~ts-val ~VV VV†)
 
 bisim : Bisimulation _~_
 bisim = st-sim , ts-sim

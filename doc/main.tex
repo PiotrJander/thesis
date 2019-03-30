@@ -756,6 +756,19 @@ proof.
 The evidence that \AS{Δ ⊆ A ∷ Δ₁} is used to rename \AS{N†} so that
 the final inherently-typed term is well-typed.
 
+***
+
+We also provide a wrapper function \AS{\_†}:
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{dag}
+
+This function is a wrapper over the \AS{min-cc} function which undoes
+the minimisation on the outer level. In other words, all closures in
+the term are still minimised, but the outer term is typed in the same
+context as the input source term. This is useful when we need to
+compare the input and output of closure conversion, and need to ensure
+that they are typed in the same context.
+
 \subsection{Fusion lemmas for the closure language λcl}
 
 When studying the meta-theory of a calculus, one systematically needs
@@ -897,8 +910,8 @@ The compatibility relation is defined as follows:
   \item (\textit{Application}) If \AS{M \tis M†} and \AS{N \tis N†},
     then \AS{M · N \tis M† · N†}.
 
-  \item (\textit{Abstraction}) If \AS{N \tis subst (exts E) N†},
-    then \AS{S.L N \tis T.L N† E}.
+  \item (\textit{Abstraction}) If \AS{N \tis T.subst (T.rename (pack
+      s) <\$> E ∙ T.V z) N†}, then \AS{S.L N \tis T.L N† E}.
     
   \end{itemize}
 \end{definition}
@@ -908,68 +921,23 @@ of context membership). In fact, compatibility is only defined for source
 and target terms of the same type in the same context (this is
 explicit in the Agda definition).
 
-While the variable and application cases are straightforward, 
+While the variable and application cases are straightforward, the
+abstraction / closure case needs some explanation. Since the body
+\AS{N} of the abstraction is defined in \AS{σ ∷ Γ}, and the body of
+the closure \AS{N†} is defined in \AS{σ ∷ Δ}, they cannot be
+compatible. However, \AS{N} can be compatible with the result of
+substituting the environment \AS{E} in \AS{N†} (the environment is
+extended with a variable corresponding to the \AS{σ} in the
+context). The intuition for the abstraction/closure case is that
+substituting the environment `undoes' the effect of closure conversion
+on the context. 
 
-
-
-What are the necessary conditions for \AS{S.L N \tis T.L N† E}, where
-\AS{S.L N} and \AS{T.L N† E} are defined in a context \AS{Γ}? Clearly,
-we cannot require that \AS{N \tis N†}, as the context \AS{Δ} in which
-the closure body is defined is different from \AS{Γ}. However, recall
-that the closure environment \AS{E} is defined as a substitution from
-\AS{Δ} to \AS{Γ}. Applying this substitution, extended with a newly
-bound variable, to the closure body (\AS{subst (exts E) N†})
-results in a term in \AS{Γ} which can be in a compatibility relation with
-\AS{N}, and this is precisely what is required in the definition.
-
-Similarity is defined in Agda as follows:
+The compatibility relation is defined in Agda as follows:
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{tilde}
 
-The definition of similarity might seem arbitrary, but we argue that
-the graph relation of any well-behaved closure conversion function is
-contained within the similarity relation.
-
-For example, consider the trivial closure conversion algorithm
-\AS{simple-cc}, which uses full contexts as environments (through
-identity substitutions \AS{id-subst}):
-
-\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{convert}
-
-Indeed, the graph relation of \AS{simple-cc} is contained in the
-similarity relation. The proof is by straightforward induction; in the
-abstraction case, we need to argue that applying an identity
-substitution leaves the argument term unchanged.
-
-\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{graph}
-
-\subsubsection{The minimising closure conversion and the
-  similarity relation}
-\label{sec:minim-clos-conv-1}
-
-Similarly, the graph relation of the minimising closure conversion
-function is also contained in the similarity relation.
-
-To be precise, we define the function \AS{\_†}:
-
-\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{dag}
-
-This function is a wrapper over the \AS{min-cc} function which undoes
-the minimisation on the outer level. In other words, all closures in
-the term are still minimised, but the outer term is typed in the same
-context as the input source term, so that the statement `contained in
-the similarity relation` type-checks.
-
-The claim is that 
-
-\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-sim-t}
-
-The proof of the claim is too long to discuss here, but the reader can
-find it in the technical appendix of this report.
-
-***
-
-With the notion of similarity formalised, bisimulation can be defined.
+We have defined the syntactic compatibility relation. The next
+section defines what it means for a relation to be a bisimulation.
 
 \section{Bisimulation}
 
@@ -1139,6 +1107,44 @@ substitution commutes with similarity:
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{subst-comm}
 
 TODO finish
+
+\section{Compatibility relation and closure conversion}
+\label{sec:comp-relat-clos}
+
+The definition of similarity might seem arbitrary, but we argue that
+the graph relation of any well-behaved closure conversion function is
+contained within the similarity relation.
+
+For example, consider the trivial closure conversion algorithm
+\AS{simple-cc}, which uses full contexts as environments (through
+identity substitutions \AS{id-subst}):
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{convert}
+
+Indeed, the graph relation of \AS{simple-cc} is contained in the
+similarity relation. The proof is by straightforward induction; in the
+abstraction case, we need to argue that applying an identity
+substitution leaves the argument term unchanged.
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{graph}
+
+\subsubsection{The minimising closure conversion and the
+  similarity relation}
+\label{sec:minim-clos-conv-1}
+
+Similarly, the graph relation of the minimising closure conversion
+function is also contained in the similarity relation.
+
+The claim is that 
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-sim-t}
+
+The proof of the claim is too long to discuss here, but the reader can
+find it in the technical appendix of this report.
+
+***
+
+With the notion of similarity formalised, bisimulation can be defined.
 
 \chapter{Proof by logical relations}
 
