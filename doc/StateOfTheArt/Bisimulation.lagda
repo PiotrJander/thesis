@@ -27,17 +27,18 @@ data _~_ : ∀ {Γ σ} → S.Lam σ Γ → T.Lam σ Γ → Set where
      ---------------
    → S.V x ~ T.V x
 
-  ~L : ∀ {Γ Δ σ τ} {N : S.Lam τ (σ ∷ Γ)} {N† : T.Lam τ (σ ∷ Δ)} {E : T.Subst Δ Γ}
-    → N ~ T.subst (T.exts E) N†
-      -----------------
-    → S.L N ~ T.L N† E
-
   ~A : ∀ {Γ σ τ} {L : S.Lam (σ ⇒ τ) Γ} {L† : T.Lam (σ ⇒ τ) Γ}
            {M : S.Lam σ Γ} {M† : T.Lam σ Γ}
     → L ~ L†
     → M ~ M†
       --------------------
     → S.A L M ~ T.A L† M†
+
+  ~L : ∀ {Γ Δ σ τ} {N : S.Lam τ (σ ∷ Γ)}
+         {N† : T.Lam τ (σ ∷ Δ)} {E : T.Subst Δ Γ}
+    → N ~ T.subst (T.rename (pack s) <$> E ∙ T.V z) N†
+      ------------------------------------------------
+    → S.L N ~ T.L N† E
 \end{code}
 %</tilde>
 

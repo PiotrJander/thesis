@@ -393,17 +393,18 @@ of STLC, cf. \cite{DBLP:conf/sbmf/Wadler18}.
 
 Operational semantics are needed for the treatment of bisimulation.
 
-\chapter{The Agda development}
+\chapter{Formalising closure conversion}
 \label{cha:agda-development}
 
-This chapter presents the parts of the Agda development which are
-original to this project. It starts by discussing the closure language
-λcl, an intermediate language which is like STLC but with abstractions
+This chapter presents this project's formalisation of closure
+conversion. It starts by discussing the closure language λcl, an
+intermediate language which is like STLC but with abstractions
 replaced by closures. Then it demonstrates a type-preserving
 conversion for λst to λcl which has the property that the obtained
-closure environments are `minimal`.  Finally, a result is presented
-about the source and target programs of closure conversion being in a
-bisimulation.
+closure environments are `minimal`.  Finally, several properties about
+interactions between renaming and substitution in λcl are formally
+established --- they are needed in proofs of correctness in subsequent
+chapters.
 
 \section{Closure language λcl}
 \label{sec:closure-language-cl}
@@ -838,36 +839,55 @@ Unfortunately, Agda does not recognise this project's fusion lemmas as
 terminating, and we were unable to provide a termination proof. Still,
 we believe that the function does in fact terminate.
 
-\section{Bisimulation}
-\label{sec:bisimulation}
 
-Preceding sections defined the source and target languages of the
+\chapter{Proving correctness of closure conversion with bisimulation}
+\label{cha:prov-corr-clos}
+
+Preceding sections defined the source and target languages of
 closure conversion, λst and λcl, together with reduction rules for
 each, and a closure conversion function \AS{min-cc} from λst to λcl.
 
-This project's implementation of closure conversion is type- and
+The \AS{min-cc}  closure conversion is type- and
 scope-preserving by construction. The property of type preservation
 provides confidence in the compilation process, but in this
 theoretical development which deals with a small, toy language, it is
 within the reach of this project to prove properties about operational
-correctness.
+correctness. 
 
 One such operational correctness property of a pair of languages is
 \textbf{bisimulation}. Intuition about bisimulation is captured by a
-slogan: similar terms reduce to similar terms.
+slogan: similar terms reduce to similar terms. 
 
-[TODO outline]
+This chapter starts by defining a relation between terms of λst and
+terms of λcl, which we call a \textit{compatibility relation}. The
+compatibility relation is syntactic: in general, two terms are
+compatible when their subterms are compatible.
 
-\subsection{Similarity relation}
-\label{sec:similarity-relation}
+Then, we define what it means for a relation to be a bisimulation. A
+bisimulation is a relation which has a semantic property which relates
+reduction steps of source and target terms. Next, we will show that
+the compatibility relation is a bisimulation.
 
-Before we can give an exact statement of bisimulation, we need a
-definition which captures the notion of similarity between the source
-terms of λst and target terms of λcl.
+Finally, we will link the compatibility relation to closure
+conversion: we will argue that the graph relation of every sensible
+closure conversion function is contained in the compatibility
+relation. In particular, we will prove that this is the case for
+\AS{min-cc}.
+
+Overall, correctness of the minimising closure conversion is
+established: first, by showing that the input and output of closure
+conversion are related by a syntactic relation, and second, by showing
+that this syntactic relation is also a semantic relation. Thus,
+soundness of our closure conversion is established.
+
+\subsection{Compatibility relation}
+\label{sec:comp-rel}
+
+The compatibility relation is defined as follows:
 
 \begin{definition}
   Given a term \AS{M} in λst and a term \AS{M†} in λcl,
-  the similarity relation \AS{M \tis M†} is defined inductively as
+  the compatibilty relation \AS{M \tis M†} is defined inductively as
   follows:
 
   \begin{itemize}
@@ -884,21 +904,13 @@ terms of λst and target terms of λcl.
 \end{definition}
 
 Recall that λst and λcl share types, contexts, and variables (proofs
-of context membership). In fact, similarity is only defined for source
+of context membership). In fact, compatibility is only defined for source
 and target terms of the same type in the same context (this is
 explicit in the Agda definition).
 
-Therefore, similarity of (syntactic) variables can be defined in terms
-of identity of proofs of membership.
+While the variable and application cases are straightforward, 
 
-Similarity of applications is defined by `compatibility`: given
-similar functions and similar arguments, the applications are similar.
 
-Finally, the non-trivial case of abstractions. It uses a function
-\AS{exts}, which extends a substitution environment with a newly
-bound variable.
-
-\ExecuteMetaData[StateOfTheArt/Closure.tex]{exts}
 
 What are the necessary conditions for \AS{S.L N \tis T.L N† E}, where
 \AS{S.L N} and \AS{T.L N† E} are defined in a context \AS{Γ}? Clearly,
@@ -907,17 +919,8 @@ the closure body is defined is different from \AS{Γ}. However, recall
 that the closure environment \AS{E} is defined as a substitution from
 \AS{Δ} to \AS{Γ}. Applying this substitution, extended with a newly
 bound variable, to the closure body (\AS{subst (exts E) N†})
-results in a term in \AS{Γ} which can be in a similarity relation with
+results in a term in \AS{Γ} which can be in a compatibility relation with
 \AS{N}, and this is precisely what is required in the definition.
-
-The application of \AS{exts} accounts for the fact that the closure
-body is defined in the context \AS{σ ∷ Δ} (or \AS{Δ, x : σ}, using a
-notation with names).
-
-The definition of similarity is reminiscent of `compatibity lemmas`,
-which is a usual name for a kind of result which states that similar
-terms can be composed to form similar terms. Except here, similarity
-is an inductive definition, not a lemma.
 
 Similarity is defined in Agda as follows:
 
