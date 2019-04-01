@@ -50,11 +50,11 @@ simple-cc (S.L N) = T.L (simple-cc N) T.id-subst
 
 %<*graph>
 \begin{code}
-simple-cc→sim : ∀ {Γ σ} (N : S.Lam σ Γ)
+~simple-cc : ∀ {Γ σ} (N : S.Lam σ Γ)
   → N ~ simple-cc N
-simple-cc→sim (S.V x) = ~V
-simple-cc→sim (S.A f e) = ~A (simple-cc→sim f) (simple-cc→sim e)
-simple-cc→sim (S.L b) = ~L g
+~simple-cc (S.V x) = ~V
+~simple-cc (S.A f e) = ~A (~simple-cc f) (~simple-cc e)
+~simple-cc (S.L b) = ~L g
   where
   h : ∀ {Γ σ τ} (M : T.Lam σ (τ ∷ Γ)) → T.subst (T.exts T.id-subst) M ≡ M
   h M =
@@ -66,7 +66,7 @@ simple-cc→sim (S.L b) = ~L g
       M
     ∎
   g : b ~ T.subst (T.exts T.id-subst) (simple-cc b)
-  g rewrite h (simple-cc b) = simple-cc→sim b
+  g rewrite h (simple-cc b) = ~simple-cc b
 \end{code}
 %</graph>
 

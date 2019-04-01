@@ -7,9 +7,9 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{url}
-\usepackage[hidelinks]{hyperref}
 \usepackage{enumitem}
 \usepackage{tikz-cd}
+\usepackage[hidelinks]{hyperref}
 
 \input{commands}
 
@@ -1197,32 +1197,45 @@ a specific closure conversion function]
 
 \chapter{Proof by logical relations}
 
-As we mentioned in \ref{TODO}, there are two standard methods for
-proving operational correctness of a translation: bisimulations and
-logical relations [TODO wording from Dreyer's
-paper]. Chapter~\ref{cha:agda-development} discussed an Agda
-mechanisation of a proof of bisimulation for [TODO wording] closure
-conversion. This chapter presents a mechanisation of the other proof
-method, [by/with?] logical relations?
+The previous chapter showed a correctness property of closure
+conversion: the source and target of our closure conversion are in a
+relation which is a bisimulation. This chapter demonstrates another
+technique for showing correctness properties: Kripke-style [??]
+type-indexed logical relations. Type-indexed logical relations are
+characterised by using induction on the type structure of terms.
 
-The chapter starts with a presentation of an modified formalisation
-of the source and target languages of closure conversion. Then, a
-pen-and-paper proof by logical relations is given, and finally, its
-Agda formalisation.
+The outline of this chapter is similar to that of the previous one
+about bisimulations. First, we introduce a modified representations of
+simply typed lambda calculus (λst') and the language with closures
+(λcl'), where terms are explicitly labelled as values or reducible
+expressions (this helps with mechanisation as logical relations treat
+values and reducible terms differently). Unlike λst and λcl, λst' and
+λcl' semantics are defined as big step [TODO wording].
 
-\section{Alternative formalisation of the intermediate languages}
+Then, the syntactic compatibility relation between λst' and λcl' is
+redefined. Finally, we define a logical relation between λst' and
+λcl', and we formulate the fundamental theorem for the that logical
+relation. As a corollary, it follows that the compatibility relation
+implies the logical relation for closed terms.
+
+The proof by logical relations is based on
+\cite{DBLP:conf/popl/MinamideMH96}, but the Agda mechanisation is this
+project's contribution.
+
+\section{Alternative representation of languages}
 \label{sec:altern-form-interm}
 
-This section presents an alternative formalisation of the source and
+This section presents an alternative representation of the source and
 target languages of closure conversion. We call the new formalisation
 of the source language λst', and the new formalisation of the target
 language - λcl'. Compared with λst and λcl in
 Chapter~\ref{cha:agda-development}, λst' and λcl' are different in two
-ways.. Firstly, the distinction between values and non-values is
-made explicit in the definition of terms in λst' and λcl', replacing a predicate on
-terms in λst and λcl. Secondly, we give big-step semantics for λst'
-and λcl', in contrast to small-step semantics for λst and λcl. These
-two differences simplify mechanisation of a proof by logica relation.
+ways. Firstly, the distinction between values and non-values is made
+explicit in the definition of terms in λst' and λcl', replacing a
+predicate on terms in λst and λcl. Secondly, we give big-step
+semantics for λst' and λcl', in contrast to small-step semantics for
+λst and λcl. These two differences simplify mechanisation of a proof
+by logica relation.
 
 These improvements in formalisation are inspired by an Agda
 formalisation accompanying \cite{DBLP:conf/cpp/McLaughlinMS18}.
@@ -1510,6 +1523,7 @@ either as syntaxes in AACMM cannot contain existential types.
 
 \paragraph{Bisimulation vs logical relations}
 [TODO what could I say about the pros and cons of both?]
+[Derek Dreyer's paper]
 
 \paragraph{Summary}
 This work and ACMM/AACMM are both concerned with mechanising the
@@ -1722,11 +1736,11 @@ and how to do it.
 \chapter{Technical appendix}
 \label{cha:technical-appendix}
 
-\section{Minimising closure conversion and the similarity relation}
+\section{Minimising closure conversion and the compatibility relation}
 \label{sec:minim-clos-conv-2}
 
 Below is the Agda proof that the graph relation of the minimising
-closure conversion function is contained in the similarity relation.
+closure conversion function is contained in the compatibility relation.
 
 \ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-sim}
 
