@@ -1116,33 +1116,72 @@ appendix and to PLFA?]
 \section{Compatibility relation and closure conversion}
 \label{sec:comp-relat-clos}
 
-We have showed that the compability relation is a bisimulation. But to
-link it to closure conversion and show that our implementation
-\AS{\_†} is correct, we need to show that the graph relation of
-\AS{\_†} is contained in the compatibility relation. In other words,
-if \AS{M} is a source term, then we have \AS{M \tis M †}, where \AS{M
-  †} is the translation of \AS{M} with \AS{\_†}. Thus, we need to show:
+We have showed that the compability relation is a bisimulation. The
+connection between closure conversion and the compatibility relation
+is that we require that the graph relation of every-well behaved
+closure conversion function \AS{\_†} is contained in the compatibility
+relation: \AS{M \tis M †}. We cannot quantify over all closure conversion function, so
+instead, we must show that this is the case for every function which
+we claim is a well-behaved closure conversion. In this section, we
+will show that this property is possessed by the trivial closure
+conversion \AS{simple-cc} and the minimising closure conversion
+\AS{\_†}.
+
+While there are many possible closure conversion function, which
+differ by how big environments they construct, there is a unique
+backtranslation from λcl to λst, which we call \AS{undo}. We can show
+that the converse of the graph relation of \AS{undo} is contained in
+the compatibility relation: \AS{undo N \tis N}.
+
+\ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{undo-compat}
+
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+      \paragraph{Side note about proving termination of proofs.}
+      Notice that several functions in this development were annotated
+      as TERMINATING. This annotation is not checked, and if a
+      function is annotated incorrectly, it could cause Agda to loop
+      forever during typechecking. In general, a function terminates
+      if it strictly decreases in one of its arguments, and the type
+      of that argument cannot decrease infinitely: e.g. natural
+      numbers are bounded from below by zero.
+
+      Agda can tell that an argument decreases when it is evident
+      syntactically, but in more complicated cases, an explicit proof
+      needs to be provided. For the \AS{undo} function, a sketch of
+      such proof is as follows: define a \AS{size} measure (function)
+      on target terms which is inductively defined as the number of
+      term constructors in the term, including in the
+      environment. Then, in the closure case of \AS{undo}, we can
+      argue that \AS{T.subst (T.exts E) M} is smaller than \AS{ T.L M
+        E}.
+
+      A technique which formalises such arguments is called
+      \textit{well-founded induction}. We do not formalise this
+      argument for the \AS{undo} function, as this would involve
+      arithmetic reasoning which is tedious in Agda.
+      
+    }%
+  }
+
+The trivial closure conversion \AS{simple-cc} uses full contexts as
+environments (through identity substitutions \AS{id-subst}):
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{convert}
+
+\AS{simple-cc} is well-behaved as its graph relation is contained in
+the compatibility relation. The proof is by straightforward induction;
+in the abstraction case, we need to argue that applying an identity
+substitution leaves the argument term unchanged.
+
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{graph}
+
+The minimising closure conversion \AS{\_†} is also well-behaved:
 
 \ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-sim-t}
 
 The proof of this is too long to discuss here, but the reader can find
 it in the technical appendix of this report.
-
-However, as we argued, the graph relation of any well-behaved closure
-conversion function is contained within the compatibility relation. It
-is instructive to see that this is the case for a simpler version of
-closure convertion, namely, a trivial closure conversion algorithm
-\AS{simple-cc}, which uses full contexts as environments (through
-identity substitutions \AS{id-subst}):
-
-\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{convert}
-
-Indeed, the graph relation of \AS{simple-cc} is contained in the
-compatibility relation. The proof is by straightforward induction; in
-the abstraction case, we need to argue that applying an identity
-substitution leaves the argument term unchanged.
-
-\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{graph}
 
 ***
 

@@ -144,13 +144,21 @@ M † | ∃[ Δ ] Δ⊆Γ ∧ N = T.rename (⊆→ρ Δ⊆Γ) N
 \end{code}
 %</dag>
 
+%<*undo-compat>
 \begin{code}
 {-# TERMINATING #-}
 undo : ∀ {Γ A} → T.Lam A Γ → S.Lam A Γ
 undo (T.V x)    = S.V x
 undo (T.A M N)  = S.A (undo M) (undo N)
 undo (T.L M E)  = S.L (undo (T.subst (T.exts E) M))
+
+{-# TERMINATING #-}
+undo-compat : ∀ {Γ σ} (N : T.Lam σ Γ) → undo N ~ N
+undo-compat (T.V x)    = ~V
+undo-compat (T.A M N)  = ~A (undo-compat M) (undo-compat N)
+undo-compat (T.L N E)  = ~L (undo-compat _)
 \end{code}
+%</undo-compat>
 
 \begin{code}
 helper-2 : ∀ {Γ A} (x : Var A Γ)
