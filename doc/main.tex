@@ -1306,12 +1306,21 @@ terms reduce to related values.
 
 We set up a fundamental theorem for the logical relation, and as a
 corollary, we obtain the result that for closed terms, the compability
-relation implies the logical relation. From this, a correctness
-property for closure conversion follows: given any well-behaved
-closure conversion function \AS{\_†}, a closed source term \AS{M}, and
-a closed target term \AS{M†} which is the result of closure converting
-\AS{M}, since \AS{M} and \AS{M†} are compatible, they reduce to
-related values.
+relation implies the logical relation.
+
+\begin{lemma}
+  \label{sec:corr-logic-relat-1}
+  \emph{Correctness property for the compatibility relation:} Given a
+  closed source term \AS{M}, and a closed target term \AS{M†}, if
+  \AS{M} and \AS{M†} are compatible, then they reduce to values which
+  are in the logical relation.
+\end{lemma}
+
+From this, a correctness property for closure conversion follows:
+given any well-behaved closure conversion function \AS{\_†}, a closed
+source term \AS{M}, and a closed target term \AS{M†} which is the
+result of closure converting \AS{M}, since \AS{M} and \AS{M†} are
+compatible, they reduce to related values.
 
 The proof is inspired by a sketch of an argument from
 \cite{DBLP:conf/popl/MinamideMH96}.
@@ -1335,56 +1344,68 @@ and that its graph relation woud be contained in \AS{≅}.
 \subsection{The logical relation}
 \label{sec:logical-relation}
 
-
-
 While the compatibility relation captures syntactic correspondence, we
 need another relation on (closed) language expressions which captures
-operational correspondence. In fact, this relation \AS{⇔} is
-comprised of (1) a relation \AS{\ti} between closed source terms and
-closed target terms, and (2) a relation \AS{≈} between closed source
-values and closed target values. Those two relations are defined by
-mutual induction and induction on types [TODO both at the same time?]
-as follows:
+operational correspondence. We define a family of logical relation
+\AS{⇔} relating closed source terms (reducible expressions) to closed
+target terms (\AS{\ti}) and closed source values to closed target
+values (\AS{≈}).  The relations are defined by induction on types. In
+the definition, we write \AS{τ ∋ M₁ ~ M₂} or \AS{τ ∋ M₁ ≈ M₂} to mean
+that \AS{M₁} and \AS{M₂} are related at type \AS{τ}:
 
-\AS{τ ∋ M₁ \tis M₂} iff \AS{M₁ ⇓ V₁}, \AS{M₂ ⇓ V₂}, and \AS{τ ∋ V₁ ≈
-  V₂}
+\begin{tabular}{rccl}
+  \AS{τ ∋} & \AS{M₁ \tis M₂}   & iff  & \AS{M₁ ⇓ V₁}, \AS{M₂ ⇓ V₂}, and \AS{τ ∋ V₁ ≈
+                                 V₂}  \\
+  \AS{σ ⇒ τ ∋} & \AS{U₁ ≈ U₂} & iff & for all \AS{σ ∋ V₁ ≈ V₂}, \AS{τ ∋ U₁
+                               `\$ V₂ \tis U₂ `\$ V₂ }
+\end{tabular}
 
-\AS{σ ⇒ τ ∋ U₁ ≈ U₂} iff for all \AS{σ ∋ V₁ ≈ V₂}, we have \AS{τ ∋ U₁
-  `\$ V₂ \tis U₂ `\$ V₂ }
 
 There is no case for \AS{≈} at the ground type \AS{α} as only
 variables can have the ground type, and the values in \AS{≈} are
 closed.
 
-In Agda, \AS{\ti} and \AS{≈} are defined as specialisations of a
-relation \AS{⇔} on expressions of λst and λcl. 
+In Agda, \AS{\ti} and \AS{≈} are defined as specialisations of the
+\AS{⇔} relation on closed expressions of λst and λcl.
 
 \ExecuteMetaData[LR/LR.tex]{related}
 
-Finally, we extend the \AS{≈} relation to source and target
-substitution environments, similar to what we did in
-Section~\ref{TODO-bisim-pointwise-sim}:
+We define a pointwise version of the \AS{≈} relation which
+relates source and target substitution environments, similar to what
+we did in Section~\ref{sec:comp-valu-renam}:
 
 \ExecuteMetaData[LR/LR.tex]{pointwise-related}
 
-We also provide a function \AS{∙R} which extends two related
-substitution environments with a related pair of values:
+We also provide a function \AS{∙\tss{R}} which extends two related
+substitution environments with a pair of related values:
 
 \ExecuteMetaData[LR/LR.tex]{pointwise-ext}
 
-With those definitions at hands, we can state the Fundamental Theorem
-of Logical Relations. Recall that we are trying to show that, given a
-closed term \AS{M₁} in λst' and a closed term \AS{M₂} in λcl, if
-\AS{M₁ ≅ M₂}, then \AS{M₁ \tis M₂} (*). The Fundamental Theorem is:
+Finally, we can state the fundamental theorem for our logical
+relation [TODO wording]. The theorem generalised the Correctness
+property for the compatibility relation to open terms, as long as
+there are substitution environments in the pointwise relation.
+
+\begin{lemma}
+  \emph{Fundamental theorem of logical relations.} Given a source
+  term \AS{M}, a target term \AS{M†}, a source substitution
+  \AS{ρ\tss{s}}, and a target substitution \AS{ρ\tss{t}}, if \AS{M} is
+  compatible with \AS{M†}, and for all variables \AS{x} in the
+  context, the corresponding values in the substitution environments
+  are in the logical relation (\AS{ρ\tss{s}(x) ≈ ρ\tss{t}(x)}), then
+  \AS{S.subst ρ\tss{s} M} and \AS{T.subst ρ\tss{t} M†} are in the
+  logical relation.
+\end{lemma}
 
 \ExecuteMetaData[LR/LR.tex]{fund-t}
 
-Thus, the Fundamental Theorem is a stronger statement than (*), and
-one which instatiated with closed terms and and empty substitution
-environments yields precisely (*).
+Observe that the Fundamental theorem, instatiated from closed terms,
+is equivalent to the Correctness property for the compatibility relation.
 
 We do not include the Agda proof here as it is not very readable;
 instead, we present several cases on paper: TODO
+
+[TODO let case in the proof]
 
 \chapter{Reflections and evaluation}
 \label{cha:refl-eval}
@@ -1556,14 +1577,74 @@ AACMM --- is it correct?]
 
 \chapter{Relationship to the UG4 project}
 
-This work is a natural continuation of the UG4 project, but it
-admittedly takes the project in a new direction. In terms of its
-goals, the UG4 project was concerned with program
-derivations. Derivations are distinct from program transformations or
-traversals, as found in compilers or in this UG5 project.
+The UG4 project and this work explore two ends of a spectrum of
+transformations on programs. While this work deals with compilation
+phases, the UG4 project was concerned with program derivations. This
+chapter attempts to find common characteristics between compilation
+phases and program derivations, but also highlight their
+differences. It also looks at the middle of the spectrum, where
+certain transformations on programs could be classified either way. It
+ends with a reflections on lessons learned from this year's project
+which would have been helpful for last year's work.
 
-Program transformations like closure conversion, or continuation
-passing style (CPS) transformation, have two distinct characteristics.
+In literature, what we refer to as program derivation is sometimes
+called program construction or derivation, and a program derivation
+described an instance of the process. Here, we use the term
+`derivation' to describe a family of transformations on programs, in
+order to avoid confusion with program transformations within compilers.
+
+\section{Compilation phases and program derivations}
+\label{sec:comp-phas-progr}
+
+Compilation phases and derivations can be described and compared in
+terms of several criteria: (a) the objective of the transformation,
+(b) what the source and the target of the transformation is, (b)
+required expertise from the user, (c) user's expertise and input
+needed to guide the transformation, and (d) whether rules apply in all or
+only selected possible places.
+
+The following characterises compilation phases:
+
+\begin{enumerate}
+\item (\textbf{Objective} and \textbf{Source and target of
+    transformation}) The objective is to generate low-level code from
+  a program in the source language.
+\item (\textbf{Required expertise}) Programmer only needs to know the
+  source language
+\item (\textbf{Input from programmer and required expertise}) Little or none, except for
+  specialised annotations which are used by the compiler
+\item (\textbf{Totality and selectivity}) If a compilation phases can
+  be specified as a rule, then the rule is typically applied in all
+  the places where its premises match
+\item (\textbf{Examples}) Closure conversion, CPS transformation,
+  lambda lifting, type-checking, constant expression folding, code
+  generation, dead code elimination, inlining.
+\end{enumerate}
+
+The following are features of program derivation:
+
+\begin{enumerate}
+\item (\textbf{Objective}) Enable the programmer to write clear, concise,
+  understandable programs which serve as specification. Methodically
+  derive a correct, efficient implementation. Possibly mechanise the
+  tranformation described by the derivation.
+\item (\textbf{Source and target of transformation}) The source could be an
+  executable functional program or a non-executable specification
+  (e.g. in the categorical calculus of relations; or as a solution to
+  an equation). The target is an efficient functional or imperative
+  program. 
+\item (\textbf{Input from programmer and required expertise}) A derivation is a
+  description of a transformation which can be calculated
+  mechanically, so by definition, non-trivial derivations require
+  input fromt the programmer. This might require expertise beyond the
+  capabilities of an average programmer.
+\item (\textbf{Totality and selectivity}) Rules are applied selectively: in arbitrary places and order.
+\item (\textbf{Example realisation}) Bird-Meertens formalism: equational
+  reasoning, where rules justify correctness of each step \cite{gibbons1994introduction}.
+\item (\textbf{Obstacles to adoption}) Few tools, hard to learn, hard to use,
+  hard to understand, hard to maintain, writing the implementation by
+  hand can be easier than writing the derivation.
+\end{enumerate}
 
 \section{Program transformation vs derivation}
 \label{sec:progr-transf-vs}

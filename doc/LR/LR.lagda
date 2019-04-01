@@ -21,7 +21,7 @@ infix 2 _≈_
 %<*related>
 \begin{code}
 {-# NO_POSITIVITY_CHECK #-}
-data _⇔_ : {k : Kind} {τ : Type} → S.Exp₀ k τ → T.Exp₀ k τ → Set
+data _⇔_ : ∀ {k τ} → S.Exp₀ k τ → T.Exp₀ k τ → Set
 
 _~_ : ∀ {τ} → S.Trm₀ τ → T.Trm₀ τ → Set
 _~_ = _⇔_
