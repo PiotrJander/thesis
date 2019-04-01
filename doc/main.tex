@@ -1138,15 +1138,23 @@ identity substitutions \AS{id-subst}):
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{convert}
 
 Indeed, the graph relation of \AS{simple-cc} is contained in the
-similarity relation. The proof is by straightforward induction; in the
-abstraction case, we need to argue that applying an identity
+compatibility relation. The proof is by straightforward induction; in
+the abstraction case, we need to argue that applying an identity
 substitution leaves the argument term unchanged.
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{graph}
 
 ***
 
-TBC
+This concludes the argument that our closure conversion is correct. We
+have shown that the graph relation of our closure conversion function
+is contained in the compatibility relation, and that the compatibility
+relation is a bisimulation. This means that when a source term and its
+closure converted target term both take a reduction step, then the
+terms they reduce to are also compatible.
+
+[TODO example that reductions may take us out of the graph relation of
+a specific closure conversion function]
 
 \chapter{Proof by logical relations}
 

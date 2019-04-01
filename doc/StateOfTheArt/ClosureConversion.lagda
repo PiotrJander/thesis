@@ -139,35 +139,17 @@ cc (S.L N) | ∃[ Δ ] Δ⊆Γ ∧ N† | adjust Δ₁ Δ₁⊆Γ Δ⊆AΔ₁ _
 %<*dag>
 \begin{code}
 _† : ∀ {Γ A} → S.Lam A Γ → T.Lam A Γ
-_† M with cc M
-_† M | ∃[ Δ ] Δ⊆Γ ∧ N = T.rename (⊆→ρ Δ⊆Γ) N
+M † with cc M
+M † | ∃[ Δ ] Δ⊆Γ ∧ N = T.rename (⊆→ρ Δ⊆Γ) N
 \end{code}
 %</dag>
 
 \begin{code}
--- size : ∀ {Γ A} → T.Lam A Γ → ℕ
--- size (T.V x)    = 1
--- size (T.A M N)  = size M + size N
--- size (T.L M E)  = 1 + size M
-
--- size' : ∃[ σ ] ∃[ Γ ] T.Lam σ Γ → ℕ
--- size' (_ , _ , N) = size N
-
--- _≲_ : Rel (∃[ σ ] ∃[ Γ ] T.Lam σ Γ) lzero
--- ∃M ≲ ∃N = size' ∃M < size' ∃N
-
--- ≲-Wf : WellFounded _≲_
--- ≲-Wf M = Inverse-image.wellFounded size' <-wellFounded M
-
--- foo : ∀ {Γ σ τ} (M : T.Lam (σ ⇒ τ) Γ) (N : T.Lam σ Γ)
---   → (_ , _ , M) ≲ (_ , _ , T.A M N)
--- foo M N with size M | size N | size (T.A M N)
--- ... | p | q | r = {!!}
-
--- undo : ∀ {Γ A} (M : T.Lam A Γ) → Acc _≲_ (_ , _ , M) → S.Lam A Γ
--- undo (T.V x) _ = S.V x
--- undo (T.A M N) (acc rs) = S.A (undo M (rs (_ , _ , M) {!!})) {!!}
--- undo (T.L M N) ⇓M = {!!}
+{-# TERMINATING #-}
+undo : ∀ {Γ A} → T.Lam A Γ → S.Lam A Γ
+undo (T.V x)    = S.V x
+undo (T.A M N)  = S.A (undo M) (undo N)
+undo (T.L M E)  = S.L (undo (T.subst (T.exts E) M))
 \end{code}
 
 \begin{code}
