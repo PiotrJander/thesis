@@ -1682,7 +1682,7 @@ When equational reasoning is employed, derivation steps can be
 justified with \textit{rewrite rules}. A basic example of a rewrite
 rule in functional programming is \textit{map-comp}:
 
-\AS{∀ {f g xs} → map f (map g xs) ≡ map (f ∘ g) xs}
+\AS{∀ \{f g xs\} → map f (map g xs) ≡ map (f ∘ g) xs}
 
 where $f$, $g$, $xs$ are metavariables. An application of a rewrite
 rule consists of unifying the LHS of the rule with a subterm of the
@@ -1695,12 +1695,8 @@ abstract syntax trees, but not higher-order abstract syntax. (TODO
 elaborate on what it would mean to have a context and go under a
 binder in a rewrite rule). (TODO can't express conditions) 
 
-\section{Program derivation in compilers and its limitations}
+\section{Program derivations in compilers and their limitations}
 \label{sec:progr-deriv-comp}
-
-While we argued that compiler transformations and program derivations
-are distinct in their character, the lines may arguably be blurry at
-times.
 
 There are program transformations in existing compilers which, other
 than being compilation phases, have features of program derivation.  A
@@ -1712,9 +1708,10 @@ occurrences of the LHS with the RHS). Rewriting in GHC is a
 compilation phase in the sense that rules are applied in all places
 they match, but it also resembles derivations since the transformation
 is guided by input from the programmer, namely, the specified rewrite
-rules. Note that GHC makes no attempt that the rules preserves the
-meaning, or that rewriting would terminate: a programmer could
-externally ensure these properties, e.g. using a proof assistant.
+rules. Note that GHC makes no attempt to ensure that the rules
+preserves the meaning, or that rewriting would terminate: a programmer
+could externally check these properties, e.g. using a proof
+assistant.
 
 Yet another ambiguous situation is where program transformation
 becomes a search problem. A compiler could try to find a
@@ -1726,13 +1723,18 @@ or the compiler could evaluate programs by running them on sample
 inputs. Exploring the space of derivations is the approach taken by
 the Lift compiler \cite{TODO}.
 
+Programmer's input may or may not be involved in such search. For
+example, the UG4 project delivered a graphical user interface which
+allows the user to interact with the derivation process.
+
 Unfortunately, derivation search needs a fixed set of rewrite rules,
 either hardcoded in the compiler or provided by the user. This
 precudes derivations which use original rewrite rules, coming up with
-which would require human insight. The next section, which discusses
-some of the rewrite steps from the UG4 project, has examples of rules
-which were invented for a specific derivation, and it is difficult to
-conceive that they could all be provided to the compiler in advance.
+which would require human insight. Section~\ref{sec:progr-deriv-agda},
+which discusses some of the rewrite steps from the UG4 project, has
+examples of rules which were invented for a specific derivation, and
+it is difficult to conceive that they could all be provided to the
+compiler in advance.
 
 \section{Program derivations in the UG4 project}
 \label{sec:progr-deriv-ug4}
@@ -1793,8 +1795,9 @@ supports unification and rewriting natively? Indeed, with hindsight,
 we can say with certainty that a proof assistant is perfectly suited
 for the job, its only downside being that it requires considerable
 expertise, which I did not have during my fourth year. [TODO I/me?]
-The next section does exactly that: it expresses a part of the
-derivation from the UG4 project in Agda.
+The next section expresses a part of the derivation from the UG4
+project in Agda, and evaluates the benefits of doing so, compared with
+the approach from last year's project.
 
 \section{Program derivation in Agda: sparse matrix-vector
   multiplication}
@@ -1810,6 +1813,33 @@ and how to do it.
 % otherwise generate bibtem entries
 \bibliographystyle{plain}
 \bibliography{main}
+
+\chapter{Conclusion}
+\label{cha:conclusion}
+
+The main deliverables of this project are (a) an elegant
+representation of a language with closures, (b) a type-preserving
+closure conversion algorithm which minimises closure environments, and
+(c) mechanisations of proofs of correctness of closure conversion
+using two different techniques: bisimulations and logical relations.
+
+This work builds on a long line of research in several areas:
+higher-order abstract syntax representation, type-preserving
+compilation, and compiler verification. In particular, the style of
+the Agda development is influenced by ACMM and PLFA.
+
+By mechanising two different proofs of correctness of the
+transfomation, the project provides a reference for comparing the
+methods of bisimulation and logical relations.
+
+It was confirmed that when the languages have a type- and scope-safe
+representation, a large amount of effort in mechanising
+meta-theoretical proofs goes into correctness lemmas about
+interactions between renaming, substitution, and other traversals.
+
+TBC
+
+
 
 \chapter{Technical appendix}
 \label{cha:technical-appendix}
