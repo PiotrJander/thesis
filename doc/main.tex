@@ -1837,9 +1837,30 @@ representation, a large amount of effort in mechanising
 meta-theoretical proofs goes into correctness lemmas about
 interactions between renaming, substitution, and other traversals.
 
-TBC
+A natural continuation for this project would be to try to apply
+generic proving techniques, e.g. from AACMM, to try to reduce the
+burden of repeating the same effort for each new laguage. However,
+this project's insights seem to imply that closure conversion does not
+fit into the framework provided by AACMM, and that further
+developments in generic proving would be needed to support closure
+conversion.
 
+Another possible extension of this work would be to prove correctness
+properties of more complex languages with features like higher-order
+functions, polymorphism, abstract data types, recursive types, mutable
+state and control effects. In that case, however, use of a proof
+language with tactics and automation would be more appropriate, as
+scaling manual proof techniques to complex languages is known to be
+extremely tedious.
 
+In summary, the objectives of the project were met, if slightly
+altered. Just one compilation phase was implemented, but it was proved
+correct with two different methods. The generic proving techniques
+from ACMM, although not ported to our representation of simply typed
+lambda calculus, provided a basis for postulating correctness lemmas
+about STLC. Using generic programming solutions from AACMM was beyond
+the scope of this project, but like it was mentioned multiple times,
+they would be inadequate for a languauge with closures anyway.
 
 \chapter{Technical appendix}
 \label{cha:technical-appendix}
