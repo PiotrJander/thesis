@@ -52,8 +52,6 @@
 
 \maketitle
 
-\section*{Acknowledgements}
-Acknowledgements go here.
 
 \tableofcontents
 
@@ -61,11 +59,105 @@ Acknowledgements go here.
 
 
 \chapter{Introduction}
+\label{cha:introduction}
 
-TODO
 
-\chapter{Related literature}
 
+\section{Motivation}
+\label{sec:motivation}
+
+Closure conversion is a compilation phase present in every compiler
+which takes a language with first-class, nested functions to machine
+code. Suppose the source language is simply typed lambda calculus:
+
+\AS{S ∷= x | S S | λx.S }
+
+Then the target language should contain closures in place of
+abstractions:
+
+\AS{T ∷= x | T T | ⟪ λx.λe.T , E ⟫ }
+
+In the language with closures, a function takes an argument and an
+environment, which are the only values it can use in its
+body. Functions can be partially applied to environments, forming
+closures.
+
+Suppose we implement a translation function which transforms a source
+program to a target program with closures. We would like to show that
+the transformation is correct according to some definition of
+correctness, e.g. that each reduction of the source program is
+simulated by a reduction of the target program.
+
+To formalise this claim, we need to define operational semantics for
+both languages. And since our representations of the source and target
+langauge are type- and scope-safe, we need to define substitution, and
+hence renaming.
+
+Futhermore, the correctness lemma depends on multiple smaller results
+about the interplay between renaming, substitution, the translation
+function, and others.
+
+This project reports on the experience of mechanising two different
+correctness proofs for closure conversion. It concludes with a
+discussion of possibilities of reducing the mechanisation effort.
+
+\section{Goals and contributions}
+\label{sec:goals-contributions}
+
+\begin{enumerate}
+\item To implement a compiler transformation for a variant of
+  simply-typed lambda calculus in Agda.
+\item To use scope-safe and well-typed representation for the object
+  languages.
+\item To prove that the transformation is correct: that the output
+  program of the transformation behaves `the same` as the input
+  program.
+\item To use generic programming techniques from ACMM.
+\end{enumerate}
+
+A \textbf{contribution} of this project, other than achieving the
+original objectives, is to demonstrate that languagues with closures
+and closure conversion are problematic for current state-of-the-art
+techniques for mechanising language meta-theory.
+
+\section{Overview and organisation}
+\label{sec:overv-organ}
+
+This report is organised as follows:
+
+Chapter~\ref{cha:related-work} contains a literature review and
+evaluation of exisiting work.
+
+Chapter~\ref{cha:background} explains background topics which are
+needed in later sections.
+
+Chapter~\ref{cha:agda-development} defines the language with closures
+and explains the implementation of the type-preserving,
+environment-minimising closure conversion function.
+
+Chapter~\ref{cha:prov-corr-clos} describes a mechanisation of a proof
+of bisimulation between the source and target languages of closure
+conversion.
+
+Chapter~\ref{cha:proof-logic-relat} describes a mechanisation of a
+proof of correctness of closure conversion by logical relations.
+
+Chapter~\ref{cha:refl-eval} evaluates the work by comparing it to the
+state-of-the-art, looks at possible improvements, and explains how
+this project demonstrates limitations of existing generic proving
+techniques.
+
+Chapter~\ref{cha:relat-ug4-proj} explains the relation between this
+project and the UG4 project, and applies skills learned this year to
+improve last year's solutions. It also discusses differences and
+similarities between compiler transformations and program
+derivations.
+
+Finally, Chapter~\ref{cha:conclusion} contains a summary of this
+work. 
+
+\chapter{Related work}
+\label{cha:related-work}
 \section{Verified compilation}
 
 Closure conversion is just one possible verification phase, and its
@@ -161,6 +253,7 @@ TODO I have quite a bit about the paper and we don't want to duplicate
 the paper's introduction: how do I make it shorter?
 
 \chapter{Background}
+\label{cha:background}
 
 This chapter will introduce the relevant concepts. It will start with
 closure conversion, then discuss compilation phases and intermediate
@@ -1196,6 +1289,7 @@ terms they reduce to are also compatible.
 a specific closure conversion function]
 
 \chapter{Proof by logical relations}
+\label{cha:proof-logic-relat}
 
 The previous chapter showed a correctness property of closure
 conversion: the source and target of our closure conversion are in a
@@ -1416,7 +1510,8 @@ logical relations. The implemented transformation is closure
 conversion. Both proofs of operational correctness are mechanised with
 state-of-the-art techniques.
 
-The \textbf{original objectives} of the project were:
+Recall that the \textbf{original objectives} of the project were [TODO
+recall or just refer to the intro?]:
 
 \begin{enumerate}
 \item To implement a compiler transformation for a variant of
@@ -1429,14 +1524,12 @@ The \textbf{original objectives} of the project were:
 \item To use generic programming techniques from ACMM.
 \end{enumerate}
 
-The \textbf{contributions} of this project are as follows:
+A \textbf{contribution} of this project, other than achieving the
+original objectives, is to demonstrate that languagues with closures
+and closure conversion are problematic for current state-of-the-art
+techniques for mechanising language meta-theory.
 
-\begin{enumerate}
-\item All the original objectives were achieved.
-\item It is demonstrated that languagues with closures and closure
-  conversion are problematic for current state-of-the-art techniques
-  for mechanising language meta-theory.
-\end{enumerate}
+
 
 \paragraph{(Objective 1) Capturing the essence of closure conversion}
 The implemented tranformation --- closure conversion --- requires a
@@ -1517,16 +1610,26 @@ same).
 \paragraph{(Objetive 4) ACMM}
 ACMM exploit similarity between various traversals (semantics) on
 simply typed lambda calculus (STLC) to come up with a generic way to
-prove synchronisation and fusion lemmas for STLC. Indeed, this project
-uses fusion lemmas about STLC from ACMM in the proof with logical
-relations.
+prove synchronisation and fusion lemmas for STLC.
+
+It should be noted that the objective of using generic proving from
+ACMM was met partially. This project does borrow a type- and
+scope-safe representation from ACMM, but it does not duplicate ACMM's
+effort of setting up the machinery for generic proofs of
+synchronisation and fusion lemmas. That machinery depends on the
+concrete representation of STLC, and since ours is slightly different,
+we just postulate the synchronisation and fusion lemmas for STLC ---
+ACMM shows that their their mechanical proofs exist and can be made
+generic.
 
 Intermediate languages other than STLC require their own definitions
 of renaming and substitution, and proofs of correctness lemmas. For
 example, the proofs of operational correctness with bisimulations and
 logical relations depend on four fusion lemmas relating renaming and
-substitution for the language with closures. In fact, proving those
-correctness lemmas was the biggest effort in the whole proof.
+substitution for the language with closures. Since ACMM did not show
+anything about a language with closures, we proved the necessary
+lemmas manually. In fact, mechanising those lemmas constituted the
+biggest effort in the whole proof.
 
 \paragraph{Possible remedy: AACMM and generic programming}
 The problem of having to define renaming and substitution for each new
@@ -1576,6 +1679,7 @@ closures exists which is compatible with AACMM.
 AACMM --- is it correct?]
 
 \chapter{Relationship to the UG4 project}
+\label{cha:relat-ug4-proj}
 
 The UG4 project and this work explore two ends of a spectrum of
 transformations on programs. While this work deals with compilation
