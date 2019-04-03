@@ -7,9 +7,9 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; cong; sym; cong₂)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 
-open import indexed
-open import var hiding (_<$>_ ; get)
-open import environment as E hiding (_>>_ ; extend)
+-- open import indexed
+-- open import var hiding (_<$>_ ; get)
+-- open import environment as E hiding (_>>_ ; extend)
 
 open import StateOfTheArt.Types
 import StateOfTheArt.STLC as S
@@ -136,7 +136,7 @@ _~∙_ : ∀ {Γ Δ σ} {ρ  : S.Subst Γ Δ} {ρ† : T.Subst Γ Δ}
   → S.exts {τ = σ} ρ ~σ T.exts ρ†
 ρ~ρ† (~exts ~ρ) z  = ~V
 ρ~ρ† (~exts {σ = σ} {ρ = ρ} {ρ†} ~ρ) (s x)
-  = ~rename E.extend (ρ~ρ† ~ρ x)
+  = ~rename (pack s) (ρ~ρ† ~ρ x)
 \end{code}
 %</pointwise-sim-exts>
 

@@ -9,10 +9,6 @@
 {-# OPTIONS --allow-unsolved-metas #-} 
 module StateOfTheArt.Closure where
 
-open import indexed
-open import var hiding (_<$>_ ; get)
-open import environment as E hiding (_>>_ ; extend)
-open E.≡ᴱ-Reasoning
 open import StateOfTheArt.Types
 
 import Relation.Binary.PropositionalEquality as Eq
@@ -90,7 +86,7 @@ subst ρ (L N E)  =  L N (subst ρ <$> E)
 -- Substitution combinators
 
 s-step : ∀ {Γ Δ τ} → Subst Γ Δ → Subst Γ (τ ∷ Δ)
-s-step ρ = rename E.extend <$> ρ
+s-step ρ = rename (pack s) <$> ρ
 \end{code}
 
 %<*id-subst>

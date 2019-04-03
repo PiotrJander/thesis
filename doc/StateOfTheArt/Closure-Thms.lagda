@@ -1,11 +1,8 @@
 \begin{code}
 module StateOfTheArt.Closure-Thms where
 
-open import indexed
-open import var hiding (_<$>_ ; get)
-open import environment as E hiding (_>>_ ; extend)
-open E.≡ᴱ-Reasoning
 open import StateOfTheArt.Types
+open ≡ᴱ-Reasoning
 open import StateOfTheArt.Closure
 
 import Relation.Binary.PropositionalEquality as Eq
@@ -131,9 +128,9 @@ eq (lemma-~subst-L-helper {τ = τ} ρ₁ ρ₂) (s x) = h
         f = begin
               subst (exts {σ = τ} ρ₁) (lookup (exts ρ₂) (s x))
             ≡⟨⟩
-              subst (exts {σ = τ} ρ₁) (rename E.extend (lookup ρ₂ x))
-            ≡⟨ subst∘rename (exts ρ₁) E.extend (lookup ρ₂ x) ⟩
-              subst (select E.extend (exts ρ₁)) (lookup ρ₂ x)
+              subst (exts {σ = τ} ρ₁) (rename (pack s) (lookup ρ₂ x))
+            ≡⟨ subst∘rename (exts ρ₁) (pack s) (lookup ρ₂ x) ⟩
+              subst (select (pack s) (exts ρ₁)) (lookup ρ₂ x)
             ≡⟨⟩
               subst (s-step ρ₁) (lookup ρ₂ x)
             ∎
@@ -142,11 +139,11 @@ eq (lemma-~subst-L-helper {τ = τ} ρ₁ ρ₂) (s x) = h
         g = begin
               lookup (exts {σ = τ} (subst ρ₁ <$> ρ₂)) (s x)
             ≡⟨⟩
-              rename E.extend (lookup (_<$>_ {𝓦 = Lam} (subst ρ₁) ρ₂) x)
+              rename (pack s) (lookup (_<$>_ {𝓦 = Lam} (subst ρ₁) ρ₂) x)
             ≡⟨⟩
-              rename E.extend (subst ρ₁ (lookup ρ₂ x))
-            ≡⟨ rename∘subst E.extend ρ₁ (lookup ρ₂ x) ⟩
-              subst (rename E.extend <$> ρ₁) (lookup ρ₂ x)
+              rename (pack s) (subst ρ₁ (lookup ρ₂ x))
+            ≡⟨ rename∘subst (pack s) ρ₁ (lookup ρ₂ x) ⟩
+              subst (rename (pack s) <$> ρ₁) (lookup ρ₂ x)
             ≡⟨⟩
               subst (s-step ρ₁) (lookup ρ₂ x)
             ∎
@@ -160,28 +157,28 @@ eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) z = refl
 eq (lemma-~ren-L-helper {τ = τ} ρρ ρσ) (s x) = h
   where 
         g : rename (ext {σ = τ} ρρ) (lookup (exts ρσ) (s x))
-            ≡ rename (step ρρ) (lookup ρσ x)
+            ≡ rename (s <$> ρρ) (lookup ρσ x)
         g = begin
               rename (ext {σ = τ} ρρ) (lookup (exts ρσ) (s x))
             ≡⟨⟩
-              rename (ext {σ = τ} ρρ) (rename E.extend (lookup ρσ x))
-            ≡⟨ rename∘rename E.extend (ext {σ = τ} ρρ) (lookup ρσ x) ⟩
-              rename (select E.extend (ext {σ = τ} ρρ)) (lookup ρσ x)
+              rename (ext {σ = τ} ρρ) (rename (pack s) (lookup ρσ x))
+            ≡⟨ rename∘rename (pack s) (ext {σ = τ} ρρ) (lookup ρσ x) ⟩
+              rename (select (pack s) (ext {σ = τ} ρρ)) (lookup ρσ x)
             ≡⟨⟩
-              rename (step ρρ) (lookup ρσ x)
+              rename (s <$> ρρ) (lookup ρσ x)
             ∎
         f : lookup (exts (rename ρρ <$> ρσ)) (s x)
-            ≡ rename (step ρρ) (lookup ρσ x)
+            ≡ rename (s <$> ρρ) (lookup ρσ x)
         f = begin
               lookup (exts (rename ρρ <$> ρσ)) (s x)
             ≡⟨⟩
-              rename E.extend (lookup (_<$>_ {𝓦 = Lam} (rename ρρ) ρσ) x)
+              rename (pack s) (lookup (_<$>_ {𝓦 = Lam} (rename ρρ) ρσ) x)
             ≡⟨⟩
-              rename E.extend (rename ρρ (lookup ρσ x))
-            ≡⟨ rename∘rename ρρ E.extend (lookup ρσ x) ⟩
-              rename (select ρρ E.extend) (lookup ρσ x)
+              rename (pack s) (rename ρρ (lookup ρσ x))
+            ≡⟨ rename∘rename ρρ (pack s) (lookup ρσ x) ⟩
+              rename (select ρρ (pack s)) (lookup ρσ x)
             ≡⟨⟩
-              rename (step ρρ) (lookup ρσ x)
+              rename (s <$> ρρ) (lookup ρσ x)
             ∎
         h : rename (ext {σ = τ} ρρ) (lookup (exts ρσ) (s x))
             ≡ lookup (exts (rename ρρ <$> ρσ)) (s x)
@@ -227,9 +224,9 @@ lemma-~ren-L ρρ ρσ N =
 -- neat mutual recursion here
 
 h : ∀ {Γ σ τ} (VV : Lam σ Γ) (N : Lam τ Γ)
-  → subst (select E.extend (id-subst ∙ VV)) N ≡ N
+  → subst (select (pack s) (id-subst ∙ VV)) N ≡ N
 h1 : ∀ {Γ Δ σ} (E : Subst Δ Γ) (VV : Lam σ Γ)
-  → (subst (select E.extend (id-subst ∙ VV)) <$> E) ≡ᴱ E
+  → (subst (select (pack s) (id-subst ∙ VV)) <$> E) ≡ᴱ E
 h VV (V x) = refl
 h VV (A M N) = cong₂ A (h VV M) (h VV N)
 h VV (L N E) = cong₂ L refl (env-extensionality (h1 E VV))
@@ -246,15 +243,15 @@ subst-E∙V {Γ} N E VV =
     subst (E ∙ VV) N
   ∎
   where
-  E∙VV : subst (id-subst ∙ VV) <$> exts E ≡ᴱ E ∙ VV
+  E∙VV : subst (id-subst ∙ VV) <$> exts E ≡ᴱ (E ∙ VV)
   eq E∙VV z = refl
   eq E∙VV (s x) =
     begin
       lookup (_<$>_ {𝓦 = Lam} (subst (id-subst ∙ VV)) (exts E)) (s x)
     ≡⟨⟩
-      subst (id-subst ∙ VV) (rename E.extend (lookup E x))
-    ≡⟨ subst∘rename (id-subst ∙ VV) E.extend (lookup E x) ⟩
-      subst (select E.extend (id-subst ∙ VV)) (lookup E x)
+      subst (id-subst ∙ VV) (rename (pack s) (lookup E x))
+    ≡⟨ subst∘rename (id-subst ∙ VV) (pack s) (lookup E x) ⟩
+      subst (select (pack s) (id-subst ∙ VV)) (lookup E x)
     ≡⟨ h VV (lookup E x) ⟩
       lookup E x
     ≡⟨⟩

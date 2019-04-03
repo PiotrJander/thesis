@@ -21,9 +21,6 @@ open import Data.Product using (_×_; _,_; ∃-syntax; Σ-syntax; proj₁; proj�
 open import Relation.Binary hiding (_⇒_)
 open import Level renaming (zero to lzero)
 
-open import var hiding (_<$>_)
-open import environment
-
 open import StateOfTheArt.Types
 import StateOfTheArt.STLC as S
 open S using (_/_)
