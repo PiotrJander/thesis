@@ -197,7 +197,43 @@ work.
 
 \chapter{Related work}
 \label{cha:related-work}
+
+There are several topics within the broad field of programming
+languages and verification which have special relevance to this
+project: (a) representations of languages with bindings, (b) generic
+proving of properties of program traversals, (c) compiler
+verification, and (d) the theory of languages similarity and
+equivalence. This chapter provides an overview of work on those
+topics.
+
+\section{Representations of languages with bindings}
+\label{sec:repr-lang-with}
+
+There are clear benefits to mechanising proofs about programming
+languages (PL) theory. A typical PL proof is relatively simple in
+terms of deep concepts used, but complex in terms of the number of
+cases and bookkeeping burden. An error in a pen-and-paper proof can
+invalidate a whole theory. Proof assistants provide means of checking
+proofs and doing the bookkeeping for the user, thus addressing the
+problems. And yet, currently a large proportion of papers submitted to
+PL conferences do not have an accompanying mechanisation.
+
+In 2005, a group of PL researchers put forward a hypothesis that
+limited adoption of mechanised proofs stems from a lack of agreement
+about good ways of mechanising meta-theory of languages, in
+particular, languages with bindings. They issued a challenge
+\cite{poplmarkreloaded} whose goal was to try to compare different
+representations a particular language with bindings, F<:. In response,
+a dozen solution were submitted, using techniques for representing
+binders and bindings like named variables, de Bruijn variables,
+higher-order abstract syntax, nominal sets, and others.
+
+This project follows ACMM \cite{DBLP:conf/cpp/Allais0MM17}
+
+* dep typed de Bruijn: Altenkirch / Reus
+
 \section{Verified compilation}
+\label{sec:verified-compilation}
 
 Closure conversion is just one possible verification phase, and its
 verification constitutes part of a wider effort to verify compilation
