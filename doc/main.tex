@@ -24,7 +24,7 @@
 
 \begin{document}
 
-\title{Verifying type- and scope-safe program transformations}
+\title{Verifying Type- and Scope-Safe Program Transformations}
 
 \author{Piotr Jander}
 
@@ -34,21 +34,27 @@
 \date{\today}
 
 \abstract{ There is an ongoing effort in the programming languages
-  community to verify correctness of compilers. Type- and scope-safe
-  representation is a commonly used encoding for intermediate
-  languages, which however requires writing considerable
-  meta-theoretical boilerplate for each IR. Standard techniques for
-  showing correctness of compiler transformations are bisimulations
-  and Kripke logical relations.
+  community to verify correctness of compilers. A typical compiler
+  consist of several compilation passes which use different
+  intermediate languages. Type- and scope-safe representation is a
+  commonly used encoding for such intermediate languages; it
+  facilitates proofs of correctness of compilation phases, including
+  proofs by logical relations. However, using such representation
+  requires repeating considerable meta-theoretical boilerplate for
+  each intermediate language used by the compiler.
 
-  This project formalises a language with closures, implements a
-  closure conversion algorithm, and mechanises the proof of its
-  correctness using the the aforementioned techniques.
+  This project formalises an intermediate language with closures,
+  implements a closure conversion algorithm, and mechanises two proofs
+  of its correctness: with bisimulations and with Kripke logical
+  relations.
 
-  This project also suggest that a language with closures cannot
-  benefit from state-of-the-art techniques for reducing
-  meta-theoretical boilerplate with generic programming.
-}
+  This work builds on a line of research which gave rise to a
+  state-of-the-art framework for representing languages with binders
+  and generically proving their meta-theoretical properties
+  \cite{DBLP:journals/pacmpl/AllaisA0MM18}. While this technique is
+  useful for certain intermediate langauges, this project shows that
+  an otherwise appealing representation of an intermediate language
+  with closures is not compatible with the framework.  }
 
 \maketitle
 
@@ -61,41 +67,68 @@
 \chapter{Introduction}
 \label{cha:introduction}
 
+This project, at its most general, concerns verifying transformations of
+functional programs in compilers.
 
+Functional language, with their rich semantics, expressive types, and
+restrictions such as purity, are particularly well-suited to
+verification, or formally proving that a program conforms to a
+specification. However, verification is performed with respect to the
+semantics of the source program, whereas guarantees are needed about
+the compiled machine code which is actually executed. To bridge the
+gap between verification of the source code and assurances about the
+executable code, the compiler should be proved to preserve the
+semantics of the source language.
+
+Verification of compilers is typically achieved by mechanising a proof
+of their correctness in a proof assistant like Coq, Isabelle/HOL, or
+Agda. Reasoning about individual compilation phases depends on
+formalising the semantics of the source and target languages of the
+phase. But most languages have a notion of a variable binder and
+binding, and a language representation which facilitates reasoning
+about the binding structure greatly simplifies the task of showing
+semantics preservation.
+
+This project applies a state-of-the-art technique for representing
+languages with binders to implement a type-preserving compiler
+transformation and prove its correctness with two distinct techniques: 
+bisimulation and logical relations.
 
 \section{Motivation}
 \label{sec:motivation}
 
-Closure conversion is a compilation phase present in every compiler
-which takes a language with first-class, nested functions to machine
-code. Suppose the source language is simply typed lambda calculus:
+Closure conversion is a compilation phase present in a typical
+compiler which takes a language with first-class, nested functions to
+machine code. Suppose the source and target languages are given by:
 
-\AS{S ∷= x | S S | λx.S }
+\begin{minipage}{.5\textwidth}
+  {\centering \AS{S ∷= x | S S | λx.S}}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  {\centering \AS{T ∷= x | T T | ⟪ λx.λe.T , E ⟫ }}
+\end{minipage}
 
-Then the target language should contain closures in place of
-abstractions:
-
-\AS{T ∷= x | T T | ⟪ λx.λe.T , E ⟫ }
-
-In the language with closures, a function takes an argument and an
-environment, which are the only values it can use in its
-body. Functions can be partially applied to environments, forming
-closures.
+The source language is a variant of simply typed lambda calculus, and
+the target language is similar, except that it does not allow
+abstractions with free variables. Instead, it has closures,
+i.e. records which consist of (a) a function which take an argument
+and an environment record and have their bodies defined in terms of
+the argument and the environment, and (b) an environment record. A
+closure is a first-class value which simulates a function with free
+variables.
 
 Suppose we implement a translation function which transforms a source
 program to a target program with closures. We would like to show that
-the transformation is correct according to some definition of
+the transformation is correct according to a selected definition of
 correctness, e.g. that each reduction of the source program is
 simulated by a reduction of the target program.
 
 To formalise this claim, we need to define operational semantics for
 both languages. And since our representations of the source and target
 langauge are type- and scope-safe, we need to define substitution, and
-hence renaming.
-
-Futhermore, the correctness lemma depends on multiple smaller results
-about the interplay between renaming, substitution, the translation
-function, and others.
+hence renaming. Futhermore, the correctness result depends on multiple
+smaller results about the interplay between renaming, substitution,
+the translation function, and others.
 
 This project reports on the experience of mechanising two different
 correctness proofs for closure conversion. It concludes with a
@@ -104,21 +137,27 @@ discussion of possibilities of reducing the mechanisation effort.
 \section{Goals and contributions}
 \label{sec:goals-contributions}
 
+The main \textbf{goal} of this work is to mechanise a proof of
+correctness of a compiler transformation using type- and scope-safe
+representation for the intermediate languages. Specifically, the
+\textbf{objectives} of this project, all of which have been achieved,
+are:
+
 \begin{enumerate}
 \item To implement a compiler transformation for a variant of
   simply-typed lambda calculus in Agda.
 \item To use scope-safe and well-typed representation for the object
   languages.
 \item To prove that the transformation is correct: that the output
-  program of the transformation behaves `the same` as the input
+  program of the transformation behaves ``the same'' as the input
   program.
 \item To use generic programming techniques from ACMM.
 \end{enumerate}
 
-A \textbf{contribution} of this project, other than achieving the
-original objectives, is to demonstrate that languagues with closures
-and closure conversion are problematic for current state-of-the-art
-techniques for mechanising language meta-theory.
+Additionally, a \textbf{contribution} of this project is to
+demonstrate that languagues with closures and closure conversion are
+problematic for current state-of-the-art techniques for mechanising
+language meta-theory.
 
 \section{Overview and organisation}
 \label{sec:overv-organ}
@@ -429,7 +468,7 @@ before looking it up in \AS{ρ}.
 \ExecuteMetaData[STLC.tex]{envops}
 
 Notice that those four operations on environments are defined using
-copatterns \cite{DBLP:conf/popl/AbelPTS13} by `observing` the
+copatterns \cite{DBLP:conf/popl/AbelPTS13} by ``observing'' the
 behaviour of \AS{lookup}.
 
 Equipped with the notion of environments, we can give an
@@ -486,11 +525,11 @@ describes what an abstraction applied to a value reduces to.
 A term which can take a reduction step is called a reducible
 expression, or a redex. A property of a language that every well-typed
 term is either a value or a redux is called type-safety. This property
-is captured by a slogan `well-typed terms don't get stuck` and can be
-proved by techniques like `progress and preservation` or logical
-relations. Simply typed lambda calculus is type-safe, and so is this
-formalisation. For a proof of type safety for a similar formalisation
-of STLC, cf. \cite{DBLP:conf/sbmf/Wadler18}.
+is captured by a slogan ``well-typed terms don't get stuck'' and can
+be proved by techniques like \textit{progress and preservation} or
+\textit{logical relations}. Simply typed lambda calculus is type-safe,
+and so is this formalisation. For a proof of type safety for a similar
+formalisation of STLC, cf. \cite{DBLP:conf/sbmf/Wadler18}.
 
 Operational semantics are needed for the treatment of bisimulation.
 
@@ -502,10 +541,10 @@ conversion. It starts by discussing the closure language λcl, an
 intermediate language which is like STLC but with abstractions
 replaced by closures. Then it demonstrates a type-preserving
 conversion for λst to λcl which has the property that the obtained
-closure environments are `minimal`.  Finally, several properties about
-interactions between renaming and substitution in λcl are formally
-established --- they are needed in proofs of correctness in subsequent
-chapters.
+closure environments are \textit{minimal}.  Finally, several
+properties about interactions between renaming and substitution in λcl
+are formally established --- they are needed in proofs of correctness
+in subsequent chapters.
 
 \section{Closure language λcl}
 \label{sec:closure-language-cl}
@@ -604,9 +643,9 @@ substitution. In either case, the adjustment consists of mapping the
 renaming/substitution over the values in the environment.
 
 The fact that in λcl, renaming and substitution do not go under
-binders will allow us to prove `fusion lemmas` in [section] without
-using the machinery of ACMM, which will significantly simplify the
-proofs.
+binders will allow us to prove \textit{fusion lemmas} in [section]
+without using the machinery of ACMM, which will significantly simplify
+the proofs.
 
 Just like in λst, we also define functions \AS{ext} and \AS{exts}
 which extend the environment when renaming or substitution goes under
@@ -661,10 +700,10 @@ This is given by the following conversion rule:
 
 It is up to the implementation of closure conversion to decide how big
 to make \AS{Δ}, on the spectrum between (1) \AS{Δ} being equal to
-\AS{Γ}, and (2) \AS{Δ} being `minimal`, i.e. only containing the parts
-of \AS{Γ} which are necessary to type the term. We present two Agda
-implementation of closure conversion, corresponding to the two ends of
-the spectrum.
+\AS{Γ}, and (2) \AS{Δ} being \textit{minimal}, i.e. only containing
+the parts of \AS{Γ} which are necessary to type the term. We present
+two Agda implementation of closure conversion, corresponding to the
+two ends of the spectrum.
 
 Closure conversion where \AS{Δ} is the same as \AS{Γ} is a simple
 transformation:
@@ -685,8 +724,8 @@ is described in the next section.
 
 Minimising closure conversion is given by the following deduction
 rules, where a statement \AS{Γ ⊢ e : σ ↝ Δ ⊢ e' : σ} should be read as:
-`the term \AS{e} of type \AS{σ} in the context \AS{Γ} can be closure
-converted to the term \AS{e'} in \AS{Δ}`:
+``the term \AS{e} of type \AS{σ} in the context \AS{Γ} can be closure
+converted to the term \AS{e'} in \AS{Δ}'':
 
 \begin{minipage}{.5\textwidth}
   \[
@@ -743,8 +782,8 @@ definitions.
 \label{sec:merging-subcontexts}
 
 The deduction rules for minimising closure conversion contained
-statements of the form \AS{Δ ⊆ Γ}, which reads: `\AS{Δ} is a
-subcontext of \AS{Γ}`. Since in this development, a context is just a
+statements of the form \AS{Δ ⊆ Γ}, which reads: ``\AS{Δ} is a
+subcontext of \AS{Γ}''. Since in this development, a context is just a
 list of types, the notion of subcontexts can be captured with the
 \AS{\_⊆\_} (sublist) relation from Agda's standard library. The
 inductive definition of the relation is:
@@ -918,8 +957,8 @@ traversals introduced by ACMM.
 
 As it turns out, fusion lemmas for the closure language are simpler,
 as they do not require the logical relation machinery of ACMM. This is
-because renaming and substitution in λcl `do not go under binders`, as
-can be seen from their definitions in
+because renaming and substitution in λcl \textit{do not happen under
+  binders}, as can be seen from their definitions in
 Section~\ref{sec:renam-subst}. For both renaming and substitution, in
 the closure case (\AS{L}), the closure body is left untouched; only
 the closure environment is modified.
@@ -1002,7 +1041,7 @@ that this syntactic relation is also a semantic relation. Thus,
 soundness of our closure conversion is established.
 
 The part which shows that the compatibility relation is a bisimulation
-is inspired by the `Bisimulation' chapter from
+is inspired by the ``Bisimulation'' chapter from
 \cite{DBLP:conf/sbmf/Wadler18}. 
 
 \subsection{Compatibility relation}
@@ -1041,7 +1080,7 @@ compatible. However, \AS{N} can be compatible with the result of
 substituting the environment \AS{E} in \AS{N†} (the environment is
 extended with a variable corresponding to the \AS{σ} in the
 context). The intuition for the abstraction/closure case is that
-substituting the environment `undoes' the effect of closure conversion
+substituting the environment ``undoes'' the effect of closure conversion
 on the context. 
 
 The compatibility relation is defined in Agda as follows:
@@ -1519,7 +1558,7 @@ recall or just refer to the intro?]:
 \item To use scope-safe and well-typed representation for the object
   languages.
 \item To prove that the transformation is correct: that the output
-  program of the transformation behaves `the same` as the input
+  program of the transformation behaves ``the same'' as the input
   program.
 \item To use generic programming techniques from ACMM.
 \end{enumerate}
@@ -1694,7 +1733,7 @@ which would have been helpful for last year's work.
 In literature, what we refer to as program derivation is sometimes
 called program construction or derivation, and a program derivation
 described an instance of the process. Here, we use the term
-`derivation' to describe a family of transformations on programs, in
+``derivation'' to describe a family of transformations on programs, in
 order to avoid confusion with program transformations within compilers.
 
 \section{Compilation phases and program derivations}
