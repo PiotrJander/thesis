@@ -36,7 +36,7 @@
 \abstract{ There is an ongoing effort in the programming languages
   community to verify correctness of compilers. A typical compiler
   consist of several compilation passes which use different
-  intermediate languages. Type- and scope-safe representation is a
+  intermediate languages. Type-and-scope safe representation is a
   commonly used encoding for such intermediate languages; it
   facilitates proofs of correctness of compilation phases, including
   proofs by logical relations. However, using such representation
@@ -223,14 +223,64 @@ limited adoption of mechanised proofs stems from a lack of agreement
 about good ways of mechanising meta-theory of languages, in
 particular, languages with bindings. They issued a challenge
 \cite{poplmarkreloaded} whose goal was to try to compare different
-representations a particular language with bindings, F<:. In response,
-a dozen solution were submitted, using techniques for representing
-binders and bindings like named variables, de Bruijn variables,
-higher-order abstract syntax, nominal sets, and others.
+representations a particular language with bindings,
+F\textsubscript{<:}. In response, a dozen solution were submitted,
+using techniques for representing binders and bindings like named
+variables, de Bruijn variables, (parametric) higher-order abstract
+syntax \cite{DBLP:conf/pldi/PfenningE88}
+\cite{DBLP:conf/icfp/Chlipala08}, nominal sets
+\cite{pitts2013nominal}, and other.
 
-This project follows ACMM \cite{DBLP:conf/cpp/Allais0MM17}
+This project follows ACMM \cite{DBLP:conf/cpp/Allais0MM17} in using
+well-typed and scoped de Bruijn indices
+\cite{DBLP:conf/csl/AltenkirchR99}. Discussed in the background
+section, it gives rise to a deep embedding of the object language,
+which can be inspected and modified. However, to ensure that
+transformations on programs preserve well-typedness and scopedness,
+this representation relies on the operations renaming and
+substitution. In proofs about meta-theory, there frequently arises a
+need to prove correctness lemmas about interactions between renaming,
+substitution, and other traversals. The next section discusses research
+in proving these kind of results generically.
 
-* dep typed de Bruijn: Altenkirch / Reus
+\section{Generic transformations of and proofs about type-and-scope
+  safe programs}
+\label{sec:gener-trav-proofs}
+
+McBride's observation \cite{mcbride2005type} that in a type-and-scope
+safe language the operations of renaming and substitution share a
+common structrure gave rise to a line of research on generic
+implementation of such traversals, and generic proofs of their
+properties.
+
+A paper by Allais et al. which we will refer to as ACMM
+\cite{DBLP:conf/cpp/Allais0MM17} deals with those problems in the
+setting of simply typed lambda calculus (STLC). It introduces a notion
+of a \textit{semantics}, which is a record defining a traversal in
+terms of (a) the result value, (b) values mapped to the variables in
+the environment, (c) semantic counterparts to the syntactic
+constructors of STLC, and (d) the operation of \textit{weaking} which
+ensured that the traversal remains well-typed and scoped when it
+recurses on a term under a binder.
+
+In a dependently-typed proof assistant like Agda, the structure of the
+proof often mirrors the structure of the program whose properties are
+being proved. Therefore, when different traversals share a common
+structure, proofs which relate such traversals can be treated
+generically. ACMM exploits this fact and provides a generic way to
+prove certain classes of properties relating traverals on programs in
+STLC.
+
+A follow-up paper by Allais et al., which we will refer to as AACMM,
+generalises the contributions of ACMM from the setting of STLC to a
+family of languages (syntaxes) which satisfy appropriate
+constrainst. A framework accompanying the AACMM paper allows the user
+to describe a syntax, and then uses generic programming and proving to
+generate the operations of renaming and substitutions for the syntax,
+together with correctness lemmas describing interactions between
+different traversals of the language.
+
+TODO motivating example and relationship to the project
 
 \section{Verified compilation}
 \label{sec:verified-compilation}
