@@ -199,7 +199,7 @@ Bisimulation _≈_ = ST-Simulation _≈_ × TS-Simulation _≈_
 \end{code}
 %</bisimulation>
 
-%<*st-sim>
+%<*sims>
 \begin{code}
 st-sim : ST-Simulation _~_
 st-sim ~V ()
@@ -212,10 +212,7 @@ st-sim (~A ~M ~N) (S.ξ-A₂ VV N—→)
 ... | _ , ~N′ , N†—→ = _ , ~A ~M ~N′ , T.ξ-A₂ (~val ~M VV) N†—→
 st-sim (~A (~L {N = N} {N†} ~N) ~VV) (S.β-L VV)
   = _ , /V≡E∙V† {N = N} {N†} ~N ~VV , T.β-L (~val ~VV VV)
-\end{code}
-%</st-sim>
 
-\begin{code}
 ts-sim : TS-Simulation _~_
 ts-sim ~V ()
 ts-sim (~L ~N) ()
@@ -233,3 +230,5 @@ bisim : Bisimulation _~_
 bisim = st-sim , ts-sim
 \end{code}
 %</bisim>
+%</sims>
+

@@ -642,11 +642,6 @@ in the case of renaming and \AS{subst ρ <\$> E} in the case of
 substitution. In either case, the adjustment consists of mapping the
 renaming/substitution over the values in the environment.
 
-The fact that in λcl, renaming and substitution do not go under
-binders will allow us to prove \textit{fusion lemmas} in [section]
-without using the machinery of ACMM, which will significantly simplify
-the proofs.
-
 Just like in λst, we also define functions \AS{ext} and \AS{exts}
 which extend the environment when renaming or substitution goes under
 a binder:
@@ -918,19 +913,19 @@ that they are typed in the same context.
 
 \subsection{Fusion lemmas for the closure language λcl}
 
-When studying the meta-theory of a calculus, one systematically needs
-to prove fusion lemmas for various traversals. A fusion lemma relates
+One distinct kind of lemmas about interactions between different
+traversals, or semantics, is a fusion lemma.  A fusion lemma relates
 three traversals: the pair we sequence and their sequential
-composition. The two traversals which have to be fused in later proofs
-are renaming and substitution. There are four ways we can sequence
-renaming and substitution, and each of those four sequencing can be
-expressed as a single renaming or substitution:
+composition. The two traversals which have to be fused in this work's
+proofs are renaming and substitution. There are four ways we can
+sequence renaming and substitution, and each of those four sequencing
+can be expressed as a single renaming or substitution:
 
 \begin{enumerate}[nolistsep]
-  \item A renaming followed by a renaming,
-  \item A renaming followed by a substitution,
-  \item A substitution followed by a renaming,
-  \item A substitution followed by a substitution.
+  \item A renaming followed by a renaming is a renaming
+  \item A renaming followed by a substitution is a substitution,
+  \item A substitution followed by a renaming is a substitution,
+  \item A substitution followed by a substitution is a substitution.
 \end{enumerate}
 
 We state the results as signatures of Agda functions, using the
@@ -1003,7 +998,7 @@ we believe that the function does in fact terminate.
 \chapter{Proving correctness of closure conversion with bisimulation}
 \label{cha:prov-corr-clos}
 
-Preceding sections defined the source and target languages of
+The preceding sections defined the source and target languages of
 closure conversion, λst and λcl, together with reduction rules for
 each, and a closure conversion function \AS{min-cc} from λst to λcl.
 
@@ -1016,7 +1011,7 @@ correctness.
 
 One such operational correctness property of a pair of languages is
 \textbf{bisimulation}. Intuition about bisimulation is captured by a
-slogan: similar terms reduce to similar terms. 
+slogan: related terms reduce to related terms. 
 
 This chapter starts by defining a relation between terms of λst and
 terms of λcl, which we call a \textit{compatibility relation}. The
@@ -1105,7 +1100,8 @@ more general simulations.
   Given a relation \AS{≈} between terms of \AS{A} and terms of \AS{B},
   we say that \AS{≈} is a \textbf{simulation} from \AS{A} to \AS{B} if
   and only if for all terms \AS{M} and \AS{N} in \AS{A}, and \AS{M†}
-  in \AS{B}, if \AS{M} reduces in a single step to \AS{N}, then there
+  in \AS{B}, if \AS{M} reduces in a single step to \AS{N}, and \AS{M}
+  and \AS{M†} are in the \AS{≈} relation (\AS{M ≈ M†}), then there
   exists a term \AS{N†} in \AS{B} such that \AS{M†} reduces to \AS{N†}
   in a single step, and \AS{N} is in the \AS{≈} relation with \AS{N†}:
   \AS{N ≈ N†}.
@@ -1232,20 +1228,30 @@ requires rewriting by an instatiation of the fusion lemma
 With those three lemmas, showing that the compatibility relation is a
 bisimulation becomes straightforward.
 
-\section{Compatibility relation is a bisimulation}
+\section{Compatibility is a bisimulation}
 \label{sec:comp-relat-bisim}
 
 The proof that the compatibility relation \AS{\ti} is a bisimulation
-consists of two proofs of simulations: \AS{st-sim : ST-Simulation
-  \_\ti\_} and \AS{ts-sim : TS-Simulation \_\ti\_}. Taken together,
-they prove that \AS{\ti} is a bisimulation:
+consists of two proofs of simulations. Given:
+
+\noindent
+\begin{minipage}{.5\textwidth}
+  \AS{st-sim : ST-Simulation \_\ti\_}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \AS{ts-sim : TS-Simulation \_\ti\_}
+\end{minipage}
+
+we have that \AS{\ti} is a bisimulation:
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{bisim}
 
-[TODO analyse the proof in detail or refer the reader to the technical
-appendix and to PLFA?]
+The proofs of both \AS{st-sim} and \AS{ts-sim} are by case analysis on
+all possible instances of the compabiity relation \AS{\ti} and all
+possible instances of the reduction relation. The Agda mechanisation
+of the proof can be found in the technical appendix.
 
-\section{Compatibility relation and closure conversion}
+\section{Compatibility and closure conversion}
 \label{sec:comp-relat-clos}
 
 We have showed that the compability relation is a bisimulation. The
@@ -1268,33 +1274,36 @@ the compatibility relation: \AS{undo N \tis N}.
 \ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{undo-compat}
 
 \noindent\fbox{%
-    \parbox{\textwidth}{%
-      \paragraph{Side note about proving termination of proofs.}
-      Notice that several functions in this development were annotated
-      as TERMINATING. This annotation is not checked, and if a
-      function is annotated incorrectly, it could cause Agda to loop
-      forever during typechecking. In general, a function terminates
-      if it strictly decreases in one of its arguments, and the type
-      of that argument cannot decrease infinitely: e.g. natural
-      numbers are bounded from below by zero.
+  \parbox{\textwidth}{%
+    \textbf{Side note about proving termination of proofs.}  Notice
+    that several functions in this development have been annotated as
+    TERMINATING. This annotation is not checked, and if a function is
+    annotated incorrectly, it could cause Agda to loop forever during
+    typechecking. Furthermore, non-terminating function does not
+    corresponds to a proof, and allowing such functions makes Agda's
+    logic inconsistent.
 
-      Agda can tell that an argument decreases when it is evident
-      syntactically, but in more complicated cases, an explicit proof
-      needs to be provided. For the \AS{undo} function, a sketch of
-      such proof is as follows: define a \AS{size} measure (function)
-      on target terms which is inductively defined as the number of
-      term constructors in the term, including in the
-      environment. Then, in the closure case of \AS{undo}, we can
-      argue that \AS{T.subst (T.exts E) M} is smaller than \AS{ T.L M
-        E}.
+    In general, a function terminates if it strictly decreases in one
+    of its arguments, and the type of that argument cannot decrease
+    infinitely: e.g. natural numbers are bounded from below by zero.
+    Agda can tell that an argument decreases when it is evident
+    syntactically, but in more complicated cases, an explicit proof
+    needs to be provided.
 
-      A technique which formalises such arguments is called
-      \textit{well-founded induction}. We do not formalise this
-      argument for the \AS{undo} function, as this would involve
-      arithmetic reasoning which is tedious in Agda.
-      
-    }%
-  }
+    We can tell by inspection that the \AS{undo} function
+    terminates. We can define a \AS{size} measure (function) on target
+    terms which is defined as the number of term constructors in the
+    term, including in the environment. Then it is easy to see that in
+    the closure case, the argument to the recursive call to \AS{undo},
+    \AS{T.subst (T.exts E) M}, has a smaller measure than the input
+    argument \AS{ T.L M E}.
+
+    An explicit proof of termination is not of interest in this
+    project. The reason for mechanising proofs is to help with
+    bookkeeing and prevent errors. When we are certain about a
+    property such as termination, there is little value in mechanising
+    its proof.  }%
+}
 
 The trivial closure conversion \AS{simple-cc} uses full contexts as
 environments (through identity substitutions \AS{id-subst}):
@@ -1327,7 +1336,8 @@ terms they reduce to are also compatible.
 [TODO example that reductions may take us out of the graph relation of
 a specific closure conversion function]
 
-\chapter{Proof by logical relations}
+\chapter{Proving correctness of closure conversion by logical
+  relations}
 \label{cha:proof-logic-relat}
 
 The previous chapter showed a correctness property of closure
@@ -1549,8 +1559,8 @@ logical relations. The implemented transformation is closure
 conversion. Both proofs of operational correctness are mechanised with
 state-of-the-art techniques.
 
-Recall that the \textbf{original objectives} of the project were [TODO
-recall or just refer to the intro?]:
+Recall that the \textbf{objectives} set forth and achieved in the
+project were:
 
 \begin{enumerate}
 \item To implement a compiler transformation for a variant of
@@ -1563,12 +1573,7 @@ recall or just refer to the intro?]:
 \item To use generic programming techniques from ACMM.
 \end{enumerate}
 
-A \textbf{contribution} of this project, other than achieving the
-original objectives, is to demonstrate that languagues with closures
-and closure conversion are problematic for current state-of-the-art
-techniques for mechanising language meta-theory.
-
-
+[TODO split eval and refl, highlight achievements]
 
 \paragraph{(Objective 1) Capturing the essence of closure conversion}
 The implemented tranformation --- closure conversion --- requires a
@@ -1720,18 +1725,41 @@ AACMM --- is it correct?]
 \chapter{Relationship to the UG4 project}
 \label{cha:relat-ug4-proj}
 
-The UG4 project and this work explore two ends of a spectrum of
-transformations on programs. While this work deals with compilation
-phases, the UG4 project was concerned with program derivations. This
-chapter attempts to find common characteristics between compilation
-phases and program derivations, but also highlight their
+The UG4 explored one particular kind of program transformations, which
+we refer to as program derivation. In program derivation, a
+tranformation is specified by a source program (or specification), and
+a recipe for obtaining a result program. The UG4 project assumed a
+particular style of derivations known as Bird-Meertens Formalism
+\cite{gibbons1994introduction}. In BMF, derivations are based on
+equational reasoning, and consist of a sequence of intermediate forms
+of the program, where the steps are annotated with rules justifying
+each step. This is illustrated by the template below:
+
+\begin{verbatim}
+specification
+  = { justification }
+intermediate form 1
+  = { justification }
+...
+  = { justification }
+intermediate form n
+  = { justification }
+implementation
+\end{verbatim}
+
+This year's work explores the other ends of the spectrum of
+transformations on programs, which encompasses compilation
+phases.
+
+This chapter attempts to find common characteristics between
+compilation phases and program derivations, but also highlight their
 differences. It also looks at the middle of the spectrum, where
 certain transformations on programs could be classified either way. It
 ends with a reflections on lessons learned from this year's project
 which would have been helpful for last year's work.
 
 In literature, what we refer to as program derivation is sometimes
-called program construction or derivation, and a program derivation
+called program construction or calculation, and a program derivation
 described an instance of the process. Here, we use the term
 ``derivation'' to describe a family of transformations on programs, in
 order to avoid confusion with program transformations within compilers.
@@ -1798,25 +1826,6 @@ proof of correctness. This last use case could be explained as
 follows: suppose we can prove correctness of the "specification"
 program, and that each step preserves the meaning of the program. Then
 we can show correctness of the "implementation" program.
-
-There are many flavours of program derivation, but in subsequent
-sections, we will assume a particular style known as Bird-Meertens
-Formalism \cite{gibbons1994introduction}. In BME, derivations are
-based on equational reasoning. A derivation is a sequence of
-intermediate forms of the program, where the steps are annotated with
-rules justifying the step. This is illustrated by the template below:
-
-\begin{verbatim}
-specification
-  = { justification }
-intermediate form 1
-  = { justification }
-...
-  = { justification }
-intermediate form n
-  = { justification }
-implementation
-\end{verbatim}
 
 \section{Rewrite rules}
 \label{sec:rewrite-rules}
@@ -1981,12 +1990,12 @@ meta-theoretical proofs goes into correctness lemmas about
 interactions between renaming, substitution, and other traversals.
 
 A natural continuation for this project would be to try to apply
-generic proving techniques, e.g. from AACMM, to try to reduce the
-burden of repeating the same effort for each new laguage. However,
-this project's insights seem to imply that closure conversion does not
-fit into the framework provided by AACMM, and that further
-developments in generic proving would be needed to support closure
-conversion.
+generic proving techniques, e.g. from AACMM, to prove meta-theoretical
+lemmas for a family of intermediate languages (syntaxes) all at
+once. However, this project's insights seem to imply that closure
+conversion does not fit into the framework provided by AACMM, and that
+further developments in generic proving would be needed to support
+closure conversion.
 
 Another possible extension of this work would be to prove correctness
 properties of more complex languages with features like higher-order
@@ -2019,6 +2028,6 @@ closure conversion function is contained in the compatibility relation.
 \section{Compatibility relation is a bisimulation}
 \label{sec:comp-relat-bisim-1}
 
-
+\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{sims}
 
 \end{document}
