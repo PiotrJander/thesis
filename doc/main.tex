@@ -280,7 +280,18 @@ generate the operations of renaming and substitutions for the syntax,
 together with correctness lemmas describing interactions between
 different traversals of the language.
 
-TODO motivating example and relationship to the project
+The repository accompanying AACMM has an example demonstrating its
+contributions in action. A problem is: given two variants of STLC,
+with and without a \textit{let} construct, implement a traversal which
+inlines \textit{let} expressions, and prove it correct with a
+simulation. Two solution are given. A naive solution contains manual
+proofs of correctness lemmas relating different traversals. A solution
+using the AACMM framework is able to use generic proofs, and is many
+times shorter.
+
+This work relies on results from ACMM, but does not attempt to use
+AACMM. However, Chapter~\ref{cha:refl-eval} provides reflection on
+the feasibility of applying AACMM-like techniques to closure conversion.
 
 \section{Verified compilation}
 \label{sec:verified-compilation}
