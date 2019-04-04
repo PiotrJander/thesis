@@ -296,97 +296,125 @@ the feasibility of applying AACMM-like techniques to closure conversion.
 \section{Verified compilation}
 \label{sec:verified-compilation}
 
-Closure conversion is just one possible verification phase, and its
-verification constitutes part of a wider effort to verify compilation
-end-to-end, which usually entails verifying operational correctness of
-all compilation phases.
+In his 2003 paper \cite{hoare2003verifying}, Hoare argued that
+creating a verifying compiler is one of ``grand challenges'' of
+science, comparable to sending a man to the Moon, mapping the human
+genome, or finding the Higgs boson. By a verifying compiler, Hoare
+meant a suite of tools for specifying program behaviours and checking
+software against specifications.
 
-As far as type safety is concerned, the reference is a paper by
-Morrisett et al., "From System F to Typed Assembly Language"
-\cite{TODO}. It builds upon previous results in type safety of
-compilation phases (like the aforementioned \cite{TCC}) and describes
-a typed RISC-like assembly (named TAL), which is the target of the
-final phases of compilation. As a whole, the paper proves type safety
-for a compilation pipeline from System F to TAL. It does not, however,
-prove end-to-end operational correctness.
+As of 2010s, researchers aspire to go beyond Hoare's challenge and
+verify the verifying compiler itself. This is in fact necessary to
+bridge the gap between verification of the source program and
+verification of the compiled executable.
 
-An compiler which was verified for end-to-end operational
-correctness was described by Adam Chlipala in his paper "A Certified
-Type-Preserving Compiler from Lambda Calculus to Assembly
-Language". The source is a variant of the simply-typed lambda calculus
-(STLC). Compilation proceeds through six phases, eventually yielding
-idealised assembly code. The compiler is implemented in Coq, where
-terms and functions on terms are dependently typed, guaranteeing type
-preservation. This is also the approach taken in this project, except
-that we use Agda instead of Coq \cite{TODO}. Operational
-correctness is proved by adopting denotational semantics, unlike in
-this project, which uses operational semantics. Due to unfamiliarity
-with operational semantics, we cannot comment on which approach is
-better (TODO or can we?).
+Properties which are typically verified about compilers concern
+preservation of properties of the source program in the target
+program. Such properties may pertain to: type preservation,
+semantics preservation, or full abstraction. Thus, the following
+statements could be verified.
+
+\begin{itemize}
+\item (Type-preservation) Suppose the target language is typed. If the
+  source program is well-typed and has type $T$, then the target
+  program is also well-typed and has the corresponding type $T'$.
+\item (Semantics preservation) Given the same (or appropriately
+  related) inputs, the source program and the target produce the same
+  (or appropriately related) result.
+\item (Full abstraction or contextual equivalence) TODO state it
+\end{itemize}
+
+Often, when compiling typed languages, the first step in verifying the
+compiler is making it type-preserving, especially in the initial
+compilation passes. Type-preservation, other than being a property of
+a compilation pass in itself, is a prerequisite for type-indexed
+correctness proof methods like logical relations.
+
+As far as typed compilation is concerned, a pioneering paper is "From
+System F to Typed Assembly Language" by Morrisett et
+al. \cite{DBLP:conf/popl/MorrisettWCG98}. Building upon previous
+results on typed compilation phases (like
+\cite{DBLP:conf/popl/MinamideMH96}), it describes a typed RISC-like
+assembly (named TAL), which is the target of the final phases of
+compilation. The paper shows how to achieve end-to-end typed
+compilation from System F to TAL. It does not, however, attempt to
+show any properties about operational correctness of the compiler.
+
+An early examle of a compiler which was verified for end-to-end
+operational correctness was described by Adam Chlipala in his paper "A
+Certified Type-Preserving Compiler from Lambda Calculus to Assembly
+Language" \cite{DBLP:conf/pldi/Chlipala07}. The source language there
+is a variant of the simply-typed lambda calculus (STLC). Compilation
+proceeds through six phases, eventually yielding idealised assembly
+code. The compiler is implemented in Coq, where terms and functions on
+terms are dependently typed, guaranteeing type preservation. This is
+also the approach taken in this project, except that we use Agda
+instead of Coq. Operational correctness is proved by adopting
+denotational semantics, unlike in this project, which uses operational
+semantics.
 
 Another example of a certified compiler is CompCert
-\cite{TODOcompcert}, which is the result of the first successful
-attempt to implement a certified compiler of a real-world (TODO
-wording) language. Even compared with the simply-typed lambda calculus
-(STLC), which was the source language in Chlipala's work \cite{TODO},
-the C language is in some ways simpler, especially since it does not
-have first-class functions with free variables (TODO wording:
-scoping?). But, being a fully-fledged language, C presents enough
-challenges as the source language of a verified compiler.
+\cite{DBLP:conf/popl/Leroy06}, which accepts a subset of C as its
+source language. CompCert is notable as an early successful attempt to
+verify a compiler for a real-world language (or a subset thereof). C
+present multiple challenges to a compiler verifier, including
+undefined behaviours and raw pointer manipulation. However, compiling
+C does not involve some of the challenges which arise when compiling
+functional languages, especially dealing with first-class
+functions. This makes the challenges facing CompCert implementers
+quite different from ones explored in this project.
 
-\section{Closure conversion}
+A different example of a verified compiler discussed here is CakeML
+\cite{POPL14}. CakeML acceppts a subset a StandardML, a functional
+language which is well-suited to verification as its semantics have
+been formalised. A special feature of CakeML is that it can
+``bootstrap'', or verify correctness of, itself.
 
-Closure conversion is a compilation phase where functions or lambda
-abstractions with free variables are transformed to /closures/. A
-closure consists of a body (code) and the /environment/, which is a
-record holding the values corresponding to the free variables in the
-body (code). Closure conversion transforms abstractions to closures,
-and replaces references to variables with lookups in the environment.
+Finally, a good reference on verifying transformations of functional
+programs is ``A Higher-Order Abstract Syntax Approach to Verified
+Transformations on Functional Programs'' by Wang and Nadathur
+\cite{DBLP:conf/esop/WangN16}, which verifies three compilation phases
+specific to functional languages: continuation passing style (CPS)
+transformation, closure conversion, and lambda lifting. Intermediate
+languages are formalised in λProlog, and proofs are performed in the
+Abella proof assistant.
 
-Closure conversion was necessarily used in every compiler for a
-language which supports functions with free variables (TODO wording:
-scope?). But the first work which provided a rigorous treatment of
-closure conversion was the paper "Typed Closure Conversion" by
-Minamide et al. \cite{TODO}. It demonstrated type-preserving closure
-conversion, where closure environments have existential types (TODO
-wording). On top of a proof of type-safety, the paper contains a proof
-of operational correctness of the typed closure conversion algorithm
-by logical relations.
+TODO LR section
 
-Another notable paper about closure conversion is "Typed Closure
-Conversion Preserves Observational Equivalence" by Ahmed and Blum
-\cite{TODO}. The paper's title explains its main result, so we should
-explain the title.
+% Another notable paper about closure conversion is "Typed Closure
+% Conversion Preserves Observational Equivalence" by Ahmed and Blum
+% \cite{TODO}. The paper's title explains its main result, so we should
+% explain the title.
 
-(TODO bring up the Reynolds' paper) Within a language L, we have a
-program P = C[A], where A is an implementation of an abstraction and C
-is the "context", or "the rest of the program". Given some other
-implementation A' of the abstraction, we say that A and A' are
-contextually equivalent when for all possible contexts C, programs P =
-C[A] and P' = C[A'] behave identically.
+% (TODO bring up the Reynolds' paper) Within a language L, we have a
+% program P = C[A], where A is an implementation of an abstraction and C
+% is the "context", or "the rest of the program". Given some other
+% implementation A' of the abstraction, we say that A and A' are
+% contextually equivalent when for all possible contexts C, programs P =
+% C[A] and P' = C[A'] behave identically.
 
-We say that another abstraction A' is contextually equivalent to A if
-for all contexts C, programs C[A] and C[A'] are equivalent. This
-corresponds to a programmer's intuition that A and A' behave in the
-same way in all possible programs.
+% We say that another abstraction A' is contextually equivalent to A if
+% for all contexts C, programs C[A] and C[A'] are equivalent. This
+% corresponds to a programmer's intuition that A and A' behave in the
+% same way in all possible programs.
 
-TODO OE matters for security and safety: If an attack would be
-possible by exposing a certain implementation detail, then this detail
-is made inaccessible / private, for example by using an existential
-type.
+% TODO OE matters for security and safety: If an attack would be
+% possible by exposing a certain implementation detail, then this detail
+% is made inaccessible / private, for example by using an existential
+% type.
 
-Why this matters: modern software systems are made up of multiple
-components, of which some might not be trusted.
+% Why this matters: modern software systems are made up of multiple
+% components, of which some might not be trusted.
 
-// To ensure reliable and secure operation, it is important to defend
-against faulty or malicious code. Language-based security is built
-upon the concept of abstraction: if access to some private
-implementation detail might enable an attack, then this detail is made
-inaccessible by hiding it behind an abstract interface, for example
-using an existential type. //
+% // To ensure reliable and secure operation, it is important to defend
+% against faulty or malicious code. Language-based security is built
+% upon the concept of abstraction: if access to some private
+% implementation detail might enable an attack, then this detail is made
+% inaccessible by hiding it behind an abstract interface, for example
+% using an existential type. //
 
-TODO I have quite a bit about the paper and we don't want to duplicate
-the paper's introduction: how do I make it shorter?
+% TODO I have quite a bit about the paper and we don't want to duplicate
+% the paper's introduction: how do I make it shorter?
 
 \chapter{Background}
 \label{cha:background}
@@ -397,10 +425,51 @@ languages, and finally explain the Agda definitions and encodings
 which were borrowed from ACMM and PLFA.
 
 \section{Closure conversion}
+\label{sec:closure-conversion}
 
-TODO explain and give an example
+Closure conversion is a compilation phase where functions or lambda
+abstractions with free variables are transformed to
+\textit{closures}. A closure consists of a \textit{body (code)} and
+the \textit{environment}, which is a record holding the values
+corresponding to the free variables in the body (code). Closure
+conversion transforms abstractions to closures, and replaces
+references to variables with lookups in the environment.
 
-TODO explain why existential types
+We present an example of closure conversion. Let the source language
+be simply typed lambda calculus (STLC) with let-expressions and
+arithmetic, and let the target language have environments (written
+\AS{x=x, y=y}) and closures (written \AS{⟪ λx.e, \{y=y, z=z\} ⟫ }).
+
+Further, suppose the target program is
+
+\AS{let v = 2 in (λx. let y = 3 in (λz. v + x + y +z))}
+
+Then, the closure converted form is
+
+\AS{let v = 2 in ⟪ λx.λe\textsubscript{x}. let y = 3 in ⟪
+  λz.λe\textsubscript{z}. e\textsubscript{z}.v + e\textsubscript{z}.x
+  + e\textsubscript{z}.y + z , \{ v = \textsubscript{x}.v, x = x, y =
+  y \} ⟫ , \{ v=v \} ⟫ } 
+
+Notice that each abstraction became a closure, and that closure bodies
+only use their single bound variable and reference the environment. In
+particular, when building the environment of the inner closure, the
+environment of the outer closure is referenced: \AS{v =
+  \textsubscript{x}.v}.
+
+We provide typing and conversion rules for closure conversion in
+Section~\ref{sec:conversion-from-st}, which discusses the Agda
+implementation of closure conversion.
+
+Closure conversion, whether called by this name or not, is part of
+most compilers which compile languages with first-class functions to
+low-level code. But the first work which provided a rigorous treatment
+of closure conversion was the paper "Typed Closure Conversion" by
+Minamide et al. \cite{TODO}. It demonstrated type-preserving closure
+conversion, where which is made possible by giving closure
+environments existential types. The paper also contains a proof of
+operational correctness of the typed closure conversion algorithm by
+logical relations.
 
 \section{Compilation phases and intermediate representations}
 
