@@ -467,7 +467,7 @@ most compilers which compile languages with first-class functions to
 low-level code. But the first work which provided a rigorous treatment
 of closure conversion was the paper "Typed Closure Conversion" by
 Minamide et al. \cite{TODO}. It demonstrated type-preserving closure
-conversion, where which is made possible by giving closure
+conversion, which is made possible by giving closure
 environments existential types. The paper also contains a proof of
 operational correctness of the typed closure conversion algorithm by
 logical relations.
@@ -476,9 +476,9 @@ logical relations.
 \label{sec:agda-proof-assistant}
 
 Rather than developing novel proof techniques, this work's
-contribution is mechanisation of know compilation techniques and their
-known verification methods using a particular representation in the
-proof assistant Agda \cite{DBLP:conf/afp/Norell08}.
+contribution is a mechanisation of known compilation techniques and
+their known verification methods using a particular representation in
+the proof assistant Agda \cite{DBLP:conf/afp/Norell08}.
 
 Agda is described as a depedently-typed, total functional language or
 as a proof assistant for intuitionistic logic. In fact, those two
@@ -499,7 +499,7 @@ Agda is different from ML and Haskell in having dependent types --- data
 types in Agda can be indexed by values. For example, one can define a
 vector data type whose type contains the length of any given vector:
 
-\ExecuteMetaData[agda.tex]{nat}
+\ExecuteMetaData[agda.tex]{vec}
 
 Not only can types of data structures be indexed by values: dependent
 types can also be used to provide inductive definitions for predicate

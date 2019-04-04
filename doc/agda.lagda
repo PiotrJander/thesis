@@ -8,7 +8,7 @@ data ℕ : Set where
   zero  : ℕ
   suc   : ℕ → ℕ
 \end{code}
-%<*nat>
+%</nat>
 
 %<*vec>
 \begin{code}
@@ -29,8 +29,8 @@ data _≤_ : ℕ → ℕ → Set where
 
 %<*ex-proof>
 \begin{code}
-n≤m+n : (n : ℕ) → n ≤ suc n
-n≤m+n zero     = step-r base
-n≤m+n (suc n)  = step-lr (n≤m+n n)
+n≤sn : (n : ℕ) → n ≤ suc n
+n≤sn zero     = step-r base
+n≤sn (suc n)  = step-lr (n≤sn n)
 \end{code}
 %</ex-proof>
