@@ -146,7 +146,7 @@ postulate
     → T.subst (ρ^t ∙ V₂) (T.subst (T.rename (pack s) <$> E ∙ T.`var z) N₂) ≡ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂
 \end{code}
 
-%<*fund0-imp>
+%<*fund-imp>
 %<*fund-t>
 \begin{code}
 fund : ∀ {Γ σ k} {M₁ : S.Exp k σ Γ} {M₂ : T.Exp k σ Γ}
