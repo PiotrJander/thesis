@@ -472,8 +472,60 @@ environments existential types. The paper also contains a proof of
 operational correctness of the typed closure conversion algorithm by
 logical relations.
 
+\section{The Agda proof assistant}
+\label{sec:agda-proof-assistant}
+
+Rather than developing novel proof techniques, this work's
+contribution is mechanisation of know compilation techniques and their
+known verification methods using a particular representation in the
+proof assistant Agda \cite{DBLP:conf/afp/Norell08}.
+
+Agda is described as a depedently-typed, total functional language or
+as a proof assistant for intuitionistic logic. In fact, those two
+characterisations are equivalent --- an observation known as
+Curry-Howard correspondence \cite{DBLP:journals/cacm/Wadler15}.
+
+Fully explaining Agda is beyond the scope of this short section;
+instead, we provide several simple examples, hoping that the reader
+will get enough sense of programming and proving in Agda to follow
+subsequent uses in this report.
+
+The syntax of Agda is influenced by that of ML and especially
+Haskell. A data type for natural numbers could be defined as follows:
+
+\ExecuteMetaData[agda.tex]{nat}
+
+Agda is different from ML and Haskell in having dependent types --- data
+types in Agda can be indexed by values. For example, one can define a
+vector data type whose type contains the length of any given vector:
+
+\ExecuteMetaData[agda.tex]{nat}
+
+Not only can types of data structures be indexed by values: dependent
+types can also be used to provide inductive definitions for predicate
+and relations. For example, the ``less than or equal'' relation for
+natural numbers can be defines like this:
+
+\ExecuteMetaData[agda.tex]{le}
+
+Finally, since the dependent function type corresponds to universal
+quantification is logic, a theorem can be specified as a type, and its
+proof given by a program. We illustrate this with a simple inductive
+proof of the fact that every natural number is smaller or equal than
+its successor:
+
+\ExecuteMetaData[agda.tex]{ex-proof}
+
+Notably, in Agda, recursion over inductively defined data types
+corresponds to induction.
+
+The simple example give intuition about rather than a complete
+overview of Agda. Still, the reader should be able to read many Agda
+definitions in this report treating them as deduction rules.
+
 \section{Type- and scope-safe representation of simply typed lambda
   calculus λst}
+\label{sec:type-scope-safe}
 
 This section will discuss the encoding of simply typed lambda calculus
 (abbreviated as STLC, denoted with λst), which is the source language
