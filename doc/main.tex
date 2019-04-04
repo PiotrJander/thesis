@@ -309,21 +309,10 @@ verify the verifying compiler itself. This is in fact necessary to
 bridge the gap between verification of the source program and
 verification of the compiled executable.
 
-TODO fix. Properties which are typically verified about compilers
-concern preservation of properties of the source program in the target
-program. Such properties may pertain to: type preservation, semantics
-preservation, or full abstraction. Thus, the following statements
-could be verified.
-
-\begin{itemize}
-\item (Type-preservation) Suppose the target language is typed. If the
-  source program is well-typed and has type $T$, then the target
-  program is also well-typed and has the corresponding type $T'$.
-\item (Semantics preservation) Given the same (or appropriately
-  related) inputs, the source program and the target produce the same
-  (or appropriately related) result.
-\item (Full abstraction or contextual equivalence) TODO state it
-\end{itemize}
+Typically, verifying compilers involves showing that properties of the
+source program are preserved in the target program. Given the same (or
+appropriately related) inputs, the source program and the target
+produce the same (or appropriately related) result.
 
 Often, when compiling typed languages, the first step in verifying the
 compiler is making it type-preserving, especially in the initial
@@ -380,43 +369,6 @@ transformation, closure conversion, and lambda lifting. Intermediate
 languages are formalised in λProlog, and proofs are performed in the
 Abella proof assistant.
 
-TODO LR section
-
-% Another notable paper about closure conversion is "Typed Closure
-% Conversion Preserves Observational Equivalence" by Ahmed and Blum
-% \cite{TODO}. The paper's title explains its main result, so we should
-% explain the title.
-
-% (TODO bring up the Reynolds' paper) Within a language L, we have a
-% program P = C[A], where A is an implementation of an abstraction and C
-% is the "context", or "the rest of the program". Given some other
-% implementation A' of the abstraction, we say that A and A' are
-% contextually equivalent when for all possible contexts C, programs P =
-% C[A] and P' = C[A'] behave identically.
-
-% We say that another abstraction A' is contextually equivalent to A if
-% for all contexts C, programs C[A] and C[A'] are equivalent. This
-% corresponds to a programmer's intuition that A and A' behave in the
-% same way in all possible programs.
-
-% TODO OE matters for security and safety: If an attack would be
-% possible by exposing a certain implementation detail, then this detail
-% is made inaccessible / private, for example by using an existential
-% type.
-
-% Why this matters: modern software systems are made up of multiple
-% components, of which some might not be trusted.
-
-% // To ensure reliable and secure operation, it is important to defend
-% against faulty or malicious code. Language-based security is built
-% upon the concept of abstraction: if access to some private
-% implementation detail might enable an attack, then this detail is made
-% inaccessible by hiding it behind an abstract interface, for example
-% using an existential type. //
-
-% TODO I have quite a bit about the paper and we don't want to duplicate
-% the paper's introduction: how do I make it shorter?
-
 \chapter{Background}
 \label{cha:background}
 
@@ -468,11 +420,11 @@ Closure conversion, whether called by this name or not, is part of
 most compilers which compile languages with first-class functions to
 low-level code. But the first work which provided a rigorous treatment
 of closure conversion was the paper "Typed Closure Conversion" by
-Minamide et al. \cite{TODO}. It demonstrated type-preserving closure
-conversion, which is made possible by giving closure
-environments existential types. The paper also contains a proof of
-operational correctness of the typed closure conversion algorithm by
-logical relations.
+Minamide et al. \cite{DBLP:conf/popl/MinamideMH96}. It demonstrated
+type-preserving closure conversion, which is made possible by giving
+closure environments existential types. The paper also contains a
+proof of operational correctness of the typed closure conversion
+algorithm by logical relations.
 
 \section{The Agda proof assistant}
 \label{sec:agda-proof-assistant}
@@ -547,8 +499,6 @@ Background chapter as the representation closely resembles
 \cite{DBLP:conf/cpp/Allais0MM17},
 \cite{DBLP:journals/pacmpl/AllaisA0MM18}, and
 \cite{DBLP:conf/sbmf/Wadler18}.
-
-TODO STLC as a figure here
 
 λst has a ground type and a funtion type:
 
@@ -1462,20 +1412,21 @@ terms they reduce to are also compatible.
   relations}
 \label{cha:proof-logic-relat}
 
-The previous chapter showed a correctness property of closure
-conversion: the source and target of our closure conversion are in a
-relation which is a bisimulation. This chapter demonstrates another
-technique for showing correctness properties: Kripke-style [??]
-type-indexed logical relations. Type-indexed logical relations are
-characterised by using induction on the type structure of terms.
+Chapter~\ref{cha:prov-corr-clos} shows a correctness property of
+closure conversion: the source and target of our closure conversion
+are in a relation which is a bisimulation. This chapter demonstrates
+another technique for proving correctness: type-indexed logical
+relations. Type-indexed logical relations are characterised by using
+induction on the type structure of terms.
 
-The outline of this chapter is similar to that of the previous one
-about bisimulations. First, we introduce a modified representations of
-simply typed lambda calculus (λst') and the language with closures
-(λcl'), where terms are explicitly labelled as values or reducible
-expressions (this helps with mechanisation as logical relations treat
-values and reducible terms differently). Unlike λst and λcl, λst' and
-λcl' semantics are defined as big step [TODO wording].
+The outline of this chapter is similar to that of
+Chapter~\ref{cha:prov-corr-clos} about bisimulations. First, we
+introduce a modified representations of simply typed lambda calculus
+(λst') and the language with closures (λcl'), where terms are
+explicitly labelled as values or reducible expressions (this helps
+with mechanisation as logical relations treat values and reducible
+terms differently). Unlike λst and λcl, λst' and λcl' have big-step
+semantics. 
 
 Then, the syntactic compatibility relation between λst' and λcl' is
 redefined. Finally, we define a logical relation between λst' and
@@ -1491,12 +1442,12 @@ project's contribution.
 \label{sec:altern-form-interm}
 
 This section presents an alternative representation of the source and
-target languages of closure conversion. We call the new formalisation
+target language of closure conversion. We call the new formalisation
 of the source language λst', and the new formalisation of the target
 language - λcl'. Compared with λst and λcl in
 Chapter~\ref{cha:agda-development}, λst' and λcl' are different in two
 ways. Firstly, the distinction between values and non-values is made
-explicit in the definition of terms in λst' and λcl', replacing a
+explicit in the definition of terms of λst' and λcl', replacing a
 predicate on terms in λst and λcl. Secondly, we give big-step
 semantics for λst' and λcl', in contrast to small-step semantics for
 λst and λcl. These two differences simplify mechanisation of a proof
@@ -1505,29 +1456,33 @@ by logica relation.
 These improvements in formalisation are inspired by an Agda
 formalisation accompanying \cite{DBLP:conf/cpp/McLaughlinMS18}.
 
-[TODO maybe only discuss STLC?]
-
 The definitions of types, contexts, variables as proofs of context
-membership, and environments, are the same as for λst and λcl in the
-previous chapter. The definition of language expressions is different,
-however, in that it makes an explicit distinction between values \AS{Val} and
-non-values \AS{Trm}. This is achieved by indexing the \AS{Exp} data
-type by a \AS{Kind}:
+membership, and environments, are similar to corresponding definitions
+for λst and λcl, except that the groud type is now called \AS{`𝔹} and
+it represents boolean values. The definition of language expressions
+is different, however, in that it makes an explicit distinction
+between values \AS{Val} and non-values \AS{Trm}. This is achieved by
+indexing the \AS{Exp} data type by a \AS{Kind}:
 
 \ExecuteMetaData[LR/Base.tex]{kind}
 
 \ExecuteMetaData[LR/STLC.tex]{exp}
 
-Notice that there are two new constructors for language
-expressions. The first one is \AS{`val}, which takes a value \AS{Val}
-to a term \AS{Trm} and thus makes it possible to use values in
-positions where terms are expected. The second is \AS{`let}, which is
-a standard let construct. The let is necessary to make the evaluation
-order explicit: function application applies a value to a value, so
-nested computations need to be factored out and bound as values by a
-let expression. This representation is known as A-normal form
-\cite{DBLP:conf/lfp/SabryF92}; its other benefit is that it simplifies
-the definition as big-step semantics.
+Notice that there are four new constructors for language
+expressions.
+
+\begin{itemize}
+\item \AS{`val} takes a value \AS{Val} to a term \AS{Trm} and thus
+  makes it possible to use values in positions where terms are
+  expected.
+\item \AS{`tt} and \AS{`ff} are introduction forms for the \AS{`𝔹}
+  type.
+\item \AS{`let} is a standard let construct. The let is necessary to
+  make the evaluation order explicit: function application applies a
+  value to a value, so nested computations need to be factored out and
+  bound as values by a let expression. This representation is known as
+  A-normal form \cite{DBLP:conf/lfp/SabryF92}.
+\end{itemize}
 
 Definition of renaming and substitution are similar to those for
 λst, so we do not include the updated versions here.
@@ -1537,20 +1492,18 @@ We define aliases for closed values \AS{Val₀} and closed terms
 
 \ExecuteMetaData[LR/STLC.tex]{ground}
 
-Like it was mentioned, the semantics of λst are defined as big-step
-semantics [TODO wording]. Given a term \AS{M} and a value \AS{V}, the
-inductive definition \AS{M ⇓ V} states the conditions for \AS{M} to
-reduce to a value \AS{V}:
+The \AS{⇓} relation specifies big-step semantics for λst'.  Given a
+term \AS{M} and a value \AS{V}, the inductive definition \AS{M ⇓ V}
+states the conditions for \AS{M} to reduce to a value \AS{V}:
 
 \ExecuteMetaData[LR/STLC.tex]{big-step}
 
-It is worth explaining the \AS{⇓step} constructor and the \AS{M →₁ M'}
-data type. The \AS{M →₁ M'} data type describes part of the small-step
-reducton relation and has a single constructor which captures beta
-reduction for functions. The \AS{⇓step} constructor is similar to the
-transitive closure of the small-step reduction relation: if \AS{M}
-reduces to \AS{M'} in a single step, and \AS{M'} reduces to \AS{V} in
-multiple steps, then \AS{M} reduces to \AS{V} in multiple steps.
+The \AS{M →₁ M'} data type describes part of the small-step reducton
+relation and has a single constructor which captures beta reduction
+for functions. The \AS{⇓step} constructor is similar to the transitive
+closure of the small-step reduction relation: if \AS{M} reduces to
+\AS{M'} in a small step, and \AS{M'} reduces to \AS{V} in a big step,
+then \AS{M} reduces to \AS{V} in a big step.
 
 Differences between λcl and λcl' are analogous.
 
@@ -1564,28 +1517,15 @@ subsumes the graph relation of any closure conversion. The other is a
 \textit{logical relation}, which captures the notion that related
 terms reduce to related values.
 
-We set up a fundamental theorem for the logical relation, and as a
-corollary, we obtain the result that for closed terms, the compability
-relation implies the logical relation.
-
-\begin{lemma}
-  \label{sec:corr-logic-relat-1}
-  \emph{Correctness property for the compatibility relation:} Given a
-  closed source term \AS{M}, and a closed target term \AS{M†}, if
-  \AS{M} and \AS{M†} are compatible, then they reduce to values which
-  are in the logical relation.
-\end{lemma}
-
-From this, a correctness property for closure conversion follows:
-given any well-behaved closure conversion function \AS{\_†}, a closed
-source term \AS{M}, and a closed target term \AS{M†} which is the
-result of closure converting \AS{M}, since \AS{M} and \AS{M†} are
-compatible, they reduce to related values.
+Subsequently, we formulate and prove a proposition which we call
+\textit{a fundamental theorem for the logical relation}. The theorem
+is a statement of correctness for any closure conversion function
+whose graph relation is contained in the compatibility relation.
 
 The proof is inspired by a sketch of an argument from
 \cite{DBLP:conf/popl/MinamideMH96}.
 
-\section{The compatibility relation}
+\subsection{The compatibility relation}
 \label{sec:lr-compat-rel}
 
 We denote the compatibility relation with \AS{\ti}.  In general, given a
@@ -1601,7 +1541,7 @@ For brevity, we do not include translation functions from λst' to
 closure conversion from λst and λcl could be ported to λst' and λcl',
 and that its graph relation woud be contained in \AS{\ti}.
 
-\section{The logical relation}
+\subsection{The logical relation}
 \label{sec:logical-relation}
 
 While the compatibility relation captures syntactic correspondence, we
@@ -1615,15 +1555,12 @@ that \AS{M₁} and \AS{M₂} are related at type \AS{τ}:
 
 \begin{tabular}{rccl}
   \AS{τ ∋} & \AS{M₁ ≅ M₂}   & iff  & \AS{M₁ ⇓ V₁}, \AS{M₂ ⇓ V₂}, and \AS{τ ∋ V₁ ≈
-                                 V₂}  \\
+                                     V₂}  \\
+  \AS{`𝔹 ∋} & \AS{`tt ≈ `tt} \\
+  \AS{`𝔹 ∋} & \AS{`ff ≈ `ff} \\
   \AS{σ ⇒ τ ∋} & \AS{U₁ ≈ U₂} & iff & for all \AS{σ ∋ V₁ ≈ V₂}, \AS{τ ∋ U₁
                                `\$ V₂ ≅ U₂ `\$ V₂ }
 \end{tabular}
-
-
-There is no case for \AS{≈} at the ground type \AS{α} as only
-variables can have the ground type, and the values in \AS{≈} are
-closed.
 
 In Agda, \AS{≅} and \AS{≈} are defined as specialisations of the
 \AS{⇔} relation on closed expressions of λst' and λcl'.
@@ -1642,9 +1579,7 @@ substitution environments with a pair of related values:
 \ExecuteMetaData[LR/LR.tex]{pointwise-ext}
 
 Finally, we can state the fundamental theorem for our logical
-relation [TODO wording]. The theorem generalised the Correctness
-property for the compatibility relation to open terms, as long as
-there are substitution environments in the pointwise relation.
+relation:
 
 \begin{lemma}
   \emph{Fundamental theorem of logical relations.} Given a source
@@ -1662,10 +1597,7 @@ there are substitution environments in the pointwise relation.
 Observe that the Fundamental theorem, instatiated from closed terms,
 is equivalent to the Correctness property for the compatibility relation.
 
-We do not include the Agda proof here as it is not very readable;
-instead, we present several cases on paper: TODO
-
-[TODO let case in the proof]
+The Agda proof of the theorem is included in the technical appendix.
 
 \chapter{Reflections and evaluation}
 \label{cha:refl-eval}
@@ -1690,7 +1622,12 @@ project were:
 \item To use generic programming techniques from ACMM.
 \end{enumerate}
 
-[TODO split eval and refl, highlight achievements]
+The two sections of this chapter evaluate the achievements of this
+project and reflect on its relationship to other work and potential
+future work.
+
+\section{Evaluation of achievements}
+\label{sec:eval-achi}
 
 \paragraph{(Objective 1) Capturing the essence of closure conversion}
 The implemented tranformation --- closure conversion --- requires a
@@ -1716,14 +1653,38 @@ essence of an environment by representing it as a substitution
 environment, i.e. a mapping from variables to values.
 
 \paragraph{Existential types for closure environments}
-As this report points out, closure environment must have existential
-types in order for a program with closures to be well-typed. This
-observation was made by \cite{DBLP:conf/popl/MinamideMH96}, which
-deals with this fact by equipping the closure language with
-existential types. This project uses a different, arguably simpler
-approach, whereby closure environment are existentially typed
-\textit{in the meta language (Agda)}, which allows us to keep object
-langauge types simple.
+Closure environment should have existential types in order for a
+program with closures to be well-typed. This observation was made by
+\cite{DBLP:conf/popl/MinamideMH96}, which deals with this fact by
+equipping the closure language with existential types. This project
+uses a different, arguably simpler approach, whereby closure
+environment are existentially typed \textit{in the meta language
+  (Agda)}, which allows us to keep the types of the object language
+simple.
+
+\paragraph{(Objetive 2) Scope-safe and well-typed representation}
+Both the source and target language have scope-safe and well-typed
+representation, which is possible thanks to using dependently-typed
+Agda as the meta language. Using inherently scoped and typed terms has
+many benefits, which include the fact that when programs are
+synonymous with their typing derivations, transformations on programs
+are synonymous with proofs of type preservation. Additionally, many
+techniques for reasoning about operational correctness are
+type-directed, e.g. the type-indexed logical relations which we used,
+and inherently typed representations are well-matched to such
+techniques.
+
+\paragraph{(Objetive 3) The closure conversion preserves operational correctness}
+This project uses two standard techniques to show that the implemented
+closure conversion is correct: bisimulation and logical relations. In
+an informal setting of pen-and-paper proofs, both of those techniques
+have rather straighforward proofs. However, mechanisation of those
+proofs involves proving several lemmas about the interactions between
+renaming, substitution, closure conversion, and the compatibility
+relation.
+
+\section{Reflections and comparison with related work}
+\label{sec:refl-comp-with}
 
 \paragraph{Comparison with traditional closure conversion}
 In comparison with traditional closure conversion which represents
@@ -1738,26 +1699,6 @@ specialised passes facilitates verification, as each compilation phase
 is easier to verify, and composing correctness results about phases
 gives rise to a end-to-end correctness result.
 
-\paragraph{(Objetive 2) Scope-safe and well-typed representation}
-Both the source and target language have scope-safe and well-typed
-representation, which were possible thanks to using dependently-typed
-Agda as the meta language. Using inherently scoped and typed terms has
-many benefits, which include the fact that when programs are synonymous
-with their typing derivations, transformations on programs are
-synonymous with proofs of type preservation. Additionally, many
-techniques for reasoning about operational correctness are type
-directed, e.g. the type-indexed logical relations which we used, and
-inherently typed representations are well-matched to such techniques.
-
-\paragraph{(Objetive 3) The closure conversion preserves operational correctness}
-This project uses two standard techniques to show that the implemented
-closure conversion is correct: bisimulation and logical relations. In
-an informal setting of pen-and-paper proofs, both of those techniques
-have rather straighforward proofs. However, mechanisation of those
-proofs involves proving several lemmas about the interactions between
-renaming, substitution, closure conversion, and the compatibility
-relation.
-
 \paragraph{Mechanising the meta-theory of a language}
 As observed in ACMM, mechanising the meta-theory of a language most
 often requires proving lemmas about the interactions between different
@@ -1769,19 +1710,18 @@ substitutions, there exists a substitution which behaves the
 same). 
 
 \paragraph{(Objetive 4) ACMM}
-ACMM exploit similarity between various traversals (semantics) on
-simply typed lambda calculus (STLC) to come up with a generic way to
+ACMM exploit similarity between various traversals (semantics) in
+simply typed lambda calculus (STLC) to provide a generic way to
 prove synchronisation and fusion lemmas for STLC.
 
 It should be noted that the objective of using generic proving from
-ACMM was met partially. This project does borrow a type- and
-scope-safe representation from ACMM, but it does not duplicate ACMM's
-effort of setting up the machinery for generic proofs of
-synchronisation and fusion lemmas. That machinery depends on the
-concrete representation of STLC, and since ours is slightly different,
-we just postulate the synchronisation and fusion lemmas for STLC ---
-ACMM shows that their their mechanical proofs exist and can be made
-generic.
+ACMM was met partially. This project does borrow a type-andscope safe
+representation from ACMM, but it does not duplicate ACMM's effort of
+setting up the machinery for generic proofs of synchronisation and
+fusion lemmas. That machinery depends on the concrete representation
+of STLC, and since ours is slightly different, we just postulate the
+synchronisation and fusion lemmas for STLC --- ACMM shows that their
+their mechanical proofs exist and can be made generic.
 
 Intermediate languages other than STLC require their own definitions
 of renaming and substitution, and proofs of correctness lemmas. For
@@ -1795,49 +1735,35 @@ biggest effort in the whole proof.
 \paragraph{Possible remedy: AACMM and generic programming}
 The problem of having to define renaming and substitution for each new
 language, and proving correctness lemmas about the interactions
-between renaming, substitution, and transformations, is address by a
-follow-up paper, which we will refer to as AACMM
-\cite{DBLP:journals/pacmpl/AllaisA0MM18}. AACMM provides a way to
-supply a definition of a syntax with bindings, and then derives
-meta-theoretical correctness lemmas from that definition. The paper
-repository contains an example of an elaboration whose source is a
-language with a let construct, and whose target is simply-typed lambda
-calculus with let-expressions inlined. The example demonstrates how a
-proof of simulation is drastically simplified thanks to the use of the
-AACMM library and its generic programing capabilities.
+between renaming, substitution, and transformations, is address by
+AACMM \cite{DBLP:journals/pacmpl/AllaisA0MM18}, whose contributions
+were described in Section~\ref{sec:gener-trav-proofs}.
 
 \paragraph{Feasibility of closure conversion in AACMM}
 AACMM demonstrates that transformations like let-inlining and CPS
-conversion can be expresses in their generic framework. They pose an
+conversion can be expressed in their generic framework. They pose an
 open question about which compilation passes can be implemented
 generically. Unfortunately, this work suggests that closure conversion
-might not fit well into the AACMM framework. Specifically, the
-closure language in this project --- with aforementioned features like
-syntax being mutually dependent on substitution environments, or
-environments being existentially quatified in the meta language (Agda)
---- is not expressible as an AACMM generic syntax. The traditional
-representation of a languages with closures --- with environments as
-records and existential types in the object language --- would not fit
-either as syntaxes in AACMM cannot contain existential types.
-
-\paragraph{Bisimulation vs logical relations}
-[TODO what could I say about the pros and cons of both?]
-[Derek Dreyer's paper]
+might not fit well into the AACMM framework. Specifically, the closure
+language in this project --- with features like syntax being mutually
+dependent on substitution environments, or environments being
+existentially quatified in the meta language (Agda) --- is not
+expressible as an AACMM generic syntax. The traditional representation
+of a languages with closures --- with environments as records and
+existential types in the object language --- would not fit either as
+syntaxes in AACMM do not support existential types.
 
 \paragraph{Summary}
 This work and ACMM/AACMM are both concerned with mechanising the
 meta-theory of languages, and applying this metatheory to reason about
-the language. While AACMM shows that a certain class of languages /
-syntaxes can be treated generically, this work contains a negative
-result which indicates that a language with closures might not benefit
-from current techniques for relieving the burden of mechanising
-meta-theory. This is an open question, however, whether there exist
-feasible generic syntaxes which would encompass a language with
-closures, or whether an alternative formalisation of a language with
-closures exists which is compatible with AACMM.
-
-[TODO the conclusions of this chapter depend on my understanding of
-AACMM --- is it correct?]
+the language. While AACMM shows that a certain class of languages can
+be treated generically, this work contributes a negative result which
+indicates that a language with closures might not benefit from AACMM's
+techniques for relieving the burden of mechanising meta-theory. It
+is an open question, however, whether there exist feasible generic
+syntaxes which would encompass a language with closures, or whether an
+alternative formalisation of a language with closures exists which is
+compatible with AACMM.
 
 \chapter{Relationship to the UG4 project}
 \label{cha:relat-ug4-proj}
@@ -1959,11 +1885,6 @@ program (and thus obtaining a substitution σ), and then replacing the
 subterm with the RHS of the rule, instantiated with the substitution
 σ.
 
-TODO fix Notably, such simple form of a rewrite rule only supports first-order
-abstract syntax trees, but not higher-order abstract syntax. (TODO
-elaborate on what it would mean to have a context and go under a
-binder in a rewrite rule). (TODO can't express conditions) 
-
 \section{Program derivations in compilers and their limitations}
 \label{sec:progr-deriv-comp}
 
@@ -1990,7 +1911,7 @@ possible derivations. The search could be guided by an objective
 function, for example, a sort of static analysis of the running time,
 or the compiler could evaluate programs by running them on sample
 inputs. Exploring the space of derivations is the approach taken by
-the Lift compiler \cite{TODO}.
+the Lift compiler \cite{DBLP:conf/cgo/SteuwerRD17}.
 
 Programmer's input may or may not be involved in such search. For
 example, the UG4 project delivered a graphical user interface which
@@ -2063,20 +1984,21 @@ to ask, why not express a derivation in a proof assistant, which
 supports unification and rewriting natively? Indeed, with hindsight,
 we can say with certainty that a proof assistant is perfectly suited
 for the job, its only downside being that it requires considerable
-expertise, which I did not have during my fourth year. [TODO I/me?]
-The next section expresses a part of the derivation from the UG4
-project in Agda, and evaluates the benefits of doing so, compared with
-the approach from last year's project.
+expertise.  The next section presents an Agda proof of a single rewrite rule
+from the UG4 project, and evaluates the benefits of doing so,
+compared with the approach from last year's project.
 
-\section{Program derivation in Agda: sparse matrix-vector
-  multiplication}
+\section{Proving rewrite rules in Agda}
 \label{sec:progr-deriv-agda}
 
-To complete last year's work, we conduct a derivation of the program
-for matrix-vector multiplication which acts on CSR-sparse
-matrices. Unlike last year, we can now provide proofs of individual
-rewrite rules. Indeed, some proofs are quite involved. TODO whether
-and how to do it.
+Unlike in the last year's project, we can now provide proofs of
+individual rewrite rules. Here we include an example proof of the fact
+that filtering out zeros from a list does not change the result of
+taking the sum of the elements in the list. This is intuitively clear
+as zero is a neutral element for addition, but showing this formally
+requires an inductive proof:
+
+\ExecuteMetaData[UG4.tex]{sum-filter}
 
 \chapter{Conclusion}
 \label{cha:conclusion}
@@ -2088,7 +2010,7 @@ closure conversion algorithm which minimises closure environments, and
 using two different techniques: bisimulations and logical relations.
 
 This work builds on a long line of research in several areas:
-higher-order abstract syntax representation, type-preserving
+representating languages with bindings, type-preserving
 compilation, and compiler verification. In particular, the style of
 the Agda development is influenced by ACMM and PLFA.
 
@@ -2096,9 +2018,9 @@ By mechanising two different proofs of correctness of the
 transfomation, the project provides a reference for comparing the
 methods of bisimulation and logical relations.
 
-It was confirmed that when the languages have a type- and scope-safe
-representation, a large amount of effort in mechanising
-meta-theoretical proofs goes into correctness lemmas about
+It was confirmed that when the languages have a type-and-scope safe
+representation, mechanisation of meta-theoretical proofs requires a
+large amount of effort to establish correctness lemmas about
 interactions between renaming, substitution, and other traversals.
 
 A natural continuation for this project would be to try to apply
@@ -2147,5 +2069,12 @@ closure conversion function is contained in the compatibility relation.
 \label{sec:comp-relat-bisim-1}
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{sims}
+
+\section{Proof of the fundamental theorem for the logical relation}
+\label{sec:proof-fund-theor}
+
+Notice that the proof in incomplete in two cases.
+
+\ExecuteMetaData[LR/LR.tex]{fund-imp}
 
 \end{document}

@@ -146,6 +146,7 @@ postulate
     → T.subst (ρ^t ∙ V₂) (T.subst (T.rename (pack s) <$> E ∙ T.`var z) N₂) ≡ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂
 \end{code}
 
+%<*fund0-imp>
 %<*fund-t>
 \begin{code}
 fund : ∀ {Γ σ k} {M₁ : S.Exp k σ Γ} {M₂ : T.Exp k σ Γ}
@@ -189,7 +190,7 @@ fund-lam {N₁ = N₁} {N₂} {E} {V₁} {V₂} {ρ^s} {ρ^t} ∙≈ρ ~N V₁�
   with fund (∙≈ρ ∙^R V₁≈V₂) ~N
 ... | p rewrite helper-1 ρ^s N₁ V₁ | sym (helper-2 ρ^t E N₂ V₂) = p
 \end{code}
-
+%</fund-imp>
 
 
 

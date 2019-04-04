@@ -35,11 +35,14 @@ lemma-1 : {m : ℕ}
 lemma-1 v[] = refl
 lemma-1 (x v∷ xs) rewrite lemma-1 xs = refl
 
-non-zero : (n : ℕ) → Dec (n ≢ zero)
-non-zero n = ¬? (n ≟ zero)
-
 postulate
   ¬¬ℕ : {m n : ℕ} → ¬ ¬ (n ≡ m) → n ≡ m
+\end{code}
+
+%<*sum-filter>
+\begin{code}
+non-zero : (n : ℕ) → Dec (n ≢ zero)
+non-zero n = ¬? (n ≟ zero)
 
 lemma-2 : (xs : List ℕ)
   → L.sum (filter non-zero xs) ≡ L.sum xs
@@ -47,7 +50,10 @@ lemma-2 [] = refl
 lemma-2 (x ∷ xs) with non-zero x
 lemma-2 (x ∷ xs) | yes p rewrite lemma-2 xs = refl
 lemma-2 (x ∷ xs) | no ¬p rewrite decidable-stable (x ≟ zero) ¬p | lemma-2 xs = refl
+\end{code}
+%</sum-filter>
 
+\begin{code}
 non-zero-proj₂ : (p : ℕ × ℕ) → Dec (proj₂ p ≢ zero)
 non-zero-proj₂ = non-zero ∘ proj₂
 
@@ -99,8 +105,8 @@ module _ {A : Set} where
   --   → enumerate' suffix ≡ V.drop (n ∸ m) (zip (V.allFin n) xs)
   -- drop-zip-allFin≡enumerate' suffix = ?
 
-  zip-allFin≡enumerate : ∀ {n} (xs : Vec A n) → enumerate xs ≡ zip (V.allFin n) xs
-  zip-allFin≡enumerate xs = {!!}
+  -- zip-allFin≡enumerate : ∀ {n} (xs : Vec A n) → enumerate xs ≡ zip (V.allFin n) xs
+  -- zip-allFin≡enumerate xs = {!!}
 
 postulate
   lemma-3 : ∀ {n m} {row' : Vec Num m} (row vec : Vec Num n)

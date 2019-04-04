@@ -20,7 +20,8 @@ AGDA_FILES:=\
   LR/STLC.lagda \
   LR/Closure.lagda \
   LR/LR.lagda \
-  agda.lagda
+  agda.lagda \
+  UG4.lagda
 
 AGDA_OUTPUT:=$(patsubst %.lagda,latex-agda-output/%.tex,$(AGDA_FILES))
 AGDA_OUTPUT_PROCESSED:=$(patsubst %.lagda,latex/%.tex,$(AGDA_FILES))
