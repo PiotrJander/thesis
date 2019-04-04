@@ -568,8 +568,7 @@ variable.
 
 \ExecuteMetaData[StateOfTheArt/Types.tex]{var}
 
-We can now present the formulation of λst terms, which is synonymous
-with their typing derivations:
+Terms of λst are synonymous with their typing derivations:
 
 \ExecuteMetaData[StateOfTheArt/STLC.tex]{terms}
 
@@ -577,30 +576,15 @@ The syntactic variable \AS{V} constructor takes a de~Bruijn variable to
 a term. The abstraction constructor \AS{L} requires that the body is
 well-typed in the context \AS{Γ} extended with the type \AS{σ} of the
 variable bound by the abstraction. The application constructor
-\AS{A} follows the typing rule for application.
-
+\AS{A} follows the usual typing rule for application.
 
 \section{Type- and scope-safe programs}
 \label{sec:typ-scop-saf-prog}
 
-Many useful traversals of the abstract syntax tree involve maintaining
-a mapping from free variables to appropriate values. Two such
-traversals are simultaneous renaming and substitution.
-
-Simultaneous renaming takes a term \AS{N} in the context \AS{Γ}. It maintains
-a mapping \AS{ρ} from variables in the original context \AS{Γ} to
-\textit{variables} in some other context \AS{Δ}. It produces a term in
-\AS{Δ}, which is \AS{N} with variables renamed with \AS{ρ}.
-
-Similarly, simultaneous substitution takes a term \AS{N} in the context
-\AS{Γ}. It maintains a mapping \AS{σ} from variables in the original context
-\AS{Γ} to \textit{terms} in some other context \AS{Δ}. It produces a
-term in \AS{Δ}, which is \AS{N} with variables substitution for with \AS{σ}.
-
-Before we can demonstrate an implementation of renaming and
-substitution, we need to formalise the notion of a mapping from free
-variables to appropriate values, which we call the
-\textit{environment}.
+Many useful traversals over the abstract syntax tree involve
+maintaining a mapping from free variables to appropriate values. This
+can be formalised with the notion of a mapping from free variables to
+appropriate values, which we call an \textit{environment}.
 
 \ExecuteMetaData[STLC.tex]{env}
 
@@ -615,16 +599,28 @@ to deserve its own name.
 
 There is a notion of an empty environment \AS{ε}, of extending an
 environment \AS{ρ} with a value \AS{v}: \AS{ρ ∙ v}, and of mapping a
-function \AS{f} over an environment \AS{ρ}: \AS{f <\$> ρ},
-corresponding to the analogous operations on contexts (which are just
-lists). Finally, \AS{select ren ρ} renames a variable with \AS{ren}
-before looking it up in \AS{ρ}.
+function \AS{f} over values in an environment \AS{ρ}: \AS{f <\$>
+  ρ}. Finally, \AS{select ren ρ} renames a variable with \AS{ren}
+before looking it up in the environment \AS{ρ}.
 
 \ExecuteMetaData[STLC.tex]{envops}
 
 Notice that those four operations on environments are defined using
 copatterns \cite{DBLP:conf/popl/AbelPTS13} by ``observing'' the
 behaviour of \AS{lookup}.
+
+Two especially important traversals are simultaneous renaming and
+substitution.
+
+Simultaneous renaming takes a term \AS{N} in the context \AS{Γ}. It maintains
+a mapping \AS{ρ} from variables in the original context \AS{Γ} to
+\textit{variables} in some other context \AS{Δ}. It produces a term in
+\AS{Δ}, which is \AS{N} with variables renamed with \AS{ρ}.
+
+Similarly, simultaneous substitution takes a term \AS{N} in the context
+\AS{Γ}. It maintains a mapping \AS{σ} from variables in the original context
+\AS{Γ} to \textit{terms} in some other context \AS{Δ}. It produces a
+term in \AS{Δ}, which is \AS{N} with variables substitution for with \AS{σ}.
 
 Equipped with the notion of environments, we can give an
 implementation of renaming and substitution:
@@ -633,20 +629,18 @@ implementation of renaming and substitution:
 \ExecuteMetaData[StateOfTheArt/STLC.tex]{subst}
 
 Notice that those two traversals are indentical except (1)
-\textit{renaming} wraps the result of \AS{lookup ρ x} in \AS{V}, and
+\textit{renaming} wraps the result of \AS{lookup ρ x} in \AS{V}, and (2)
 \textit{renaming} and \textit{substitution} extend the environment in
 a different way: \AS{s <\$> ρ ∙ z} vs \AS{rename (pack s) <\$> σ ∙ V
   z}. The observation that renaming and substitution for STLC share a
-common structure was a basis was the unpublished manuscript by McBride
+common structure was a basis for the unpublished manuscript by McBride
 \cite{mcbride2005type}, and subsequently motivated the ACMM paper
-\cite{DBLP:conf/cpp/Allais0MM17}. In [section], we will show how ACMM
-abstracts this common structure of renaming and substitution into a
-notion of a semantics.
+\cite{DBLP:conf/cpp/Allais0MM17}. 
 
 Also notice how the functions \AS{ext} and \AS{exts} extend the
 environment when the traversal goes under a binder.
 
-An example instantation of simultaneous substitution is single
+An instance of simultaneous substitution is single
 substitution. Single substitution replaces occurrences of the
 last-bound variable in the context, and it is useful for defining the
 beta reduction for abstractions. Single substitution environment is an
@@ -658,7 +652,7 @@ identity substitution environment extended with a single value:
 
 \section{Small-step operational semantics}
 
-The formalisation of small step semantics for a call-by-value lambda
+The formalisation of small-step semantics for call-by-value lambda
 calculus is adapted from \cite{DBLP:conf/sbmf/Wadler18}.
 
 Values are terms which do not reduce further. In this most basic
@@ -675,14 +669,15 @@ describes what an abstraction applied to a value reduces to.
 
 A term which can take a reduction step is called a reducible
 expression, or a redex. A property of a language that every well-typed
-term is either a value or a redux is called type-safety. This property
-is captured by a slogan ``well-typed terms don't get stuck'' and can
-be proved by techniques like \textit{progress and preservation} or
+term is either a value or a redex is called type-safety; it is
+captured by the slogan ``well-typed terms don't get stuck'' and can be
+proved by techniques like \textit{progress and preservation} or
 \textit{logical relations}. Simply typed lambda calculus is type-safe,
 and so is this formalisation. For a proof of type safety for a similar
 formalisation of STLC, cf. \cite{DBLP:conf/sbmf/Wadler18}.
 
-Operational semantics are needed for the treatment of bisimulation.
+Operational semantics are needed in Chapter~\ref{cha:prov-corr-clos}
+to prove our closure conversion correct with a bisimulation.
 
 \chapter{Formalising closure conversion}
 \label{cha:agda-development}
@@ -700,29 +695,27 @@ in subsequent chapters.
 \section{Closure language λcl}
 \label{sec:closure-language-cl}
 
-As discussed in the Background [or maybe Intro?] chapter, some
-compilation phases must use different source and target intermediate
-representations. This is the case with closure conversion, and this
-section presents a formalisation of an intermediate language with
-closures. The language is very similar the formalised simply typed
-lambda calculus, except that abstraction with free variables are
-replaced by closures with environments. What might seem like a simple
-change has interesting implications for traversals like renaming and
-substitution.
+Some compilation phases use different source and target intermediate
+representations as is the case with our closure conversion
+algorithm. This section presents a formalisation of an intermediate
+language with closures. The language is similar to
+simply typed lambda calculus, except that abstraction with free
+variables are replaced by closures with environments. What might seem
+like a simple change has interesting implications for traversals like
+renaming and substitution.
 
 The closure language λcl shares types, contexts, and
 de-Bruijn-variables-as-proofs-of-context-membership, and their
 respective Agda formalisations, with the source representation. In
 general, two different intermediate representations do not need to
 share the same type system, but if they do, this simplifies
-formalisation. The descriptions of those formalisations can be found
-in Section~[TODO].
+formalisation.
 
 \section{Terms}
 \label{sec:closure-language-cl-1}
 
-The definition of terms of λcl differs from terms of λst in the \AS{L}
-constructor, which, in λcl, holds the closure body and the closure
+The definition of terms of λcl differs from λst in the \AS{L}
+constructor, which now holds the closure body and the closure
 environment.
 
 \ExecuteMetaData[StateOfTheArt/Closure.tex]{terms}
@@ -763,20 +756,18 @@ a record, and it has several benefits, especially eliminating the need
 for products in the language, and overall simplification of the
 formalisation.
 
-Finally, recall from [section] that in order for a closure-converted
-program to be well-typed, a closure environment should have an
-existential type. It is important to note that in this formalisation,
-existential typing is achieved in the meta language Agda, not in the
-object language λcl, which does not have existential types. Indeed,
-existential quantification (including over types) can in achieved in
-Agda through dependent products, a datatype constructor is a dependent
-product, and the environment is a parameter to the \AS{L} constructor.
+Finally, recall from Section~\ref{sec:closure-conversion} that in
+order for a closure-converted program to be well-typed, closure
+environments should have existential types. It is important to note
+that in this formalisation, existential typing is achieved in the meta
+language Agda, not in the object language λcl, which does not have
+existential types.
 
 \section{Renaming and substitution}
 \label{sec:renam-subst}
 
 Consider the case for the constructor \AS{L} of renaming and
-substitution in λcl and how it is different from the corresponding
+substitution in λcl and how it differs from the corresponding
 definition in λst.
 
 \ExecuteMetaData[StateOfTheArt/Closure.tex]{rename}
@@ -786,16 +777,14 @@ Unlike in λst, renaming and substitution in λcl \textit{do not go
   under binders} (do not change the closure body). This is because
 renaming and substitution take a term in a context \AS{Γ} to a term in
 a context \AS{Γ'}. But the code (body) of a closure is typed in a
-different context \AS{Δ}. So upon recursing on a closure, renaming and
+different context \AS{Δ}. So in the closure case, renaming and
 substitution adjust the closure environment and leave the closure body
 unchanged. The adjustment to the environment is \AS{rename ρ <\$> E}
 in the case of renaming and \AS{subst ρ <\$> E} in the case of
 substitution. In either case, the adjustment consists of mapping the
 renaming/substitution over the values in the environment.
 
-Just like in λst, we also define functions \AS{ext} and \AS{exts}
-which extend the environment when renaming or substitution goes under
-a binder:
+Just like in λst, we also define functions \AS{ext} and \AS{exts}:
 
 \ExecuteMetaData[StateOfTheArt/Closure.tex]{ext}
 \ExecuteMetaData[StateOfTheArt/Closure.tex]{exts}
@@ -803,9 +792,9 @@ a binder:
 \section{Operational semantics}
 \label{sec:oper-semant}
 
-Operational semantics are similar to the semantics for λst, except for
-adjustments for closures. Values in λcl are closures, and the rule for
-beta reduction is different:
+Operational semantics for λcl are similar to the semantics for λst,
+except they are adjusted to accommodate closures. Values in λcl are
+closures, and the rule for beta reduction is different:
 
 \ExecuteMetaData[StateOfTheArt/Closure.tex]{beta}
 
@@ -821,10 +810,9 @@ substitution environments.
 
 This project's approach to typed, or type-preserving, closure
 conversion follows \cite{DBLP:conf/popl/MinamideMH96}. An important
-point here is that the specification of typed closure conversion
-allows for different implementations which might differ in their
-treatment of environments. The only requirement in the specification
-is that
+point here is that there are many possible realisations of closure
+conversion, which differ in how they construct environments. The only
+requirement of any concrete closure conversion is that:
 
 \begin{enumerate}
 \item If the source term is an abstraction typed in the context
@@ -844,8 +832,8 @@ This is given by the following conversion rule:
     \langle\langle \lambda x : \sigma . e' \; , \; e_{ev} \rangle\rangle : \sigma \rightarrow \tau}
 \]
 
-It is up to the implementation of closure conversion to decide how big
-to make \AS{Δ}, on the spectrum between (1) \AS{Δ} being equal to
+It is up to the implementation of closure conversion to decide the
+exact \AS{Δ}, on the spectrum between (1) \AS{Δ} being equal to
 \AS{Γ}, and (2) \AS{Δ} being \textit{minimal}, i.e. only containing
 the parts of \AS{Γ} which are necessary to type the term. We present
 two Agda implementation of closure conversion, corresponding to the
@@ -910,16 +898,16 @@ converted to the term \AS{e'} in \AS{Δ}'':
 \textbf{min-V}: Any variables can be typed in a singleton context
 containing just the type of the variable.
 
-\textbf{min-A}: If the conversion \AS{e₁'} of \AS{e₁} can be typed in
-$\Delta_1$, and the conversion \AS{e₂'} of \AS{e₂} can be typed in \AS{Δ₂},
-then the application \AS{e₁' e₂'} can be typed in \AS{Δ}, where \AS{Δ}
-is the result of merging \AS{Δ₁} and \AS{Δ₂}.
+\textbf{min-A}: If the result \AS{e₁'} of converting \AS{e₁} can be
+typed in $\Delta_1$, and the result \AS{e₂'} of converting \AS{e₂} can
+be typed in \AS{Δ₂}, then the application \AS{e₁' e₂'} can be typed in
+\AS{Δ}, where \AS{Δ} is the result of merging \AS{Δ₁} and \AS{Δ₂}.
 
-\textbf{min-L}: If the conversion \AS{e'} of the abstraction body
-\AS{e} can be typed in context \AS{σ ∷ Δ} (or $\Delta, x : \sigma$,
-using the notation with names), then the closure resulting from the
-conversion of the abstraction can be typed in \AS{Δ}, and it has the
-identity environment $\Delta \subseteq \Delta$.
+\textbf{min-L}: If the result \AS{e'} of converting the abstraction
+body \AS{e} can be typed in context \AS{σ ∷ Δ} (or
+$\Delta, x : \sigma$, using the notation with names), then the closure
+resulting from the conversion of the abstraction can be typed in
+\AS{Δ}, and it has the identity environment $\Delta \subseteq \Delta$.
 
 To formalise this conversion in Agda, we need several helper
 definitions.
@@ -960,16 +948,15 @@ as:
 
 \ExecuteMetaData[StateOfTheArt/SubContext.tex]{merge}
 
-We argue that the type of the function completely captures its
-behaviour (TODO how would we prove this?). The fact that a type can
-completely capture the behaviour of a function is a remarkable feature
-of programming with dependent types. Even more remarkable is the fact
-that the logical properties of \AS{Γ₁} are useful computationally. E.g
-the proof that \AS{Δ ⊆ Γ₁} determines a renaming from \AS{Δ} to
-\AS{Γ₁}, which is used in the minimising closure conversion
-algorithm. A further example: the fact that \AS{⊆-trans Δ⊆Γ₁ Γ₁⊆Γ ≡
-  Δ⊆Γ} is used in proofs of certain equivalences involving subcontexts
-and renaming.
+Observe that the function completely captures its behaviour. The fact
+that a type can completely capture the behaviour of a function is a
+remarkable feature of programming with dependent types. Even more
+remarkable is the fact that the logical properties of \AS{Γ₁} are
+useful computationally. E.g the proof that \AS{Δ ⊆ Γ₁} determines a
+renaming from \AS{Δ} to \AS{Γ₁}, which is used in the minimising
+closure conversion algorithm. A further example: the fact that
+\AS{⊆-trans Δ⊆Γ₁ Γ₁⊆Γ ≡ Δ⊆Γ} is used in proofs of certain equivalences
+involving subcontexts and renaming.
 
 \section{Agda implementation of minimising closure conversion}
 \label{sec:agda-impl-minim}
@@ -1008,12 +995,13 @@ proof of the context membership by a function \AS{Var→⊆}.
 Given an application \AS{e₁ e₂}, \AS{e₁} and \AS{e₂} are closure
 converted recursively, resulting in terms \AS{e₁'} and \AS{e₂'}, which
 are typed in \AS{Δ₁} and \AS{Δ₂}, respectively. Following
-\textit{app-V}, the result of closure-converting the application is
+\textit{min-A}, the result of closure-converting the application is
 typed in the context \AS{Δ}, which is the result of merging \AS{Δ₁}
 and \AS{Δ₂}. As terms are explicitly typed in a context, \AS{e₁'} and
 \AS{e₂'} have to be renamed from \AS{Δ₁} to \AS{Δ}, and from \AS{Δ₂}
-to \AS{Δ}, respectively. A renaming environment is computed from a
-subcontext relation proof by the function \AS{⊆→ρ} which is given by:
+to \AS{Δ}, respectively. A renaming environment is computed from the
+evidence for the subcontext relation by the function \AS{⊆→ρ} which is
+given by:
 
 \ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{subctx-to-ren}
 
@@ -1021,7 +1009,7 @@ subcontext relation proof by the function \AS{⊆→ρ} which is given by:
 
 \ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-l}
 
-Following \textit{min-A}, the result of closure-converting an
+Following \textit{min-L}, the result of closure converting an
 abstraction depends on the result \AS{N†} of closure-clonverting its
 body. A recursive call on the body of the abstraction yields a term
 typed in some context \AS{Δ}. But looking at the typing rule for
