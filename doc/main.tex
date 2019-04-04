@@ -330,8 +330,8 @@ compilation. The paper shows how to achieve end-to-end typed
 compilation from System F to TAL. It does not, however, attempt to
 show any properties about operational correctness of the compiler.
 
-An early examle of a compiler which was verified for end-to-end
-operational correctness was described by Adam Chlipala in his paper "A
+An early example of a compiler which was verified for end-to-end
+operational correctness was described by Chlipala in his paper "A
 Certified Type-Preserving Compiler from Lambda Calculus to Assembly
 Language" \cite{DBLP:conf/pldi/Chlipala07}. The source language there
 is a variant of the simply-typed lambda calculus (STLC). Compilation
@@ -354,7 +354,7 @@ functional languages, especially dealing with first-class
 functions. This makes the challenges facing CompCert implementers
 quite different from ones explored in this project.
 
-A different example of a verified compiler discussed here is CakeML
+CakeML is another instance of a verified compiler
 \cite{POPL14}. CakeML acceppts a subset a StandardML, a functional
 language which is well-suited to verification as its semantics have
 been formalised. A special feature of CakeML is that it can
@@ -388,12 +388,12 @@ abstractions with free variables are transformed to
 the \textit{environment}, which is a record holding the values
 corresponding to the free variables in the body (code). Closure
 conversion transforms abstractions to closures, and replaces
-references to variables with lookups in the environment.
+variables with references to the environment.
 
-We present an example of closure conversion. Let the source language
-be simply typed lambda calculus (STLC) with let-expressions and
-arithmetic, and let the target language have environments (written
-\AS{x=x, y=y}) and closures (written \AS{⟪ λx.e, \{y=y, z=z\} ⟫ }).
+We present closure conversion on an example expression. Let the source
+language be simply typed lambda calculus (STLC) with let-expressions
+and arithmetic, and let the target language have environments (written
+\AS{\{x=x, y=y\}}) and closures (written \AS{⟪ λx.e, \{y=y, z=z\} ⟫ }).
 
 Further, suppose the target program is
 
@@ -406,25 +406,25 @@ Then, the closure converted form is
   + e\textsubscript{z}.y + z , \{ v = \textsubscript{x}.v, x = x, y =
   y \} ⟫ , \{ v=v \} ⟫ } 
 
-Notice that each abstraction became a closure, and that closure bodies
+Notice that each abstraction becomes a closure, and that closure bodies
 only use their single bound variable and reference the environment. In
 particular, when building the environment of the inner closure, the
 environment of the outer closure is referenced: \AS{v =
-  \textsubscript{x}.v}.
+  e\textsubscript{x}.v}.
 
 We provide typing and conversion rules for closure conversion in
-Section~\ref{sec:conversion-from-st}, which discusses the Agda
-implementation of closure conversion.
+Section~\ref{sec:conversion-from-st}, which presents a concrete Agda
+implementation.
 
 Closure conversion, whether called by this name or not, is part of
 most compilers which compile languages with first-class functions to
 low-level code. But the first work which provided a rigorous treatment
-of closure conversion was the paper "Typed Closure Conversion" by
-Minamide et al. \cite{DBLP:conf/popl/MinamideMH96}. It demonstrated
-type-preserving closure conversion, which is made possible by giving
-closure environments existential types. The paper also contains a
-proof of operational correctness of the typed closure conversion
-algorithm by logical relations.
+of closure conversion was the "Typed Closure Conversion"
+\cite{DBLP:conf/popl/MinamideMH96}. It demonstrated type-preserving
+closure conversion, which is made possible by giving closure
+environments existential types. The paper also contains a proof of
+operational correctness of the typed closure conversion algorithm by
+logical relations.
 
 \section{The Agda proof assistant}
 \label{sec:agda-proof-assistant}
@@ -2051,7 +2051,7 @@ they would be inadequate for a languauge with closures anyway.
 
 % use the following and \cite{} as above if you use BibTeX
 % otherwise generate bibtem entries
-\bibliographystyle{plain}
+\bibliographystyle{apalike}
 \bibliography{main}
 
 \chapter{Technical appendix}
