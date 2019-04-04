@@ -1010,7 +1010,7 @@ given by:
 \ExecuteMetaData[StateOfTheArt/ClosureConversion.tex]{min-cc-l}
 
 Following \textit{min-L}, the result of closure converting an
-abstraction depends on the result \AS{N†} of closure-clonverting its
+abstraction depends on the result \AS{N†} of closure converting its
 body. A recursive call on the body of the abstraction yields a term
 typed in some context \AS{Δ}. But looking at the typing rule for
 closures (\textit{T-clos}), the closure body is typed in a context
@@ -1053,12 +1053,12 @@ that they are typed in the same context.
 \section{Fusion lemmas for the closure language λcl}
 
 One distinct kind of lemmas about interactions between different
-traversals, or semantics, is a fusion lemma.  A fusion lemma relates
-three traversals: the pair we sequence and their sequential
-composition. The two traversals which have to be fused in this work's
-proofs are renaming and substitution. There are four ways we can
-sequence renaming and substitution, and each of those four sequencing
-can be expressed as a single renaming or substitution:
+traversals, or semantics, are fusion lemmas.  A fusion lemma relates
+three traversals: the pair we sequence and their composition. The two
+traversals which have to be fused in this development are renaming and
+substitution. There are four ways renaming and substitution can be
+composed, and each of those four compositions can be expressed as a
+single renaming or substitution:
 
 \begin{enumerate}[nolistsep]
   \item A renaming followed by a renaming is a renaming
@@ -1080,14 +1080,12 @@ Rather than include Agda proofs of all four lemmas, here we outline
 the proof structure, analyse just one of the four proofs, and compare
 fusion lemmas for λcl with the corresponding lemmas for λst.
 
-A generic technique to prove fusion lemmas for STLC, including the
-ones about renaming and substitution, is one of the main contributions
+A generic technique to prove fusion lemmas about renaming and
+substitution in STLC is one of the main contributions
 of ACMM \cite{DBLP:conf/cpp/Allais0MM17}. Their proof uses Kripke
 logical relations and it relies on the invariant that corresponding
 environment values are in appropriate relations, including when
-environments are extended when going under a binder. Maintaining this
-invariant is possible thanks to the generic framework for writing
-traversals introduced by ACMM.
+environments are extended when going under a binder.
 
 As it turns out, fusion lemmas for the closure language are simpler,
 as they do not require the logical relation machinery of ACMM. This is
@@ -1109,9 +1107,8 @@ The proof is by induction on the typing derivation of the term:
 \begin{itemize}
 \item In the variable case, the LHS and the RHS normalise to the same
   term, so \AS{refl} suffices.
-\item In the application case, the proof is by induction and
-  congruence.
-\item In the closure case, the proof is also by congruence, but an
+\item In the application case, the proof is by induction.
+\item In the closure case, the proof is also by induction, but an
   equational proof is required to show that the LHS and RHS act in the
   same way on the environment \AS{E}.
 \end{itemize}
@@ -1129,28 +1126,24 @@ The equational proof proceeds as follows:
 \item \AS{<\$>-fun} is instantiated with the inductive hypothesis.
 \end{enumerate}
 
-Unfortunately, Agda does not recognise this project's fusion lemmas as
-terminating, and we were unable to provide a termination proof. Still,
-we believe that the function does in fact terminate.
-
-
-\chapter{Proving correctness of closure conversion with bisimulation}
+\chapter{Proving correctness of closure conversion with a
+  bisimulation} 
 \label{cha:prov-corr-clos}
 
-The preceding sections defined the source and target languages of
+The preceding sections defined the source and target language of
 closure conversion, λst and λcl, together with reduction rules for
 each, and a closure conversion function \AS{min-cc} from λst to λcl.
 
-The \AS{min-cc}  closure conversion is type- and
-scope-preserving by construction. The property of type preservation
-provides confidence in the compilation process, but in this
-theoretical development which deals with a small, toy language, it is
-within the reach of this project to prove properties about operational
-correctness. 
+The \AS{min-cc} closure conversion is type- and scope-preserving by
+construction. The property of type preservation provides confidence in
+the compilation process, but in this theoretical development which
+deals with a small, toy language, it is within our reach to prove
+properties about operational correctness.
 
-One such operational correctness property of a pair of languages is
-\textbf{bisimulation}. Intuition about bisimulation is captured by a
-slogan: related terms reduce to related terms. 
+One such operational correctness property of a pair of languages
+related by a translation is \textbf{bisimulation}. Intuition about
+bisimulation is captured by the slogan: related terms reduce to related
+terms.
 
 This chapter starts by defining a relation between terms of λst and
 terms of λcl, which we call a \textit{compatibility relation}. The
@@ -1181,8 +1174,6 @@ is inspired by the ``Bisimulation'' chapter from
 \section{Compatibility relation}
 \label{sec:comp-rel}
 
-The compatibility relation is defined as follows:
-
 \begin{definition}
   Given a term \AS{M} in λst and a term \AS{M†} in λcl,
   the compatibilty relation \AS{M \tis M†} is defined inductively as
@@ -1212,17 +1203,17 @@ abstraction / closure case needs some explanation. Since the body
 the closure \AS{N†} is defined in \AS{σ ∷ Δ}, they cannot be
 compatible. However, \AS{N} can be compatible with the result of
 substituting the environment \AS{E} in \AS{N†} (the environment is
-extended with a variable corresponding to the \AS{σ} in the
+extended with a variable corresponding to \AS{σ} in the
 context). The intuition for the abstraction/closure case is that
-substituting the environment ``undoes'' the effect of closure conversion
-on the context. 
+substituting the environment ``undoes'' the effect of closure
+conversion.  
 
 The compatibility relation is defined in Agda as follows:
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{tilde}
 
 We have defined the syntactic compatibility relation. The next
-section defines what it means for a relation to be a bisimulation.
+section states what it means for a relation to be a bisimulation.
 
 \section{Bisimulation}
 
@@ -1230,20 +1221,18 @@ Bisimulation, as the name implies, is defined in terms on two
 simulations: one from source to target terms, and the other one from
 target to source terms.
 
-In the following definitions speak about a two languages, \AS{A} and
-\AS{B}. Also, whenever simulations or bisimulations are mentioned,
-they are implicitly \textit{lock-step}. The literature has example of
-more general simulations.
+The following definitions relates a two languages, \AS{A} and
+\AS{B}.
 
 \begin{definition}
   Given a relation \AS{≈} between terms of \AS{A} and terms of \AS{B},
-  we say that \AS{≈} is a \textbf{simulation} from \AS{A} to \AS{B} if
-  and only if for all terms \AS{M} and \AS{N} in \AS{A}, and \AS{M†}
-  in \AS{B}, if \AS{M} reduces in a single step to \AS{N}, and \AS{M}
-  and \AS{M†} are in the \AS{≈} relation (\AS{M ≈ M†}), then there
-  exists a term \AS{N†} in \AS{B} such that \AS{M†} reduces to \AS{N†}
-  in a single step, and \AS{N} is in the \AS{≈} relation with \AS{N†}:
-  \AS{N ≈ N†}.
+  we say that \AS{≈} is a (locks-step) \textbf{simulation} from \AS{A}
+  to \AS{B} if and only if for all terms \AS{M} and \AS{N} in \AS{A},
+  and \AS{M†} in \AS{B}, if \AS{M} reduces in a single step to \AS{N},
+  and \AS{M} and \AS{M†} are in the \AS{≈} relation (\AS{M ≈ M†}),
+  then there exists a term \AS{N†} in \AS{B} such that \AS{M†} reduces
+  to \AS{N†} in a single step, and \AS{N} is in the \AS{≈} relation
+  with \AS{N†}: \AS{N ≈ N†}.
 \end{definition}
 
 The essence of simulation can be captured in a diagram.
@@ -1279,16 +1268,16 @@ relation, values, renaming, and substitution.
 \section{Compatibility, values, renaming, and substitution}
 \label{sec:comp-valu-renam}
 
-As discussed in [TODO], mechanising the meta-theory of a language
-involves proving lemmas about the interactions between various
-traversals and transformations, including renaming, substitution, and
-compilation phases. This is also the case for proving correctness with
-bisimulation, which requires establishing lemmas about the interplay
-between the compatibility relation, values, renaming, and
-substitution. In fact, proving those lemmas often constitutes the
-biggest effort in the entire proof. In Chapter~\ref{cha:refl-eval}, we
-reflect on the possibiity of automating this effort with generic
-proving.
+As discussed in Section~\ref{sec:gener-trav-proofs}, mechanising the
+meta-theory of a language involves proving lemmas about the
+interactions between various traversals and transformations, including
+renaming, substitution, and compilation phases. This is also the case
+for proving correctness with bisimulation, which requires establishing
+lemmas about the interplay between the compatibility relation, values,
+renaming, and substitution. In fact, proving those lemmas often
+constitutes the biggest effort in the entire proof. In
+Chapter~\ref{cha:refl-eval}, we reflect on the possibiity of
+automating this effort with generic proving.
 
 For each relevant property, we state it as an informal lemma, give its
 Agda statement, and its Agda proof.
@@ -1405,7 +1394,7 @@ conversion \AS{simple-cc} and the minimising closure conversion
 \AS{\_†}.
 
 While there are many possible closure conversion function, which
-differ by how big environments they construct, there is a unique
+differ the big environments they construct, there is a unique
 backtranslation from λcl to λst, which we call \AS{undo}. We can show
 that the converse of the graph relation of \AS{undo} is contained in
 the compatibility relation: \AS{undo N \tis N}.
@@ -1430,12 +1419,12 @@ the compatibility relation: \AS{undo N \tis N}.
     needs to be provided.
 
     We can tell by inspection that the \AS{undo} function
-    terminates. We can define a \AS{size} measure (function) on target
-    terms which is defined as the number of term constructors in the
-    term, including in the environment. Then it is easy to see that in
-    the closure case, the argument to the recursive call to \AS{undo},
-    \AS{T.subst (T.exts E) M}, has a smaller measure than the input
-    argument \AS{ T.L M E}.
+    terminates. Suppose we define a \AS{size} measure (function) on
+    target terms which is defined as the number of term constructors
+    in the term, including in the environment. Then it is easy to see
+    that in the closure case, the argument to the recursive call to
+    \AS{undo}, \AS{T.subst (T.exts E) M}, has a smaller measure than
+    the input argument \AS{ T.L M E}.
 
     An explicit proof of termination is not of interest in this
     project. The reason for mechanising proofs is to help with
@@ -1444,14 +1433,11 @@ the compatibility relation: \AS{undo N \tis N}.
     its proof.  }%
 }
 
-The trivial closure conversion \AS{simple-cc} uses full contexts as
-environments (through identity substitutions \AS{id-subst}):
-
-\ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{convert}
-
-\AS{simple-cc} is well-behaved as its graph relation is contained in
-the compatibility relation. The proof is by straightforward induction;
-in the abstraction case, we need to argue that applying an identity
+Recall the trivial closure conversion \AS{simple-cc} from
+Section~\ref{sec:conversion-from-st}. The conversion \AS{simple-cc} is
+well-behaved as its graph relation is contained in the compatibility
+relation. The proof is by straightforward induction; in the
+abstraction case, we need to argue that applying an identity
 substitution leaves the argument term unchanged.
 
 \ExecuteMetaData[StateOfTheArt/Bisimulation.tex]{graph}
@@ -1471,9 +1457,6 @@ is contained in the compatibility relation, and that the compatibility
 relation is a bisimulation. This means that when a source term and its
 closure converted target term both take a reduction step, then the
 terms they reduce to are also compatible.
-
-[TODO example that reductions may take us out of the graph relation of
-a specific closure conversion function]
 
 \chapter{Proving correctness of closure conversion by logical
   relations}
