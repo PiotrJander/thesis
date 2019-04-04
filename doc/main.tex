@@ -24,7 +24,7 @@
 
 \begin{document}
 
-\title{Verifying Type- and Scope-Safe Program Transformations}
+\title{Verifying Type-and-Scope Safe Program Transformations}
 
 \author{Piotr Jander}
 
@@ -40,15 +40,16 @@
   commonly used encoding for such intermediate languages; it
   facilitates proofs of correctness of compilation phases, including
   proofs by logical relations. However, using such representation
-  requires repeating considerable meta-theoretical boilerplate for
-  each intermediate language used by the compiler.
+  requires repeatedly implementing and proving considerable
+  meta-theoretical boilerplate for each intermediate language used by
+  the compiler.
 
   This project formalises an intermediate language with closures,
   implements a closure conversion algorithm, and mechanises two proofs
   of its correctness: with bisimulations and with Kripke logical
   relations.
 
-  This work builds on a line of research which gave rise to a
+  This work builds on a line of research which culminated in a
   state-of-the-art framework for representing languages with binders
   and generically proving their meta-theoretical properties
   \cite{DBLP:journals/pacmpl/AllaisA0MM18}. While this technique is
@@ -72,10 +73,10 @@ functional programs in compilers.
 
 Functional language, with their rich semantics, expressive types, and
 restrictions such as purity, are particularly well-suited to
-verification, or formally proving that a program conforms to a
+verification, i.e. proving that a program conforms to a
 specification. However, verification is performed with respect to the
 semantics of the source program, whereas guarantees are needed about
-the compiled machine code which is actually executed. To bridge the
+the compiled machine code. To bridge the
 gap between verification of the source code and assurances about the
 executable code, the compiler should be proved to preserve the
 semantics of the source language.
@@ -97,8 +98,8 @@ bisimulation and logical relations.
 \section{Motivation}
 \label{sec:motivation}
 
-Closure conversion is a compilation phase present in a typical
-compiler which takes a language with first-class, nested functions to
+Closure conversion is a compilation phase performed by a typical
+compiler which compiles a language with first-class, nested functions to
 machine code. Suppose the source and target languages are given by:
 
 \begin{minipage}{.5\textwidth}
@@ -111,34 +112,34 @@ machine code. Suppose the source and target languages are given by:
 The source language is a variant of simply typed lambda calculus, and
 the target language is similar, except that it does not allow
 abstractions with free variables. Instead, it has closures,
-i.e. records which consist of (a) a function which take an argument
-and an environment record and have their bodies defined in terms of
+i.e. records which consist of (a) a function which takes an argument
+and an environment record and has its bodies defined in terms of
 the argument and the environment, and (b) an environment record. A
 closure is a first-class value which simulates a function with free
 variables.
 
 Suppose we implement a translation function which transforms a source
 program to a target program with closures. We would like to show that
-the transformation is correct according to a selected definition of
+the transformation is correct according to an appropriate definition of
 correctness, e.g. that each reduction of the source program is
 simulated by a reduction of the target program.
 
 To formalise this claim, we need to define operational semantics for
 both languages. And since our representations of the source and target
-langauge are type- and scope-safe, we need to define substitution, and
+langauge are type-and-scope safe, we need to define substitution, and
 hence renaming. Futhermore, the correctness result depends on multiple
 smaller results about the interplay between renaming, substitution,
 the translation function, and others.
 
 This project reports on the experience of mechanising two different
 correctness proofs for closure conversion. It concludes with a
-discussion of possibilities of reducing the mechanisation effort.
+reflection on a possibility of reducing the mechanisation effort.
 
 \section{Goals and contributions}
 \label{sec:goals-contributions}
 
 The main \textbf{goal} of this work is to mechanise a proof of
-correctness of a compiler transformation using type- and scope-safe
+correctness of a compiler transformation using type-and-scope safe
 representation for the intermediate languages. Specifically, the
 \textbf{objectives} of this project, all of which have been achieved,
 are:
@@ -156,8 +157,8 @@ are:
 
 Additionally, a \textbf{contribution} of this project is to
 demonstrate that languagues with closures and closure conversion are
-problematic for current state-of-the-art techniques for mechanising
-language meta-theory.
+problematic for current state-of-the-art techniques for generically
+proving properties of languages' meta-theory.
 
 \section{Overview and organisation}
 \label{sec:overv-organ}
@@ -165,10 +166,10 @@ language meta-theory.
 This report is organised as follows:
 
 Chapter~\ref{cha:related-work} contains a literature review and
-evaluation of exisiting work.
+evaluation of exisiting work on the subject.
 
-Chapter~\ref{cha:background} explains background topics which are
-needed in later sections.
+Chapter~\ref{cha:background} sets the stage for the rest of the report
+by explaining background topics.
 
 Chapter~\ref{cha:agda-development} defines the language with closures
 and explains the implementation of the type-preserving,
@@ -199,31 +200,30 @@ work.
 \label{cha:related-work}
 
 There are several topics within the broad field of programming
-languages and verification which have special relevance to this
-project: (a) representations of languages with bindings, (b) generic
-proving of properties of program traversals, (c) compiler
-verification, and (d) the theory of languages similarity and
-equivalence. This chapter provides an overview of work on those
+languages theory and verification which have special relevance to this
+project: (a) representatin languages with bindings, (b) generic
+proving of properties of program traversals, and (c) compiler
+verification. This chapter provides an overview of work on those
 topics.
 
-\section{Representations of languages with bindings}
+\section{Representating languages with bindings}
 \label{sec:repr-lang-with}
 
-There are clear benefits to mechanising proofs about programming
-languages (PL) theory. A typical PL proof is relatively simple in
-terms of deep concepts used, but complex in terms of the number of
-cases and bookkeeping burden. An error in a pen-and-paper proof can
-invalidate a whole theory. Proof assistants provide means of checking
-proofs and doing the bookkeeping for the user, thus addressing the
-problems. And yet, currently a large proportion of papers submitted to
-PL conferences do not have an accompanying mechanisation.
+There are clear benefits to mechanising proofs which arise in
+programming languages (PL) theory. A typical PL proof is relatively
+simple in terms of techniques used, but complex in terms of the number
+of cases and bookkeeping burden. An error in a pen-and-paper proof can
+invalidate a whole theory. Proof tools address the problem by checking
+proofs and helping the user with bookkeeping. And yet currently, a
+large proportion of papers submitted to PL conferences do not have an
+accompanying mechanisation.
 
 In 2005, a group of PL researchers put forward a hypothesis that
-limited adoption of mechanised proofs stems from a lack of agreement
-about good ways of mechanising meta-theory of languages, in
+limited adoption of mechanised proofs is caused by a lack of consensus
+about optimal ways to mechanise meta-theory of languages, in
 particular, languages with bindings. They issued a challenge
 \cite{poplmarkreloaded} whose goal was to try to compare different
-representations a particular language with bindings,
+representations of a particular language with bindings,
 F\textsubscript{<:}. In response, a dozen solution were submitted,
 using techniques for representing binders and bindings like named
 variables, de Bruijn variables, (parametric) higher-order abstract
@@ -232,16 +232,17 @@ syntax \cite{DBLP:conf/pldi/PfenningE88}
 \cite{pitts2013nominal}, and other.
 
 This project follows ACMM \cite{DBLP:conf/cpp/Allais0MM17} in using
-well-typed and scoped de Bruijn indices
-\cite{DBLP:conf/csl/AltenkirchR99}. Discussed in the background
-section, it gives rise to a deep embedding of the object language,
-which can be inspected and modified. However, to ensure that
-transformations on programs preserve well-typedness and scopedness,
-this representation relies on the operations renaming and
-substitution. In proofs about meta-theory, there frequently arises a
-need to prove correctness lemmas about interactions between renaming,
-substitution, and other traversals. The next section discusses research
-in proving these kind of results generically.
+well-typed and scope-safe de Bruijn indices
+\cite{DBLP:conf/csl/AltenkirchR99}. Formalised in
+Section~\ref{sec:type-scope-safe}, this representation is a deep
+embedding of the object language, and as such, it can be inspected and
+modified. However, to ensure that transformations on programs preserve
+well-typedness and scope-safety, this representation relies on the
+operations renaming and substitution. In meta-theoretical proofs,
+there frequently arises a need to prove correctness lemmas about
+interactions between renaming, substitution, and other traversals. The
+next section discusses research in proving such kind of results
+generically.
 
 \section{Generic transformations of and proofs about type-and-scope
   safe programs}
@@ -257,16 +258,16 @@ A paper by Allais et al. which we will refer to as ACMM
 \cite{DBLP:conf/cpp/Allais0MM17} deals with those problems in the
 setting of simply typed lambda calculus (STLC). It introduces a notion
 of a \textit{semantics}, which is a record defining a traversal in
-terms of (a) the result value, (b) values mapped to the variables in
-the environment, (c) semantic counterparts to the syntactic
-constructors of STLC, and (d) the operation of \textit{weaking} which
-ensured that the traversal remains well-typed and scoped when it
-recurses on a term under a binder.
+terms of (a) its result type, (b) the type of values values mapped to
+the variables in the environment, (c) semantic counterparts to the
+syntactic constructors of STLC, and (d) an operation of
+\textit{weaking} which ensured that the traversal remains well-typed
+and scope-safe when it recurses on a term under a binder.
 
 In a dependently-typed proof assistant like Agda, the structure of the
 proof often mirrors the structure of the program whose properties are
 being proved. Therefore, when different traversals share a common
-structure, proofs which relate such traversals can be treated
+structure, proofs which relate such traversals may be treated
 generically. ACMM exploits this fact and provides a generic way to
 prove certain classes of properties relating traverals on programs in
 STLC.
@@ -274,14 +275,14 @@ STLC.
 A follow-up paper by Allais et al., which we will refer to as AACMM,
 generalises the contributions of ACMM from the setting of STLC to a
 family of languages (syntaxes) which satisfy appropriate
-constrainst. A framework accompanying the AACMM paper allows the user
+constraints. A framework accompanying the AACMM paper allows the user
 to describe a syntax, and then uses generic programming and proving to
 generate the operations of renaming and substitutions for the syntax,
 together with correctness lemmas describing interactions between
-different traversals of the language.
+different traversals in the language.
 
 The repository accompanying AACMM has an example demonstrating its
-contributions in action. A problem is: given two variants of STLC,
+contributions in action. The problem is: given two variants of STLC,
 with and without a \textit{let} construct, implement a traversal which
 inlines \textit{let} expressions, and prove it correct with a
 simulation. Two solution are given. A naive solution contains manual
@@ -289,14 +290,14 @@ proofs of correctness lemmas relating different traversals. A solution
 using the AACMM framework is able to use generic proofs, and is many
 times shorter.
 
-This work relies on results from ACMM, but does not attempt to use
-AACMM. However, Chapter~\ref{cha:refl-eval} provides reflection on
-the feasibility of applying AACMM-like techniques to closure conversion.
+This work relies on results from ACMM and does not attempt to use
+AACMM. However, Chapter~\ref{cha:refl-eval} reflects on the
+feasibility of applying AACMM-like techniques to closure conversion.
 
 \section{Verified compilation}
 \label{sec:verified-compilation}
 
-In his 2003 paper \cite{hoare2003verifying}, Hoare argued that
+In his 2003 paper \cite{hoare2003verifying}, Hoare argues that
 creating a verifying compiler is one of ``grand challenges'' of
 science, comparable to sending a man to the Moon, mapping the human
 genome, or finding the Higgs boson. By a verifying compiler, Hoare
@@ -308,11 +309,11 @@ verify the verifying compiler itself. This is in fact necessary to
 bridge the gap between verification of the source program and
 verification of the compiled executable.
 
-Properties which are typically verified about compilers concern
-preservation of properties of the source program in the target
-program. Such properties may pertain to: type preservation,
-semantics preservation, or full abstraction. Thus, the following
-statements could be verified.
+TODO fix. Properties which are typically verified about compilers
+concern preservation of properties of the source program in the target
+program. Such properties may pertain to: type preservation, semantics
+preservation, or full abstraction. Thus, the following statements
+could be verified.
 
 \begin{itemize}
 \item (Type-preservation) Suppose the target language is typed. If the
@@ -419,9 +420,10 @@ TODO LR section
 \chapter{Background}
 \label{cha:background}
 
-This chapter will introduce the relevant concepts. It will start with
-closure conversion, then discuss compilation phases and intermediate
-languages, and finally explain the Agda definitions and encodings
+This chapter sets the stage for the rest of this report by introducing
+relevant concepts. It starts by explaining closure conversion, then it
+gives a brief overview of the Agda proof assistant, and finally, it
+explains the representation of simply typed lambda calculus in Agda,
 which were borrowed from ACMM \cite{DBLP:journals/pacmpl/AllaisA0MM18}
 and PLFA \cite{DBLP:conf/sbmf/Wadler18}.
 
@@ -527,33 +529,32 @@ definitions in this report treating them as deduction rules.
   calculus λst}
 \label{sec:type-scope-safe}
 
-This section will discuss the encoding of simply typed lambda calculus
-(abbreviated as STLC, denoted with λst), which is the source language
-of closure conversion. Typing and reduction rules are standard for
-call-by-value lambda calculus, so it is the encoding in Agda which is
-of interest in this section. As similar encoding is used for the
-closure language λcl.
+This section discusses the representation of simply typed,
+call-by-value lambda calculus (denoted with λst) in Agda, which is the
+source language of our closure conversion. A similar encoding is used
+for the closure language λcl, as explained in
+Section~\ref{sec:closure-language-cl}.
 
-Using dependently typed Agda as the meta language allows us to encode
-certain invariants in the representation. Two such invariants are
-scope and type safety. The representation is scope-safe in the sense
-that all variables in a term are either bound by some binder in the
-term, or explicitly accounted for in the context. It is type-safe in
-the sense that terms are synonymous with their typing derivations,
-which makes ill-typed terms unrepresentable. This kind of scope and
-type safety is due to \cite{DBLP:conf/csl/AltenkirchR99}. The rest of
-this section shows how this is achieved in Agda; the Agda encoding is
-based on the one used in \cite{DBLP:conf/cpp/Allais0MM17},
+Using a dependently-typed language like Agda as the meta language
+allows us to encode certain invariants in the representation. Two such
+invariants are type and scope safety. The representation is scope-safe
+in the sense that all variables in a term are either bound by some
+binder in the term, or explicitly accounted for in the context. It is
+type-safe in the sense that terms are synonymous with their typing
+derivations, which makes ill-typed terms unrepresentable. The rest of
+this section shows how this is achieved in Agda. It is part of the
+Background chapter as the representation closely resembles
+\cite{DBLP:conf/cpp/Allais0MM17},
 \cite{DBLP:journals/pacmpl/AllaisA0MM18}, and
 \cite{DBLP:conf/sbmf/Wadler18}.
 
 TODO STLC as a figure here
 
-To start with, λst typed are defined as follows.
+λst has a ground type and a funtion type:
 
 \ExecuteMetaData[StateOfTheArt/Types.tex]{type}
 
-The context is simply a list of types.
+A context is simply a list of types.
 
 \ExecuteMetaData[StateOfTheArt/Types.tex]{context}
 
@@ -1616,9 +1617,9 @@ The proof is inspired by a sketch of an argument from
 \section{The compatibility relation}
 \label{sec:lr-compat-rel}
 
-We denote the compatibility relation with \AS{≅}.  In general, given a
+We denote the compatibility relation with \AS{\ti}.  In general, given a
 term \AS{M₁} in λst' and a term \AS{M₂} in λcl', \AS{M₁} and \AS{M₂}
-are compatible (M₁ ≅ M₂) when their subterms are compatible. In the
+are compatible (M₁ \tis M₂) when their subterms are compatible. In the
 special case of abstractions/closures, the closure body is renamed
 with the environment in the premise of the rule.
 
@@ -1627,7 +1628,7 @@ with the environment in the premise of the rule.
 For brevity, we do not include translation functions from λst' to
 λcl'. The reader should convince themselves that the minimising
 closure conversion from λst and λcl could be ported to λst' and λcl',
-and that its graph relation woud be contained in \AS{≅}.
+and that its graph relation woud be contained in \AS{\ti}.
 
 \section{The logical relation}
 \label{sec:logical-relation}
@@ -1636,16 +1637,16 @@ While the compatibility relation captures syntactic correspondence, we
 need another relation on (closed) language expressions which captures
 operational correspondence. We define a family of logical relation
 \AS{⇔} relating closed source terms (reducible expressions) to closed
-target terms (\AS{\ti}) and closed source values to closed target
+target terms (\AS{≅}) and closed source values to closed target
 values (\AS{≈}).  The relations are defined by induction on types. In
-the definition, we write \AS{τ ∋ M₁ ~ M₂} or \AS{τ ∋ M₁ ≈ M₂} to mean
+the definition, we write \AS{τ ∋ M₁ ≅ M₂} or \AS{τ ∋ M₁ ≈ M₂} to mean
 that \AS{M₁} and \AS{M₂} are related at type \AS{τ}:
 
 \begin{tabular}{rccl}
-  \AS{τ ∋} & \AS{M₁ \tis M₂}   & iff  & \AS{M₁ ⇓ V₁}, \AS{M₂ ⇓ V₂}, and \AS{τ ∋ V₁ ≈
+  \AS{τ ∋} & \AS{M₁ ≅ M₂}   & iff  & \AS{M₁ ⇓ V₁}, \AS{M₂ ⇓ V₂}, and \AS{τ ∋ V₁ ≈
                                  V₂}  \\
   \AS{σ ⇒ τ ∋} & \AS{U₁ ≈ U₂} & iff & for all \AS{σ ∋ V₁ ≈ V₂}, \AS{τ ∋ U₁
-                               `\$ V₂ \tis U₂ `\$ V₂ }
+                               `\$ V₂ ≅ U₂ `\$ V₂ }
 \end{tabular}
 
 
@@ -1653,8 +1654,8 @@ There is no case for \AS{≈} at the ground type \AS{α} as only
 variables can have the ground type, and the values in \AS{≈} are
 closed.
 
-In Agda, \AS{\ti} and \AS{≈} are defined as specialisations of the
-\AS{⇔} relation on closed expressions of λst and λcl.
+In Agda, \AS{≅} and \AS{≈} are defined as specialisations of the
+\AS{⇔} relation on closed expressions of λst' and λcl'.
 
 \ExecuteMetaData[LR/LR.tex]{related}
 
@@ -2106,11 +2107,6 @@ matrices. Unlike last year, we can now provide proofs of individual
 rewrite rules. Indeed, some proofs are quite involved. TODO whether
 and how to do it.
 
-% use the following and \cite{} as above if you use BibTeX
-% otherwise generate bibtem entries
-\bibliographystyle{plain}
-\bibliography{main}
-
 \chapter{Conclusion}
 \label{cha:conclusion}
 
@@ -2158,6 +2154,12 @@ lambda calculus, provided a basis for postulating correctness lemmas
 about STLC. Using generic programming solutions from AACMM was beyond
 the scope of this project, but like it was mentioned multiple times,
 they would be inadequate for a languauge with closures anyway.
+
+
+% use the following and \cite{} as above if you use BibTeX
+% otherwise generate bibtem entries
+\bibliographystyle{plain}
+\bibliography{main}
 
 \chapter{Technical appendix}
 \label{cha:technical-appendix}
