@@ -5,7 +5,7 @@ open import Data.List using (List; []; _∷_)
 module LR.Base where
 
 data Type : Set where
-  α    : Type
+  `𝔹    : Type
   _⇒_  : Type → Type → Type
 
 Context : Set

@@ -14,7 +14,7 @@ open T using ()
 
 module LR.LR where
 
-infix 2 _~_
+infix 2 _≅_
 infix 2 _≈_
 \end{code}
 
@@ -23,8 +23,8 @@ infix 2 _≈_
 {-# NO_POSITIVITY_CHECK #-}
 data _⇔_ : ∀ {k τ} → S.Exp₀ k τ → T.Exp₀ k τ → Set
 
-_~_ : ∀ {τ} → S.Trm₀ τ → T.Trm₀ τ → Set
-_~_ = _⇔_
+_≅_ : ∀ {τ} → S.Trm₀ τ → T.Trm₀ τ → Set
+_≅_ = _⇔_
 
 _≈_ : ∀ {τ} → S.Val₀ τ → T.Val₀ τ → Set
 _≈_ = _⇔_
@@ -36,19 +36,23 @@ data _⇔_ where
   ≈λ : ∀ {Δ σ τ} {M₁ : S.Trm τ (σ ∷ [])}
          {M₂ : T.Trm τ (σ ∷ Δ)} {E : T.Subst Δ []}
        → ({V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
-              → V₁ ≈ V₂ → M₁ [ V₁ ] ~ T.subst (E ∙ V₂) M₂)
+              → V₁ ≈ V₂ → M₁ [ V₁ ] ≅ T.subst (E ∙ V₂) M₂)
          -------------------------------------------------
        → S.`λ M₁ ≈ T.`λ M₂ E
 
+  ≈tt : S.`tt ≈ T.`tt
+
+  ≈ff : S.`ff ≈ T.`ff
+
   -- terms
 
-  ~Trm : ∀ {σ} {N₁ : S.Trm₀ σ} {N₂ : T.Trm₀ σ}
+  ≅Trm : ∀ {σ} {N₁ : S.Trm₀ σ} {N₂ : T.Trm₀ σ}
              {V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
      → N₁ S.⇓ V₁
      → N₂ T.⇓ V₂
      → V₁ ≈ V₂
        -------
-     → N₁ ~ N₂
+     → N₁ ≅ N₂
 \end{code}
 %</related>
 
@@ -89,42 +93,48 @@ lookup^R (ρ^R ∙^R ≈N) (s x)  = lookup^R ρ^R x
 
 %<*compat>
 \begin{code}
-infix  4 _≅_
-data _≅_ : ∀ {Γ σ k} → S.Exp k σ Γ → T.Exp k σ Γ → Set where
+infix  4 _~_
+data _~_ : ∀ {Γ σ k} → S.Exp k σ Γ → T.Exp k σ Γ → Set where
 
   -- values
 
   ~var : ∀ {Γ σ} {x : Var σ Γ}
      ---------------
-   → S.`var x ≅ T.`var x
+   → S.`var x ~ T.`var x
 
   ~λ : ∀ {Γ Δ σ τ} {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Δ)} {E : T.Subst Δ Γ}
-    → N₁ ≅ T.subst (T.exts E) N₂
+    → N₁ ~ T.subst (T.exts E) N₂
       -----------------
-    → S.`λ N₁ ≅ T.`λ N₂ E
+    → S.`λ N₁ ~ T.`λ N₂ E
+
+  ~tt : ∀ {Γ} → _~_ {Γ} S.`tt T.`tt
+
+  ~ff : ∀ {Γ} → _~_ {Γ} S.`ff T.`ff
 
   -- terms
 
   _~$_ : ∀ {Γ σ τ} {L : S.Val (σ ⇒ τ) Γ} {L† : T.Val (σ ⇒ τ) Γ}
            {M : S.Val σ Γ} {M† : T.Val σ Γ}
-    → L ≅ L†
-    → M ≅ M†
+    → L ~ L†
+    → M ~ M†
       --------------------
-    → L S.`$ M ≅ L† T.`$ M†
+    → L S.`$ M ~ L† T.`$ M†
 
   ~let : ∀ {Γ σ τ} {M₁ : S.Trm σ Γ} {M₂ : T.Trm σ Γ}
            {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ ∷ Γ)}
-    → M₁ ≅ M₂
-    → N₁ ≅ N₂
+    → M₁ ~ M₂
+    → N₁ ~ N₂
       ----------------------------
-    → S.`let M₁ N₁ ≅ T.`let M₂ N₂
+    → S.`let M₁ N₁ ~ T.`let M₂ N₂
 
   ~val : ∀ {Γ σ} {M₁ : S.Val σ Γ} {M₂ : T.Val σ Γ}
-    → M₁ ≅ M₂
+    → M₁ ~ M₂
       ----------------------
-    → S.`val M₁ ≅ T.`val M₂
+    → S.`val M₁ ~ T.`val M₂
 \end{code}
 %</compat>
+
+
 
 \begin{code}
 postulate
@@ -141,7 +151,7 @@ postulate
 fund : ∀ {Γ σ k} {M₁ : S.Exp k σ Γ} {M₂ : T.Exp k σ Γ}
        {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
    → ρ^s ∙≈ ρ^t
-   → M₁ ≅ M₂
+   → M₁ ~ M₂
      -------------------------------
    → S.subst ρ^s M₁ ⇔ T.subst ρ^t M₂
 \end{code}
@@ -152,13 +162,15 @@ fund-lam : ∀ {Γ Δ σ τ} {N₁ : S.Trm τ (σ ∷ Γ)} {N₂ : T.Trm τ (σ 
              {E : T.Subst Δ Γ} {V₁ : S.Val₀ σ} {V₂ : T.Val₀ σ}
              {ρ^s : S.Subst Γ []} {ρ^t : T.Subst Γ []}
    → ρ^s ∙≈ ρ^t
-   → N₁ ≅ T.subst (T.exts E) N₂
+   → N₁ ~ T.subst (T.exts E) N₂
    → V₁ ≈ V₂
      -----------------
    → S.subst (S.rename (pack s) <$> ρ^s ∙ S.`var z) N₁ [ V₁ ]
-             ~ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂  
+             ≅ T.subst (T.subst ρ^t <$> E ∙ V₂) N₂  
 
 fund ∙≈ρ (~var {x = x}) = lookup^R ∙≈ρ x
+fund ∙≈ρ ~tt = ≈tt
+fund ∙≈ρ ~ff = ≈ff
 fund ∙≈ρ (~λ ~N) = ≈λ (λ V₁≈V₂ → ⊥-elim impossible)
   where postulate impossible : ⊥ -- fund-lam ∙≈ρ ~N V₁≈V₂
 fund {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N)
@@ -167,12 +179,12 @@ fund {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N)
 ... | S.`λ _ | T.`var () | _ | _
 fund {ρ^s = ρ^s} {ρ^t} ∙≈ρ (_~$_ {L = L} {L†} ~M ~N)
   | S.`λ N | T.`λ N† E | ≈λ p | ~V with p ~V
-... | ~Trm N₁⇓U₁ N₂⇓U₂ U₁≈U₂
-  = ~Trm (S.⇓step S.→₁app N₁⇓U₁) (T.⇓step T.→₁app N₂⇓U₂) U₁≈U₂
+... | ≅Trm N₁⇓U₁ N₂⇓U₂ U₁≈U₂
+  = ≅Trm (S.⇓step S.→₁app N₁⇓U₁) (T.⇓step T.→₁app N₂⇓U₂) U₁≈U₂
 fund ∙≈ρ (~let ~M ~N) = ⊥-elim impossible
   where postulate impossible : ⊥
 fund ∙≈ρ (~val ~M) with fund ∙≈ρ ~M
-... | ~V = ~Trm S.⇓val T.⇓val ~V
+... | ~V = ≅Trm S.⇓val T.⇓val ~V
 fund-lam {N₁ = N₁} {N₂} {E} {V₁} {V₂} {ρ^s} {ρ^t} ∙≈ρ ~N V₁≈V₂
   with fund (∙≈ρ ∙^R V₁≈V₂) ~N
 ... | p rewrite helper-1 ρ^s N₁ V₁ | sym (helper-2 ρ^t E N₂ V₂) = p

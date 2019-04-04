@@ -25,6 +25,7 @@ data Exp where
   -- values
   `var : ∀ {Γ σ} → Var σ Γ → Val σ Γ
   `λ : ∀ {Γ σ τ} → Trm τ (σ ∷ Γ) → Val (σ ⇒ τ) Γ
+  `tt `ff : ∀ {Γ} → Val `𝔹 Γ
 
   -- non-values (a.k.a. terms)
   _`$_ : ∀ {Γ σ τ} → Val (σ ⇒ τ) Γ → Val σ Γ → Trm τ Γ
@@ -40,6 +41,8 @@ rename ρ (M `$ N)    = rename ρ M `$ rename ρ N
 rename ρ (`λ N)      = `λ (rename (s <$> ρ ∙ z) N)
 rename ρ (`let M N)  = `let (rename ρ M) (rename (s <$> ρ ∙ z) N)
 rename ρ (`val N)    = `val (rename ρ N)
+rename ρ `tt         = `tt
+rename ρ `ff         = `ff
 
 Subst : Context → Context → Set
 Subst Γ Δ = (Γ ─Env) Val Δ
@@ -50,6 +53,8 @@ subst ρ (M `$ N)    = subst ρ M `$ subst ρ N
 subst ρ (`λ N)      = `λ (subst (rename (pack s) <$> ρ ∙ `var z) N)
 subst ρ (`let M N)  = `let (subst ρ M) (subst (rename (pack s) <$> ρ ∙ `var z) N)
 subst ρ (`val N)    = `val (subst ρ N)
+subst ρ `tt         = `tt
+subst ρ `ff         = `ff
 \end{code}
 
 %<*ground>
@@ -92,16 +97,3 @@ data _⇓_ : ∀ {σ} → Trm₀ σ → Val₀ σ → Set where
 \end{code}
 %</big-step>
 
-%<*sn>
-\begin{code}
-{-# TERMINATING #-}
-sn : ∀ {σ} (N : Trm₀ σ) → Σ[ V ∈ Val₀ σ ] (N ⇓ V)
-sn (`var () `$ _)
-sn (`λ M `$ V) with sn (M [ V ])
-sn (`λ M `$ V) | U , M[V]⇓U = U , ⇓step →₁app M[V]⇓U
-sn (`let M N) with sn M
-sn (`let M N) | U , M⇓U with sn (N [ U ])
-sn (`let M N) | U , M⇓U | V , N⇓V = V , ⇓let M⇓U N⇓V
-sn (`val V) = V , ⇓val
-\end{code}
-%</sn>
